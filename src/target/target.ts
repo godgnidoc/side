@@ -9,7 +9,7 @@ export interface Target {
     inherit?: string
 
     /** 当前目标所聚合的目标名称 */
-    composite?: string[]
+    composites?: string[]
 
     /** 当前目标所依赖的包 */
     requires?: { [key: string]: string } // query -> version
@@ -25,6 +25,17 @@ export interface Target {
         }
     }
 
-    /** 启用目标是应当导出的环境变量定义 */
-    params?: { [key: string]: string }
+    /** 
+     * 启用目标时应当导出的环境变量定义
+     */
+    exports?: {
+        [key: string]: {
+            /** 是否覆盖原有变量，若值为数组，默认为 false 否则强制为 true */
+            override?: boolean
+            /** 字段分割符，默认为冒号 */
+            delimiter?: string
+            /** 字段值 */
+            value: string | number | boolean | string[]
+        }
+    }
 }
