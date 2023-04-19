@@ -1,0 +1,5 @@
+#!/bin/bash
+
+npm i
+cp package.json build/
+env -C build NODE_ENV=production npm i --omit=dev

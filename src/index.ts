@@ -18,7 +18,8 @@ class Side implements Application {
         "--help": defaultHelpFeature,
         "-h": defaultHelpFeature,
 
-        ...project
+        project,
+        ... project
     }
 
     entry() {

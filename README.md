@@ -10,6 +10,7 @@ side complete 自动补全
 side shell complete 命令行补全
 side shell global 打印可以用于全局 -->
 
+side init
 side draft
 side setup
 side build
