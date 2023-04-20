@@ -1,6 +1,8 @@
 {
   "name": "side",
+  "version": "0.0.1",
   "type": "module",
+  "revision": "undefined-revision",
   "bin": {
     "side": "./side.js"
   },
@@ -8,7 +10,7 @@
     "axios": "^1.3.5",
     "js-yaml": "4.1.0",
     "semver": "7.3.8",
-    "@godgnidoc/decli": "^0.0.10"
+    "@godgnidoc/decli": "^0.0.11"
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.5",

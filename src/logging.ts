@@ -1,6 +1,18 @@
 /** 全局日志严重性阀门 */
 let log_level: 'debug' | 'info' | 'warn' | 'error' = 'info'
 
+declare global {
+    interface Console {
+        verbose(fmt: string, ...args: any[]): void;
+    }
+}
+
+console.verbose = function (fmt: string, ...args: any[]) {
+    if( process.env["SIDE_VERBOSE"] === "TRUE" ) {
+        console.log(upgrade_format(fmt, 'verbose'), ...args)
+    }
+}
+
 /** 将控制台打印函数均替换为带时间戳、严重性和颜色的打印函数 */
 for (const key of ['debug', 'info', 'warn', 'error']) {
 
@@ -26,7 +38,7 @@ function is_enabled(level: typeof log_level) {
     return levels.indexOf(level) >= levels.indexOf(log_level);
 }
 
-function upgrade_format(format: string, sev: typeof log_level) {
+function upgrade_format(format: string, sev: typeof log_level | 'verbose') {
     let severity = sev.toUpperCase()
     if (process.stdout.isTTY) {
         switch (sev) {
@@ -41,6 +53,9 @@ function upgrade_format(format: string, sev: typeof log_level) {
                 break;
             case 'error':
                 severity = '\x1b[1;31mERROR\x1b[0m';
+                break;
+            case 'verbose':
+                severity = '\x1b[1;30mVERBOSE\x1b[0m';
                 break;
         }
     }

@@ -1,6 +1,15 @@
-export interface Target {
+import { Exports } from "../environment/inflate"
+
+/**
+ * 项目配置清单文件结构
+ * 此结构适用于项目清单、目标清单、切面清单
+ */
+export interface ProjectManifest {
     /** 项目名称 */
     project?: string
+
+    /** 当前目标名 */
+    target?: string
 
     /** 集成开发环境引擎版本号 */
     engine?: string
@@ -25,17 +34,6 @@ export interface Target {
         }
     }
 
-    /** 
-     * 启用目标时应当导出的环境变量定义
-     */
-    exports?: {
-        [key: string]: {
-            /** 是否覆盖原有变量，若值为数组，默认为 false 否则强制为 true */
-            override?: boolean
-            /** 字段分割符，默认为冒号 */
-            delimiter?: string
-            /** 字段值 */
-            value: string | number | boolean | string[]
-        }
-    }
+    /** 启用目标时应当导出的环境变量定义 */
+    exports?: Exports
 }

@@ -1,5 +1,5 @@
 import { Brief, Feature, LongOpt } from '@godgnidoc/decli'
-import { globalOptions } from '../options'
+import { settings } from '../environment'
 import { isAbsolute, join, resolve } from 'path'
 import { access, mkdir, rmdir } from 'fs/promises'
 
@@ -19,10 +19,10 @@ export class ProjectInitFeature extends Feature {
         }
         const arg0 = args[0]
         const target = arg0 === undefined
-            ? globalOptions.workspace
+            ? settings.workspace
             : isAbsolute(arg0)
                 ? arg0
-                : resolve(globalOptions.workspace, arg0)
+                : resolve(settings.workspace, arg0)
 
         console.info('Initializing project in %s', target)
 

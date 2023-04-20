@@ -1,15 +1,22 @@
-import { exit } from "process"
-import { Application, defaultCompleteFeature, defaultHelpFeature, execute } from "@godgnidoc/decli"
-import { globalOptions } from "./options"
-import { project } from "./project"
+/** 优先导入日志模块，初始化日志环境 */
 import { SetLogLevel } from "./logging"
+
+/** 初始化全局设置 */
+import { SideRevision, SideVersion, settings } from "./environment"
+
+/** 导入外部依赖 */
+import { exit } from "process"
+import { Application, Feature, defaultCompleteFeature, defaultHelpFeature, execute } from "@godgnidoc/decli"
+
+/** 导入各功能模块 */
+import { project } from "./project"
 
 class Side implements Application {
     name = "side"
-    version = "1.0.0"
+    version = SideVersion
     brief = "Smooth Integration Development Environment"
     description = "Create, build, test and release your project with ease."
-    options = globalOptions
+    options = settings
     help = 'help'
 
     elements = {
@@ -17,13 +24,21 @@ class Side implements Application {
         "help": defaultHelpFeature,
         "--help": defaultHelpFeature,
         "-h": defaultHelpFeature,
+        "--version": new class extends Feature {
+            brief = "Show version information"
+            description = "Show version information"
+            entry() {
+                console.log(`side - ${SideVersion} - ${SideRevision}`)
+                return 0
+            }
+        },
 
         project,
         ... project
     }
 
     entry() {
-        SetLogLevel(globalOptions.logging)
+        SetLogLevel(this.options.logging)
         return 0
     }
 }
