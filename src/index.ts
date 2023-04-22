@@ -1,8 +1,8 @@
 /** 优先导入日志模块，初始化日志环境 */
-import { SetLogLevel } from "./logging"
+import { SetLogLevel } from "./environment/logging"
 
 /** 初始化全局设置 */
-import { SideRevision, SideVersion, settings } from "./environment"
+import { sideRevision, sideVersion, globalOptions } from "./environment"
 
 /** 导入外部依赖 */
 import { exit } from "process"
@@ -10,13 +10,14 @@ import { Application, Feature, defaultCompleteFeature, defaultHelpFeature, execu
 
 /** 导入各功能模块 */
 import { project } from "./project"
+import { spawn } from "child_process"
 
 class Side implements Application {
     name = "side"
-    version = SideVersion
+    version = sideVersion
     brief = "Smooth Integration Development Environment"
     description = "Create, build, test and release your project with ease."
-    options = settings
+    options = globalOptions
     help = 'help'
 
     elements = {
@@ -28,13 +29,23 @@ class Side implements Application {
             brief = "Show version information"
             description = "Show version information"
             entry() {
-                console.log(`side - ${SideVersion} - ${SideRevision}`)
+                console.log(`side - ${sideVersion} - ${sideRevision}`)
                 return 0
+            }
+        },
+        "shell": new class extends Feature {
+            brief = "Run a shell command in the project environment"
+            description = "Run a shell command in the project environment"
+            args = true
+            async entry(...args: string[]) {
+                const cmd = args.join(' ')
+                const cp = spawn(cmd, { shell: '/bin/bash', stdio: 'inherit' })
+                return new Promise<number>((resolve) => cp.on('exit', (code) => resolve(code)))
             }
         },
 
         project,
-        ... project
+        ...project
     }
 
     entry() {

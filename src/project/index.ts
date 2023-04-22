@@ -1,5 +1,5 @@
-import { ProjectInitFeature } from './init'
+import { projectInitFeature } from './init'
 
 export const project = {
-    init: new ProjectInitFeature,
+    init: projectInitFeature,
 }

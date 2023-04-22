@@ -39,6 +39,7 @@ function is_enabled(level: typeof log_level) {
 }
 
 function upgrade_format(format: string, sev: typeof log_level | 'verbose') {
+    if( typeof format !== 'string' ) return format
     let severity = sev.toUpperCase()
     if (process.stdout.isTTY) {
         switch (sev) {
