@@ -1,7 +1,7 @@
 import { Brief, Feature, LongOpt } from '@godgnidoc/decli'
 import { basename, join, relative } from 'path'
 import { access, mkdir, rmdir, writeFile } from 'fs/promises'
-import { rpaths, settings, sideVersion } from '../environment'
+import { rpaths, getFinalSettings, sideVersion } from '../environment'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import { ProjectManifest } from '../format'
@@ -74,9 +74,9 @@ class ProjectInitFeature extends Feature {
         )
 
         await writeFile(join(target, '..gitignore'), `# ignore files\n\n`
-            + `/${relative(target, settings.dir.build)}/\n`
-            + `/${relative(target, settings.dir.release)}/\n`
-            + `/${relative(target, settings.dir.module)}/\n`
+            + `/${relative(target, getFinalSettings().dir.build)}/\n`
+            + `/${relative(target, getFinalSettings().dir.release)}/\n`
+            + `/${relative(target, getFinalSettings().dir.module)}/\n`
         )
     }
 
