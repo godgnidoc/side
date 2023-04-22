@@ -1,4 +1,5 @@
 #!/bin/bash
 
+rm -r build/dist
 tsc -b
 sed -i -e 's/"undefined-revision"/"'"$(git rev-parse HEAD)"'"/' build/package.json

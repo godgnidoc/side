@@ -1,7 +1,7 @@
 import { projectMeta, projectName, sideHome, sideRevision, sideVersion } from "./constants"
 import { projectPath } from "./constants"
-import { Exports, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget } from "./manifest"
-import { GlobalSettings, LocalSettings, FinalSettings } from "./settings"
+import { Exports, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget } from "../format"
+import { GlobalSettings, LocalSettings, FinalSettings } from "../format"
 
 
 export type Inflatable =

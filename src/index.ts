@@ -1,16 +1,16 @@
 /** 优先导入日志模块，初始化日志环境 */
-import { SetLogLevel } from "./environment/logging"
+import { SetLogLevel } from "./logging"
 
 /** 初始化全局设置 */
-import { sideRevision, sideVersion, globalOptions } from "./environment"
+import { sideVersion, globalOptions } from "./environment"
 
 /** 导入外部依赖 */
 import { exit } from "process"
-import { Application, Feature, defaultCompleteFeature, defaultHelpFeature, execute } from "@godgnidoc/decli"
+import { Application, defaultCompleteFeature, defaultHelpFeature, execute } from "@godgnidoc/decli"
 
 /** 导入各功能模块 */
 import { project } from "./project"
-import { spawn } from "child_process"
+import { common } from "./common"
 
 class Side implements Application {
     name = "side"
@@ -25,26 +25,8 @@ class Side implements Application {
         "help": defaultHelpFeature,
         "--help": defaultHelpFeature,
         "-h": defaultHelpFeature,
-        "--version": new class extends Feature {
-            brief = "Show version information"
-            description = "Show version information"
-            entry() {
-                console.log(`side - ${sideVersion} - ${sideRevision}`)
-                return 0
-            }
-        },
-        "shell": new class extends Feature {
-            brief = "Run a shell command in the project environment"
-            description = "Run a shell command in the project environment"
-            args = true
-            async entry(...args: string[]) {
-                const cmd = args.join(' ')
-                const cp = spawn(cmd, { shell: '/bin/bash', stdio: 'inherit' })
-                return new Promise<number>((resolve) => cp.on('exit', (code) => resolve(code)))
-            }
-        },
 
-        project,
+        ...common,
         ...project
     }
 

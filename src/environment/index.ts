@@ -4,13 +4,10 @@ import { join } from 'path'
 import { projectMeta, projectName, projectPath, rpaths, sideHome } from './constants'
 import { inflate, inflateExports } from './inflate'
 import { userInfo } from 'os'
-import { FinalSettings, LocalSettings, GlobalSettings } from './settings'
+import { FinalSettings, LocalSettings, GlobalSettings, GlobalOptions } from '../format'
 
 export * from './constants'
 export * from './inflate'
-export * from './logging'
-export * from './options'
-export * from './settings'
 
 inflateExports({
     LANG: 'C.UTF-8',
@@ -75,9 +72,6 @@ export const projectSettings = (() => {
 export const settings = new class implements FinalSettings {
     readonly $structure = 'side.final-settings'
 
-    /** 是否显示详细信息 */
-    get verbose() { return process.env["SIDE_VERBOSE"] === "TRUE" }
-
     readonly dir = {
         module: 'module',
         build: 'build',
@@ -104,3 +98,6 @@ export const settings = new class implements FinalSettings {
 
 /** 将汇总设置导出至环境变量 */
 inflate(settings, process.env)
+
+/** 导出全局选项 */
+export const globalOptions = new GlobalOptions

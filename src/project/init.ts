@@ -4,7 +4,7 @@ import { access, mkdir, rmdir, writeFile } from 'fs/promises'
 import { rpaths, settings, sideVersion } from '../environment'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import { ProjectManifest } from '../environment/manifest'
+import { ProjectManifest } from '../format'
 import { dump } from 'js-yaml'
 
 class ProjectInitFeature extends Feature {
@@ -58,9 +58,9 @@ class ProjectInitFeature extends Feature {
     async initiateGitStuff(target: string) {
         try {
             const result = await promisify(exec)('git init', { cwd: target })
-            if (result.stderr) console.error(result.stderr)
-            if (result.stdout) console.info(result.stdout)
-        } catch {
+            if (result.stderr) console.error(result.stderr.trim())
+            if (result.stdout) console.info(result.stdout.trim())
+        } catch(e) {
             // pass
         }
 
@@ -73,7 +73,7 @@ class ProjectInitFeature extends Feature {
             + `!/.gitignore\n`
         )
 
-        await writeFile(join(target, '.gitignure'), `# ignore files\n\n`
+        await writeFile(join(target, '..gitignore'), `# ignore files\n\n`
             + `/${relative(target, settings.dir.build)}/\n`
             + `/${relative(target, settings.dir.release)}/\n`
             + `/${relative(target, settings.dir.module)}/\n`

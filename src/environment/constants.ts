@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from "fs"
 import { dirname, join, resolve } from "path"
-import { ProjectManifest } from "./manifest"
+import { ProjectManifest } from "../format"
 import { homedir } from "os"
 import { load } from "js-yaml"
 
