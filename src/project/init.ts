@@ -73,7 +73,7 @@ class ProjectInitFeature extends Feature {
             + `!/.gitignore\n`
         )
 
-        await writeFile(join(target, '..gitignore'), `# ignore files\n\n`
+        await writeFile(join(target, '.gitignore'), `# ignore files\n\n`
             + `/${relative(target, getFinalSettings().dir.build)}/\n`
             + `/${relative(target, getFinalSettings().dir.release)}/\n`
             + `/${relative(target, getFinalSettings().dir.module)}/\n`

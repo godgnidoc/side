@@ -3,7 +3,7 @@ import { LogLevel } from "./level"
 export function upgradeFormat(format: string, sev: LogLevel | 'verbose') {
     if (typeof format !== 'string') return format
     let severity = sev.toUpperCase()
-    if (process.stdout.isTTY) {
+    if (process.stderr.isTTY) {
         switch (sev) {
             case 'debug':
                 severity = '\x1b[1;30mDEBUG\x1b[0m';
