@@ -4,6 +4,7 @@ import { common } from "../common"
 import { project } from "../project"
 import { SetLogLevel } from "../logging"
 import { target } from '../target'
+import { dist } from '../dist'
 
 export class Side implements Application {
     name = "side"
@@ -23,6 +24,7 @@ export class Side implements Application {
         ...project,
 
         target,
+        dist,
     }
 
     entry() {

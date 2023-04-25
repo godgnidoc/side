@@ -4,6 +4,7 @@
   "type": "module",
   "revision": "undefined-revision",
   "dependencies": {
+    "jetweb": "5.0.10",
     "axios": "^1.3.5",
     "js-yaml": "4.1.0",
     "semver": "7.3.8",
