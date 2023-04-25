@@ -84,7 +84,7 @@ class ProjectInitFeature extends Feature {
         const manifest: ProjectManifest = {
             $structure: 'side.manifest',
             project: basename(target),
-            engine: 'side-' + sideVersion
+            engine: sideVersion
         }
         await writeFile(join(target, rpaths.projectManifest), dump(manifest))
     }

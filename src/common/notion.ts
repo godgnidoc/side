@@ -1,6 +1,6 @@
 import { runInNewContext } from "vm"
 import * as yaml from 'js-yaml'
-import { Args, Brief, Compgen, Feature, ShortOpt } from "@godgnidoc/decli"
+import { Args, Brief, Compgen, Complete, Feature, ShortOpt } from "@godgnidoc/decli"
 import { readAllInput } from "./io"
 import { mkdir, readFile, writeFile } from "fs/promises"
 import { dirname } from "path"
@@ -235,6 +235,7 @@ class FmtFeature extends Feature {
     @ShortOpt('-o')
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
+    @Complete(arg => Compgen('file', arg))
     outputFile: string = '-'
 
     async entry(...args: string[]) {
@@ -319,6 +320,7 @@ class VsetFeature extends Feature {
     @ShortOpt('-o')
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
+    @Complete(arg => Compgen('file', arg))
     outputFile: string = '-'
 
     /** 输出格式选项，默认为yaml */
@@ -366,6 +368,7 @@ class VdelFeature extends Feature {
     @ShortOpt('-o')
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
+    @Complete(arg => Compgen('file', arg))
     outputFile: string = '-'
 
     /** 输出格式选项，默认为yaml */
@@ -411,6 +414,7 @@ class VmergeFeature extends Feature {
     @ShortOpt('-o')
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
+    @Complete(arg => Compgen('file', arg))
     outputFile: string = '-'
 
     /** 输出格式选项，默认为yaml */

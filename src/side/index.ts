@@ -1,11 +1,14 @@
 import { execute } from "@godgnidoc/decli"
 import { Side } from "./application"
-import { InitiateEnvironment } from "./initiate"
 import { InitiateLogging } from "../logging"
+import { fullyInflateEnv } from "../environment"
 
 export async function main() {
+    /** 初始化日志支持 */
     InitiateLogging()
-    InitiateEnvironment()
+
+    /** 将基础环境变量导出至环境变量 */
+    fullyInflateEnv()
     
     const app = new Side()
     const args = process.argv.slice(2)
@@ -13,7 +16,10 @@ export async function main() {
         const ret = await execute(app, args)
         process.exit(ret)
     } catch(err) {
-        console.error(err)
+        if( err instanceof Error)
+            console.error(err.message)
+        else
+            console.error(err)
         process.exit(-1)
     }
 }

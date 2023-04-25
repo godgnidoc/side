@@ -49,6 +49,9 @@ interface BasicLocalSettings {
         [name: string]: {
             /** 强调是否获取此模块，未设置表示遵循目标规则 */
             fetch?: boolean
+
+            /** 允许本地强制指定仓库的检出目标 */
+            checkout?: string
         }
     }
 

@@ -28,6 +28,7 @@ export async function invokeHook(hook: string, args: string[] = []) {
         }
     }
 
+    /** 若文件不存在则视为无动作 */
     try { await access(script) } catch (e) { return 0 }
     console.verbose('invoke hook %s', script)
 

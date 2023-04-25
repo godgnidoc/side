@@ -52,6 +52,15 @@ export interface Resources {
 
         /** 资源部署策略 */
         deploy?: 'slink' | 'copy'
+
+        /** 允许手动指定资源域的查找路径 */
+        src?: string
+
+        /** 允许手动指定资源域的部署路径 */
+        dst?: string
+
+        /** 部署前是否自动清理部署路径，默认为auto */
+        clean?: 'auto' | 'all' | 'never'
     }
 }
 
@@ -144,16 +153,16 @@ export interface ProjectFinalTarget {
     engine: string
 
     /** 当前目标依赖的包 */
-    requires: Requires
+    requires?: Requires
 
     /** 当前目标即将获取的子模块 */
-    modules: SubModules
+    modules?: SubModules
 
     /** 层叠资源操纵相关配置 */
     resources?: Resources
 
     /** 启用目标时应当导出的环境变量定义 */
-    exports: Exports
+    exports?: Exports
 }
 
 /**
@@ -188,13 +197,8 @@ export interface ProjectBuildInfo {
 
     /** 层叠资源操纵相关配置 */
     resources: {
-        [category: string]: {
-            /** 正在使用的资源域表 */
-            using: string[]
-
-            /** 资源部署策略 */
-            deploy: 'slink' | 'copy'
-        }
+        /** 正在使用的资源域表 */
+        [category: string]: string[]
     }
 
     /** 构建时导出的环境变量 */

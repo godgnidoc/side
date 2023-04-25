@@ -110,7 +110,7 @@ export function inflate(inf: Inflatable, env: Environment = process.env) {
 
         for (const resource in inf.resources) {
             const res = inf.resources[resource]
-            env[`SIDE_RESOURCE_${resource}`] = res.deploy + ':' + res.using.join(';')
+            env[`SIDE_RESOURCE_${resource}`] = res.join(';')
         }
 
         inflateExports(inf.exports, env)

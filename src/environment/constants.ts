@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from "fs"
 import { dirname, join, resolve } from "path"
-import { ProjectManifest } from "../format"
+import { Exports, ProjectManifest } from "../format"
 import { homedir } from "os"
 import { load } from "js-yaml"
 
@@ -93,3 +93,41 @@ export const projectMeta = projectPath ? join(projectPath, rpaths.projectMeta) :
 
 /** 项目名，取manifest.project 或 undefined */
 export const projectName = determineProjectName()
+
+/** 基于当前环境默认需要导出的内容 */
+export const basicExports: Exports = {
+    LANG: 'C.UTF-8',
+    LANGUAGE: 'C.UTF-8',
+    SIDE_PROJECT_NAME: projectName,
+    NODE_PATH: [
+        '/usr/lib/node_modules',
+        join(sideHome, rpaths.sideSysroot, 'lib', 'node_modules'),
+        join(sideHome, rpaths.sideSysroot, 'usr', 'lib', 'node_modules'),
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'lib', 'node_modules') : undefined,
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'usr', 'lib', 'node_modules') : undefined,
+    ],
+    LD_LIBRARY_PATH: [
+        join(sideHome, rpaths.sideSysroot, 'lib64'),
+        join(sideHome, rpaths.sideSysroot, 'lib'),
+        join(sideHome, rpaths.sideSysroot, 'lib', 'x86_64-linux-gnu'),
+        join(sideHome, rpaths.sideSysroot, 'usr', 'lib64'),
+        join(sideHome, rpaths.sideSysroot, 'usr', 'lib'),
+        join(sideHome, rpaths.sideSysroot, 'usr', 'lib', 'x86_64-linux-gnu'),
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'lib64') : undefined,
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'lib') : undefined,
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'lib', 'x86_64-linux-gnu') : undefined,
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'usr', 'lib64') : undefined,
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'usr', 'lib') : undefined,
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'usr', 'lib', 'x86_64-linux-gnu') : undefined,
+    ],
+    PATH: [
+        join(sideHome, rpaths.sideSysroot, 'bin'),
+        join(sideHome, rpaths.sideSysroot, 'sbin'),
+        join(sideHome, rpaths.sideSysroot, 'usr', 'bin'),
+        join(sideHome, rpaths.sideSysroot, 'usr', 'sbin'),
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'bin') : undefined,
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'sbin') : undefined,
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'usr', 'bin') : undefined,
+        projectPath ? join(projectPath, rpaths.projectSysroot, 'usr', 'sbin') : undefined,
+    ]
+}

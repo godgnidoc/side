@@ -5,7 +5,7 @@ import { join } from "path";
 
 export async function getTargetList() {
     try {
-        const list = []
+        const list: string[] = []
         const prefix = 'target-'
         for (const file of await readdir(join(projectPath, rpaths.projectTargets), { withFileTypes: true })) {
             if (file.isFile() && file.name.startsWith(prefix))
