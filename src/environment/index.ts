@@ -20,7 +20,7 @@ export function getGlobalSettings() {
         return settings
     } catch (e) {
         globalSettings = null
-        console.verbose('failed to inflate root settings: %s', e.message)
+        console.verbose('failed to load root settings: %s', e.message)
         return undefined
     }
 }
@@ -36,7 +36,7 @@ export function getLocalSettings() {
         return settings
     } catch (e) {
         localSettings = null
-        console.verbose('failed to inflate project settings: %s', e.message)
+        console.verbose('failed to load project settings: %s', e.message)
         return undefined
     }
 }
@@ -81,7 +81,7 @@ export function getFinalTarget() {
         const target = yaml.load(source) as ProjectFinalTarget
         return target
     } catch (e) {
-        console.verbose('failed to inflate project target: %s', e.message)
+        console.verbose('failed to load project target: %s', e.message)
         return undefined
     }
 }

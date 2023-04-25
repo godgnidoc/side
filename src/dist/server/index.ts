@@ -21,7 +21,6 @@ export const distServeFeature = new class extends Feature {
         mkdirSync(PATH_REPOSITORIES, { recursive: true })
 
         const api = { Repo, Scope, Package, User, postTasks }
-
         const web = new Web({ api }, { static: true })
         web.listen(5000)
 

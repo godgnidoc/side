@@ -1,3 +1,5 @@
+import { Stage } from "../stage"
+
 /** 
  * 环境变量表
  * 若值为字符串、数字或布尔值，则默认为覆盖原有变量
@@ -146,6 +148,9 @@ export interface ProjectFinalTarget {
     /** 项目名称 */
     project: string
 
+    /** 项目当前状态 */
+    stage: Stage
+
     /** 当前目标名 */
     target: string
 
@@ -182,9 +187,6 @@ export interface ProjectBuildInfo {
 
     /** 集成开发环境引擎版本号 */
     engine: string
-
-    /** 实际执行的构建指令 */
-    command: string
 
     /** 当前目标实际依赖的包ID列表 */
     requires: string[]

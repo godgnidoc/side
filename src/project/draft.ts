@@ -39,7 +39,8 @@ export const projectDraftFeature = new class extends Feature {
             $structure: 'side.final-target',
             project: projectName,
             target: target,
-            engine: sideVersion
+            engine: sideVersion,
+            stage: 'draft'
         }
 
         /** 尝试加载项目根清单 */
@@ -51,6 +52,7 @@ export const projectDraftFeature = new class extends Feature {
             delete manifest['project']
             delete manifest['target']
             delete manifest['engine']
+            delete manifest['stage']
             final = vmerge(final, manifest)
         } catch {
             console.error('Failed to load project manifest')
@@ -68,9 +70,10 @@ export const projectDraftFeature = new class extends Feature {
                 delete manifest['engine']
                 delete manifest['inherit']
                 delete manifest['composites']
+                delete manifest['stage']
                 final = vmerge(final, manifest)
             } catch (e) {
-                console.error('Failed to load project target/aspect', target)
+                console.error('Failed to load project target/aspect %s:', target, e.message)
                 return 1
             }
         }
@@ -84,21 +87,21 @@ export const projectDraftFeature = new class extends Feature {
         }
 
         /** 整理子仓库，过滤掉不需要的仓库，并根据本地配置修正检出目标 */
-        if( final.modules ) {
+        if (final.modules) {
             const settings = getFinalSettings()
             const filter: string[] = []
-            for( const name in final.modules ) {
+            for (const name in final.modules) {
                 const module = final.modules[name]
                 let fetch = true
-                if( email && module.authors ) fetch = fetch && module.authors.includes(email)
-                if( name in settings.modules ) {
+                if (email && module.authors) fetch = fetch && module.authors.includes(email)
+                if (name in settings.modules) {
                     const setting = settings.modules[name]
-                    if( typeof setting.fetch === 'boolean' ) fetch = setting.fetch
-                    if( typeof setting.checkout === 'string' ) module.checkout = setting.checkout
+                    if (typeof setting.fetch === 'boolean') fetch = setting.fetch
+                    if (typeof setting.checkout === 'string') module.checkout = setting.checkout
                 }
-                if(!fetch) filter.push(name)
+                if (!fetch) filter.push(name)
             }
-            for( const name of filter ) delete final.modules[name]
+            for (const name of filter) delete final.modules[name]
         }
 
         /** 写入最终目标清单 */

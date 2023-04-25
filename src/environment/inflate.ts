@@ -101,7 +101,7 @@ export function inflate(inf: Inflatable, env: Environment = process.env) {
         env['SIDE_PROJECT_NAME'] = inf.project
         env['SIDE_PROJECT_REVISION'] = inf.revision
         env['SIDE_TARGET'] = inf.target
-        env['SIDE_BUILD_CMD'] = inf.command
+        // env['SIDE_BUILD_CMD'] = inf.command
         env['SIDE_REQUIRES'] = inf.requires.join(';')
 
         for (const module in inf.modules) {

@@ -1,0 +1,8 @@
+# ignore files
+
+/*
+!/resources/
+!/scripts/
+!/targets/
+!/manifest
+!/.gitignore

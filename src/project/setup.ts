@@ -8,6 +8,7 @@ import { dirname, join } from "path";
 import { access, mkdir, readdir } from "fs/promises";
 import { promisify } from "util";
 import { exec } from "child_process";
+import { setStage } from "../stage";
 
 export const projectSetupFeature = new class extends Feature {
     args = true
@@ -30,6 +31,7 @@ export const projectSetupFeature = new class extends Feature {
     }
 
     async entry(...args: string[]): Promise<number> {
+        console.debug('setup', args)
         if (args.length > 1) {
             console.error('Too many arguments, only one target is allowed')
             return 1
@@ -37,6 +39,7 @@ export const projectSetupFeature = new class extends Feature {
 
         /** 若有必要，尝试切换目标 */
         if (args[0]) {
+            console.debug('setup: switching target to', args[0])
             const ret = await projectDraftFeature.entry(args[0])
             if (ret !== 0) return ret
             fullyInflateEnv()
@@ -44,8 +47,13 @@ export const projectSetupFeature = new class extends Feature {
 
         /** 获取最终目标 */
         const target = getFinalTarget()
+        if (!target) {
+            console.error('No target specified')
+            return 1
+        }
 
         /** 执行前置钩子 */
+        console.debug('setup: invoking pre-setup hooks')
         if (0 !== (await invokeHook('pre-setup'))) return 1
 
         /** 部署层叠资源 */
@@ -60,10 +68,13 @@ export const projectSetupFeature = new class extends Feature {
         /** 执行后置钩子 */
         if (0 !== (await invokeHook('post-setup'))) return 1
 
+        // 设置项目状态
+        setStage('ready')
         return 0
     }
 
     async deployCascadingResources(target: ProjectFinalTarget) {
+        console.debug('setup: deploying cascading resources')
         if (!target.resources) return 0
 
         for (const category in target.resources) {
@@ -135,9 +146,8 @@ export const projectSetupFeature = new class extends Feature {
                     }
                 }
             }
-
-            return 0
         }
+        return 0
     }
 
     async installDependencies(_target: ProjectFinalTarget) {
