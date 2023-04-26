@@ -42,11 +42,12 @@ export function getLocalSettings() {
 }
 
 /** 导出汇总设置 */
-let FinalSettings = undefined
+let finalSettings = undefined
 export function getFinalSettings() {
+    if (finalSettings !== undefined) return finalSettings
     const global = getGlobalSettings()
     const local = getLocalSettings()
-    return new class implements FinalSettings {
+    return finalSettings = new class implements FinalSettings {
         readonly $structure = 'side.final-settings'
 
         readonly dir = {

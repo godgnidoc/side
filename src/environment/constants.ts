@@ -36,7 +36,7 @@ const nodeManifest = (() => {
         dir = join(dir, '..')
     }
     throw new Error('Cannot locate package.json')
-})();
+})()
 
 const sideBuildInfo: ProjectBuildInfo = (() => {
     let dir = dirname(new URL(import.meta.url).pathname)
@@ -45,8 +45,8 @@ const sideBuildInfo: ProjectBuildInfo = (() => {
             return JSON.parse(readFileSync(join(dir, 'build-info.json'), 'utf8')) as ProjectBuildInfo
         dir = join(dir, '..')
     }
-    throw new Error('Cannot locate build-info.json')
-})();
+    return undefined
+})()
 
 export const rpaths = new class {
     /** 相对于项目路径的元信息路径 */

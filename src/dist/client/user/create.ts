@@ -17,18 +17,21 @@ export const userCreateFeature = new class extends Feature {
         const name = args[0]
         const email = args[1]
 
+        // 检查用户名是否合法
         console.debug('create user: %s %s', name, email)
         if (!IsValidName(name)) {
             console.error('Invalid name')
             return 1
         }
 
+        // 检查用户是否存在
         let res = await api.user.exist(name)
         if (res.status === 0) {
             console.error('User already exists')
             return 1
         }
 
+        // 获取密码并要求重复
         const answer = await inquirer.prompt([
             {
                 type: 'password',
@@ -44,11 +47,13 @@ export const userCreateFeature = new class extends Feature {
             }
         ])
 
+        // 检查密码是否一致
         if (answer.password !== answer.repeat) {
             console.error('Password not match')
             return 1
         }
 
+        // 创建用户
         res = await api.user.create(name, email, answer.password)
         if (res.status !== 0) {
             console.error('Create user failed: %s', res.message)
