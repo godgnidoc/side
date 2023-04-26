@@ -61,7 +61,7 @@ export function getFinalSettings() {
         }
 
         readonly dist = {
-            apiBaseUrl: 'https://localhost:5000/api/dist',
+            apiBaseUrl: 'http://localhost:5000/api',
             ftpBaseUrl: 'ftp://localhost/dist',
             user: userInfo().username,
             token: undefined,

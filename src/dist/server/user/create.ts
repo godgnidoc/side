@@ -19,7 +19,7 @@ export async function postCreate(name: string, password: string, email: string) 
         const path_user_home = join(PATH_CONTRIBUTORS, name)
 
         // 创建用户目录
-        mkdir(path_user_home)
+        await mkdir(path_user_home)
 
         // 写入用户信息
         await writeFile(join(path_user_home, 'info'), JSON.stringify({ name, email }))
