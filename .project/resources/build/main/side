@@ -1,7 +1,4 @@
 #!/bin/bash
 
-# 获取脚本所在位置
-HERE=$(cd $(dirname $0); pwd)
-
 # 启动应用
-env NODE_NO_WARNINGS=1 node --experimental-specifier-resolution=node $HERE/dist $@
+exec node ${BASH_SOURCE[0]%/*}/index.js $@

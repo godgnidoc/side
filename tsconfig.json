@@ -11,6 +11,6 @@
         "experimentalDecorators": true,
         "sourceMap": true,
         "outDir": "build/dist",
-        "target": "ESNext"
+        "target": "ES2015"
     }
 }

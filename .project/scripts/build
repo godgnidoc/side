@@ -1,4 +1,8 @@
 #!/bin/bash
 
-rm -rf build/dist
-tsc -b
+ncc build src/index.ts -m --v8-cache -o build
+
+if which side; then
+    version=$(side vget package.json version)
+    side vset -o build/package.json -f json build/package.json version=\"${version}\"
+fi
