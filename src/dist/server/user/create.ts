@@ -1,8 +1,13 @@
 import { mkdir, writeFile } from "fs/promises"
-import { IsValidName, PATH_CONTRIBUTORS, done, fail, invalid_argument, md5 } from "../../utils"
+import { IsValidName, PATH_CONTRIBUTORS, authorize, done, fail, invalid_argument, md5, permission_denied } from "../../utils"
 import { join } from "path"
 
 export async function postCreate(name: string, password: string, email: string) {
+    // 鉴权并获取用户信息
+    const user = await authorize(this)
+    if (!user) return permission_denied('You are not logged in')
+    if( user.name !== 'admin' ) return permission_denied('You are not admin')
+
     // 检查用户名格式
     if (!name || !IsValidName(name))
         return invalid_argument('Invalid name')

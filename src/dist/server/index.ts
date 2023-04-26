@@ -9,6 +9,7 @@ import { PATH_CONTRIBUTORS, PATH_REPOSITORIES } from "../utils"
 import { Feature } from '@godgnidoc/decli'
 import { Web } from 'jetweb'
 import { chmod, mkdir, readdir } from 'fs/promises'
+import { sideRevision, sideVersion } from '../../environment'
 
 export const distServeFeature = new class extends Feature {
     async entry() {
@@ -27,6 +28,7 @@ export const distServeFeature = new class extends Feature {
 
         const api = { Repo, Scope, Package, User, postTasks }
         const web = new Web({ api }, { static: true })
+        console.info('dist server supported by side - %s - %s', sideVersion, sideRevision)
         web.listen(5000)
 
         // 保持运行
