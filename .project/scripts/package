@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/bash -e
 
 rm -rf ${SIDE_DIR_PACKAGE}
 mkdir -p ${SIDE_DIR_PACKAGE}
-cp -r ${SIDE_DIR_BUILD} ${SIDE_DIR_PACKAGE}/side
+ln -rs ${SIDE_DIR_BUILD} ${SIDE_DIR_PACKAGE}/side
 
 mkdir -p ${SIDE_DIR_RELEASE}
-env -C ${SIDE_DIR_PACKAGE} tar -Jcf ${SIDE_PROJECT}/${SIDE_DIR_RELEASE}/side.tar.xz side
+env -C ${SIDE_DIR_PACKAGE} tar -Jhcf ${SIDE_PROJECT}/${SIDE_DIR_RELEASE}/side.tar.xz side
 rm -rf ${SIDE_DIR_PACKAGE}

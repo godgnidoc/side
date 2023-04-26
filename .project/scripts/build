@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 
-ncc build src/index.ts -m --v8-cache -o build
+ncc build src/index.ts -m --v8-cache --no-source-map-register -o build
 
 if which side; then
     version=$(side vget package.json version)
