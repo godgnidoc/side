@@ -33,17 +33,7 @@ export interface SubModules {
 /** 项目依赖指定表 */
 export interface Requires {
     /** 键表示依赖query，值若为字符串则表示依赖版本号 */
-    [key: string]: string | {
-        /** 
-         * 依赖条件，若提供，则当成bash脚本执行
-         * 若运行结果为0表示存在次依赖
-         * 否则忽略此依赖
-         */
-        condition?: string
-
-        /** 版本号 */
-        version: string
-    }
+    [key: string]: string
 }
 
 /** Cascading Resource Manipulating 层叠资源操纵相关配置 */

@@ -7,6 +7,7 @@ import { projectSetupFeature } from "./setup"
 import { writeFile } from "fs/promises"
 import { Feature } from "@godgnidoc/decli"
 import { setStage, testStage } from "../stage"
+import { PackageId } from "../dist/utils"
 
 export const projectBuildFeature = new class extends Feature {
     args = true
@@ -37,17 +38,19 @@ export const projectBuildFeature = new class extends Feature {
         console.debug('build: generating build info')
         const settings = getFinalSettings()
 
-        const requires = []
-        if (target.requires) Object.entries(target.requires)
-            .map(([name, version]) => name + '-' + version)
+        let requires: string[]
+        if (target.requires) requires = Object.entries(target.requires)
+            .map(([name, version]) => PackageId.Parse(name, version).toString())
 
-        const modules = {}
+        let modules: { [repo: string]: string }
         if (target.modules) for (const [name, module] of Object.entries(target.modules)) {
+            if( !modules ) modules = {}
             modules[module.repo] = await getRevision(join(projectPath, settings.dir.module, name), { dirty: true })
         }
 
-        const resources = {}
+        let resources: { [category: string]: string[] }
         if (target.resources) for (const [category, resource] of Object.entries(target.resources)) {
+            if( !resources ) resources = {}
             resources[category] = [...resource.using]
         }
 

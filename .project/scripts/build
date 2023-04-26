@@ -2,4 +2,3 @@
 
 rm -r build/dist
 tsc -b
-sed -i -e 's/"revision": ".*"/"revision": "'"$(git rev-parse HEAD)"'"/' build/package.json

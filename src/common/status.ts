@@ -21,7 +21,6 @@ export const statusFeature = new class extends Feature {
         let second = target ? target.target : 'no target'
         let third = target ? target.stage : 'no stage'
 
-
         console.log(`[${prefix1}${first}${suffix} : ${prefix2}${second}${suffix} : ${prefix2}${third}${suffix}]`)
         return 0
     }

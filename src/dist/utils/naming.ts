@@ -197,10 +197,23 @@ export class PackageId {
 
     /**
      * 从字符串解析出包唯一标识
-     * @param id 包唯一标识字符串
+     * @param query 包请求
+     * @param version 版本号
      * @returns 包唯一标识对象
      */
-    static Parse(id: string): PackageId | Error {
+    static Parse(query: string, version: string): PackageId | Error
+
+    /**
+     * 从字符串解析出包唯一标识
+     * @param id 包请求
+     * @returns 包唯一标识对象
+     */
+    static Parse(id: string): PackageId | Error
+
+    static Parse(id_or_query: string, maybe_version?: string): PackageId | Error {
+        const id = maybe_version
+            ? id_or_query + '-' + maybe_version
+            : id_or_query
         const match = id.match(/^(@[a-zA-Z]+(?:-[a-zA-Z0-9_]+)*\/)([a-zA-Z]+(?:-[a-zA-Z0-9_]+)*)(?:--([a-zA-Z][a-zA-Z0-9_]*(?:-[a-zA-Z][a-zA-Z0-9_]*)*))?-((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?(?:\+[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?)$/)
 
         if (!match) return new Error('Invalid package id: ' + id)
@@ -231,7 +244,6 @@ export function IsValidName(name: string): boolean {
 /**
  * 检查标签是否满足基本命名规范
  * @param tag 标签
- * @param allowEmpty 是否允许空标签
  * @returns 是否满足基本命名规范
  */
 export function IsValidTag(tag: string): boolean {
@@ -244,7 +256,7 @@ export function IsValidTag(tag: string): boolean {
  * @returns 是否满足基本命名规范
  */
 export function IsValidTags(tags: string[]): boolean {
-    if( tags.length == 0 ) return true
+    if (tags.length == 0) return true
     return tags.every(tag => IsValidTag(tag))
 }
 
@@ -259,7 +271,7 @@ export function IsValidTags(tags: string[]): boolean {
 export function LatestPackageId(packages: PackageId[], sorted = false) {
     if (!packages.length) return undefined
 
-    if( !sorted ) packages.sort((a, b) => b.version.compare(a.version))
+    if (!sorted) packages.sort((a, b) => b.version.compare(a.version))
 
     return packages[0]
 }

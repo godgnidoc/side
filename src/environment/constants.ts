@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from "fs"
 import { dirname, join, resolve } from "path"
-import { Exports, ProjectManifest } from "../format"
+import { Exports, ProjectBuildInfo, ProjectManifest } from "../format"
 import { homedir } from "os"
 import { load } from "js-yaml"
 
@@ -36,6 +36,16 @@ const nodeManifest = (() => {
         dir = join(dir, '..')
     }
     throw new Error('Cannot locate package.json')
+})();
+
+const sideBuildInfo: ProjectBuildInfo = (() => {
+    let dir = dirname(new URL(import.meta.url).pathname)
+    while (dir !== '/') {
+        if (statSync(join(dir, 'build-info.json'), { throwIfNoEntry: false })?.isFile())
+            return JSON.parse(readFileSync(join(dir, 'build-info.json'), 'utf8')) as ProjectBuildInfo
+        dir = join(dir, '..')
+    }
+    throw new Error('Cannot locate build-info.json')
 })();
 
 export const rpaths = new class {
@@ -83,7 +93,7 @@ export const sideHome = locateSideHome()
 export const sideVersion = nodeManifest.version
 
 /** Side 应用修订号 */
-export const sideRevision = nodeManifest.revision
+export const sideRevision = sideBuildInfo?.revision
 
 /** 当前项目路径或当前 undefined */
 export const projectPath = locateProject()

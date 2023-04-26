@@ -24,6 +24,7 @@ export const projectDraftFeature = new class extends Feature {
     }
 
     async entry(...args: string[]) {
+        console.debug('draft: %s', args.join(' '))
         if (args.length !== 1)
             return console.error('This feature requires exactly one argument'), 1
 
@@ -34,6 +35,7 @@ export const projectDraftFeature = new class extends Feature {
         const target = args[0]
         const targets = await calculateTarget(target)
         if (!targets) return console.error('Failed to calculate target'), 1
+        console.debug('draft: target: %s', targets.join(' '))
 
         let final: ProjectFinalTarget = {
             $structure: 'side.final-target',
@@ -45,6 +47,7 @@ export const projectDraftFeature = new class extends Feature {
 
         /** 尝试加载项目根清单 */
         try {
+            console.debug('draft: load project manifest')
             const file = join(projectPath, rpaths.projectManifest)
             const source = await readFile(file, 'utf-8')
             const manifest = yaml.load(source) as ProjectManifest
@@ -62,6 +65,7 @@ export const projectDraftFeature = new class extends Feature {
         /** 尝试加载项目目标清单 */
         for (const target of targets) {
             try {
+                console.debug('draft: load project target/aspect %s', target)
                 const source = await readFile(target, 'utf-8')
                 const manifest = yaml.load(source) as ProjectManifest
                 delete manifest['$structure']
@@ -82,12 +86,14 @@ export const projectDraftFeature = new class extends Feature {
         let email = ''
         try {
             email = (await promisify(exec)('git config user.email')).stdout.trim()
+            console.debug('draft: git user email: %s', email)
         } catch {
             console.warn('Failed to get git user email, module filter may not work')
         }
 
         /** 整理子仓库，过滤掉不需要的仓库，并根据本地配置修正检出目标 */
         if (final.modules) {
+            console.debug('draft: filter modules')
             const settings = getFinalSettings()
             const filter: string[] = []
             for (const name in final.modules) {
@@ -106,6 +112,7 @@ export const projectDraftFeature = new class extends Feature {
 
         /** 写入最终目标清单 */
         await writeFile(join(projectPath, rpaths.projectFinalTarget), yaml.dump(final))
+        console.debug('draft: final target written')
         return 0
     }
 }

@@ -1,14 +1,14 @@
-import { Feature } from "@godgnidoc/decli";
-import { invokeHook } from "../common/invoke_hook";
-import { projectDraftFeature } from "./draft";
-import { fullyInflateEnv, getFinalSettings, getFinalTarget, projectPath, rpaths } from "../environment";
-import { getTargetList } from "../target";
-import { ProjectFinalTarget } from "../format";
-import { dirname, join } from "path";
-import { access, mkdir, readdir } from "fs/promises";
-import { promisify } from "util";
-import { exec } from "child_process";
-import { setStage } from "../stage";
+import { Feature } from "@godgnidoc/decli"
+import { invokeHook } from "../common/invoke_hook"
+import { projectDraftFeature } from "./draft"
+import { fullyInflateEnv, getFinalSettings, getFinalTarget, projectPath, rpaths } from "../environment"
+import { getTargetList } from "../target"
+import { ProjectFinalTarget } from "../format"
+import { dirname, join } from "path"
+import { access, mkdir, readdir } from "fs/promises"
+import { promisify } from "util"
+import { exec } from "child_process"
+import { setStage } from "../stage"
 
 export const projectSetupFeature = new class extends Feature {
     args = true
@@ -31,12 +31,11 @@ export const projectSetupFeature = new class extends Feature {
     }
 
     async entry(...args: string[]): Promise<number> {
-        console.debug('setup', args)
         if (args.length > 1) {
             console.error('Too many arguments, only one target is allowed')
             return 1
         }
-
+        
         /** 若有必要，尝试切换目标 */
         if (args[0]) {
             console.debug('setup: switching target to', args[0])
@@ -44,23 +43,23 @@ export const projectSetupFeature = new class extends Feature {
             if (ret !== 0) return ret
             fullyInflateEnv()
         }
-
+        
         /** 获取最终目标 */
         const target = getFinalTarget()
+        console.debug('setup: %s', target.target)
         if (!target) {
             console.error('No target specified')
             return 1
         }
 
         /** 执行前置钩子 */
-        console.debug('setup: invoking pre-setup hooks')
         if (0 !== (await invokeHook('pre-setup'))) return 1
 
         /** 部署层叠资源 */
         if (0 !== (await this.deployCascadingResources(target))) return 1
 
         /** 安装依赖 */
-        // TODO
+        if (0 !== (await this.installDependencies(target))) return 1
 
         /** 获取子模块 */
         if (0 !== (await this.fetchSubmodules(target))) return 1
@@ -74,45 +73,50 @@ export const projectSetupFeature = new class extends Feature {
     }
 
     async deployCascadingResources(target: ProjectFinalTarget) {
-        console.debug('setup: deploying cascading resources')
         if (!target.resources) return 0
 
         for (const category in target.resources) {
             const resources = target.resources[category]
             const usings = resources.using
             if (!usings || usings.length == 0) continue
-
-            console.info('Deploying cascading resources %s: %s', category, usings.join(', '))
+            console.debug('setup: deploying cascading resources %s: %s', category, usings.join(', '))
 
             const src = resources.src
                 ? join(projectPath, resources.src)
                 : join(projectPath, rpaths.projectResources, category)
+            console.debug('setup: -> src: %s', src)
 
             const dst = resources.dst
                 ? join(projectPath, resources.dst)
                 : join(projectPath, category)
+            console.debug('setup: -> dst: %s', dst)
 
             const stg = resources.deploy || 'copy'
+            console.debug('setup: -> deploy: %s', stg)
 
             const cln = resources.clean || 'auto'
+            console.debug('setup: -> clean: %s', cln)
 
             // 清理目标目录
             switch (cln) {
                 case 'auto': {
                     // 搜集所有可能需要删除的文件
                     const entries = new Set<string>
-                    for (const entry of await readdir(dst, { withFileTypes: true })) {
+                    for (const entry of await readdir(src, { withFileTypes: true })) {
                         if (entry.isDirectory()) {
-                            const nodes = await readdir(join(dst, entry.name))
+                            const nodes = await readdir(join(src, entry.name))
                             nodes.forEach(n => entries.add(n))
                         }
                     }
 
                     // 删除所有可能需要删除的文件
-                    await promisify(exec)(`rm -rf ${[...entries].join(' ')}`, { cwd: dst })
+                    const cmd = `env -C ${dst} rm -rf ${[...entries].join(' ')}`
+                    console.debug('setup: cleaning files in %s: %s', dst, cmd)
+                    await promisify(exec)(cmd, { cwd: dst })
                 } break
                 case 'all': {
                     // 删除所有文件
+                    console.debug('setup: cleaning all files in %s', dst)
                     await promisify(exec)(`rm -rf ${dst}`)
                 } break
                 case 'never': break
@@ -129,6 +133,7 @@ export const projectSetupFeature = new class extends Feature {
             for (const using of usings) {
                 switch (stg) {
                     case 'copy': {
+                        console.debug('setup: copying %s to %s', join(src, using), dst)
                         await promisify(exec)(`cp -r ${join(src, using)}/* ${dst}/.`)
                     } break
                     case 'slink': {
@@ -136,6 +141,7 @@ export const projectSetupFeature = new class extends Feature {
                         const files = (await promisify(exec)(`find ${join(src, using)} -type f -printf "%P\n"`))
                             .stdout.split('\n')
                         for (const file of files) {
+                            console.debug('setup: creating symlink %s to %s', join(dst, file), join(src, using, file))
                             await mkdir(dirname(join(dst, file)), { recursive: true })
                             await promisify(exec)(`ln -rsf ${join(src, using, file)} ${join(dst, file)}`)
                         }
@@ -147,12 +153,15 @@ export const projectSetupFeature = new class extends Feature {
                 }
             }
         }
+
+        console.debug('setup: cascading resources deployed')
         return 0
     }
 
     async installDependencies(_target: ProjectFinalTarget) {
         // TODO
-        console.warn('Not implemented')
+        console.warn('setup: dependency installation is not implemented yet')
+        return 0
     }
 
     async fetchSubmodules(target: ProjectFinalTarget) {
