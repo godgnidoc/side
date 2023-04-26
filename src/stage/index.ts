@@ -12,11 +12,20 @@ export function getCurrentStage() {
 export function testStage(stage: Stage) {
     const order: Stage[] = ['draft', 'ready', 'built', 'packaged']
     const current = getCurrentStage()
+    const oc = order.indexOf(current)
+    const os = order.indexOf(stage)
+    let op =  oc > os
+        ? '>'
+        : oc < os
+            ? '<'
+            : '=='
+    console.debug('stage: (current) %s %s %s (target)', current, op, stage)
     if( !current ) return false
-    return order.indexOf(current) >= order.indexOf(stage)
+    return oc >= os
 }
 
 export function setStage(stage: Stage) {
+    console.debug('stage: set to %s', stage)
     const target = getFinalTarget()
     target.stage = stage
     writeFileSync(join(projectPath, rpaths.projectFinalTarget), dump(target))

@@ -17,14 +17,14 @@ export async function getRevision(path: string, options?: { short?: boolean, dir
 
     let revision = ''
     try {
-        revision = (await promisify(exec)(`git rev-parse ${short} HEAD`, { cwd: path })).stdout.trim()
+        revision = (await promisify(exec)(`git rev-parse ${short} HEAD`, { cwd: path, shell: '/bin/bash' })).stdout.trim()
     } catch {
         return undefined
     }
 
     if (dirty) {
         try {
-            await promisify(exec)(`git diff-index --quiet HEAD`, { cwd: path })
+            await promisify(exec)(`git diff-index --quiet HEAD`, { cwd: path, shell: '/bin/bash' })
         } catch {
             revision += '*'
         }

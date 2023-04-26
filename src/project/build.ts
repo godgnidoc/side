@@ -21,7 +21,7 @@ export const projectBuildFeature = new class extends Feature {
             console.error('No target specified')
             return 1
         }
-        if (testStage('built')) {
+        if (!testStage('ready')) {
             if (0 !== await projectSetupFeature.entry()) return 1
         }
 
