@@ -1,6 +1,6 @@
-import { execute } from "@godgnidoc/decli"
+import { execute, verifyDefinitions } from "@godgnidoc/decli"
 import { Side } from "./application"
-import { GetLogLevel, InitiateLogging } from "../logging"
+import { GetLogLevel, InitiateLogging, SetLogLevel } from "../logging"
 import { fullyInflateEnv } from "../environment"
 
 export async function main() {
@@ -13,6 +13,14 @@ export async function main() {
     const app = new Side()
     const args = process.argv.slice(2)
     try {
+        if( process.env['SIDE_DEBUG'] == 'TRUE') {
+            SetLogLevel('debug')
+            console.debug('Debug mode enabled.')
+            if(!verifyDefinitions(app)) {
+                console.error('Invalid command definitions.')
+                process.exit(-1)
+            }
+        }
         const ret = await execute(app, args)
         process.exit(ret)
     } catch (err) {
