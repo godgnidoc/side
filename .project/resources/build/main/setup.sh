@@ -11,4 +11,9 @@ function _side_complete() {
     eval "COMPREPLY=($(side complete))"
 }
 
+function dist() {
+    side dist $@
+}
+
 complete -F _side_complete side
+complete -F _side_complete dist

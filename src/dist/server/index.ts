@@ -18,13 +18,16 @@ export const distServeFeature = new class extends Feature {
             return 1
         }
 
+        // 创建仓库和贡献者目录
         await mkdir(PATH_REPOSITORIES, { recursive: true })
         await mkdir(PATH_CONTRIBUTORS, { recursive: true })
+        await chmod(PATH_CONTRIBUTORS, 0o700)
+
+        // 检查是否有用户，没有则创建 admin 用户
         if ((await readdir(PATH_CONTRIBUTORS)).length === 0) {
             console.info('No user found, creating admin user')
             await createAdmin()
         }
-        await chmod(PATH_CONTRIBUTORS, 0o700)
 
         const api = { Repo, Scope, Package, User, postTasks }
         const web = new Web({ api }, { static: true })

@@ -26,10 +26,11 @@ export async function IsOwner(repo: string, user: string): Promise<boolean> {
 }
 
 export async function authorize(requestContext: RequestContext): Promise<UserInfo | null> {
-    const raw_auth_token = requestContext.request.incomingMessage['auth-token']
+    const raw_auth_token = requestContext.request.incomingMessage.headers['login-token']?.toString()
     if (!raw_auth_token) return null
 
     const auth_token = Buffer.from(raw_auth_token, 'base64').toString('utf-8')
+    console.debug('auth token: %s', auth_token)
     const [, user, token] = auth_token.match(/^(.*):(.*)$/)
 
     try {
