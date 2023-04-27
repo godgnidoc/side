@@ -55,6 +55,7 @@ class StatusFeature extends Feature {
                             .replace(/On branch (.*)\n/, 'on branch \x1b[1;36m$1\x1b[0m\n')
                             .replace(/ahead of '(.*)' by (\d+)/, "ahead of \x1b[1;36m'$1'\x1b[0m by \x1b[33m$2\x1b[0m")
                             .replace(/date with '(.*)'/, "date with \x1b[1;36m'$1'\x1b[0m")
+                            .replace(/behind '(.*)' by (\d+) commit/, "behind \x1b[1;36m'$1'\x1b[0m by \x1b[1;33m$2\x1b[0m commit")
                             .replace(/use "(.*)" to/g, 'use \x1b[1;32m"$1"\x1b[0m to')
                         process.stdout.write(', ' + lines)
                     } else {
