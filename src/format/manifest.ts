@@ -24,6 +24,7 @@ export interface Dirs {
  * 环境变量表
  * 若值为字符串、数字或布尔值，则默认为覆盖原有变量
  * 若值为数组，则默认为不覆盖原有变量
+ * 若字符串或字符串数组包含'${...}'语法，则会被视为环境变量引用，会被自动替换为对应的环境变量值
  */
 export interface Exports {
     [key: string]: {
@@ -218,4 +219,40 @@ export interface ProjectBuildInfo {
 
     /** 构建时导出的环境变量 */
     exports: Exports
+}
+
+export interface PackageDeployStrategy {
+    /** 
+     * 资源自动部署策略
+     * - none: 不自动部署
+     * - slink: 找到所有文件，软链接到 PROJECT_SYSROOT，按需创建目录
+     * - hlink: 找到所有文件，硬链接到 PROJECT_SYSROOT，按需创建目录
+     * - copy: 复制所有文件到 PROJECT_SYSROOT，按需创建目录
+     * @default "none"
+     */
+    strategy: 'none' | 'slink' | 'hlink' | 'copy'
+
+    /** 自动部署时应当排除的路径，相对于 DIST_ROOT */
+    exclude?: string[]
+
+    /** 自动部署时应当包含的路径，相对于 DIST_ROOT */
+    include?: string[]
+
+    /** 
+     * 环境删除 PROJECT_SYSROOT 时的操作
+     * @default "ignore"
+     */
+    onClean?: 'ignore' | 'deactivate'
+}
+
+export interface PackageManifest {
+    packageId: string
+    createUser: string
+    createTime: string
+    dependencies: {
+        /** 依赖包 query : version(range) */
+        [name: string]: string
+    }
+    exports: Exports
+    deploy: PackageDeployStrategy
 }

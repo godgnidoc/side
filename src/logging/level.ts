@@ -11,7 +11,7 @@ export function SetLogLevel(level: typeof log_level) {
     log_level = level;
 }
 
+const levels = ['debug', 'info', 'warn', 'error'];
 export function isEnabled(level: typeof log_level) {
-    const levels = ['debug', 'info', 'warn', 'error'];
     return levels.indexOf(level) >= levels.indexOf(log_level);
 }

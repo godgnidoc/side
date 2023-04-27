@@ -1,5 +1,5 @@
 import { join } from "path"
-import { loadFinalTarget, projectPath, rpaths } from "../environment"
+import { fullyInflateEnv, loadFinalTarget, projectPath, rpaths } from "../environment"
 import { stat, access, readdir } from "fs/promises"
 import { exec, spawn } from "child_process"
 import { promisify } from "util"
@@ -35,6 +35,7 @@ export async function invokeHook(hook: string, args: string[] = []) {
 
     await promisify(exec)(`chmod +x ${script}`)
     console.debug('invoke: %s %s', script, args.join(' '))
+    fullyInflateEnv()
     const child = spawn(script, args, {
         cwd: projectPath,
         env: process.env,
@@ -80,6 +81,7 @@ export const invokeHookFeature = new class extends Feature {
         }
 
         await promisify(exec)(`chmod +x ${script}`)
+        fullyInflateEnv()
         console.debug('invoke: %s %s', script, args.join(' '))
         const child = spawn(script, args, {
             cwd: projectPath,

@@ -1,14 +1,10 @@
 import { execute, verifyDefinitions } from "@godgnidoc/decli"
 import { Side } from "./application"
 import { GetLogLevel, InitiateLogging, SetLogLevel } from "../logging"
-import { fullyInflateEnv } from "../environment"
 
 export async function main() {
     /** 初始化日志支持 */
     InitiateLogging()
-
-    /** 将基础环境变量导出至环境变量 */
-    fullyInflateEnv()
 
     const app = new Side()
     const args = process.argv.slice(2)

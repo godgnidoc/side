@@ -1,6 +1,6 @@
 import { Brief, Feature, LongOpt } from '@godgnidoc/decli'
 import { basename, join, relative } from 'path'
-import { access, mkdir, rmdir, writeFile } from 'fs/promises'
+import { access, mkdir, readFile, rmdir, writeFile } from 'fs/promises'
 import { defaultDirs, rpaths, sideVersion } from '../environment'
 import { exec } from 'child_process'
 import { promisify } from 'util'
@@ -64,6 +64,7 @@ class ProjectInitFeature extends Feature {
             // pass
         }
 
+        // 创建项目元空间的 .gitignore 文件
         await writeFile(join(target, rpaths.projectMeta, '.gitignore'), `# ignore files\n\n`
             + `/*\n`
             + `!/${relative(rpaths.projectMeta, rpaths.projectResources)}/\n`
@@ -73,11 +74,23 @@ class ProjectInitFeature extends Feature {
             + `!/.gitignore\n`
         )
 
-        await writeFile(join(target, '.gitignore'), `# ignore files\n\n`
-            + `/${relative(target, defaultDirs.build)}/\n`
-            + `/${relative(target, defaultDirs.release)}/\n`
-            + `/${relative(target, defaultDirs.module)}/\n`
-        )
+        const path = join(target, rpaths.projectMeta, '.gitignore')
+        try {
+            // 若已存在 .gitignore 文件，则在文件末尾添加内容
+            let ignore = await readFile(path, 'utf-8')
+            ignore += '\n\n# ignore files\n\n'
+                + `/${relative(target, defaultDirs.build)}/\n`
+                + `/${relative(target, defaultDirs.release)}/\n`
+                + `/${relative(target, defaultDirs.module)}/\n`
+            await writeFile(path, ignore)
+        } catch {
+            // 若不存在 .gitignore 文件，则创建文件
+            await writeFile(join(target, '.gitignore'), `# ignore files\n\n`
+                + `/${relative(target, defaultDirs.build)}/\n`
+                + `/${relative(target, defaultDirs.release)}/\n`
+                + `/${relative(target, defaultDirs.module)}/\n`
+            )
+        }
     }
 
     async initiateManifest(target: string) {

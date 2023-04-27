@@ -5,5 +5,8 @@ sed -i -e '1s|^|#!/usr/bin/env node\n|' build/index.js
 chmod +x build/index.js
 ln -rfs build/index.js build/side
 
-version=$(build/side vget package.json version)
-build/side vset -o build/package.json -f json build/package.json version=\"${version}\"
+build/side vset \
+  -f json \
+  -o build/package.json \
+  build/package.json \
+  version=\"$(build/side vget package.json version)\"

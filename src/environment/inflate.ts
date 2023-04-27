@@ -6,18 +6,28 @@ import { Exports, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest } from "
 export type Inflatable = ProjectManifest | ProjectFinalTarget | ProjectBuildInfo
 type Environment = { [key: string]: string | boolean | number }
 
+export function evaluate(value: string | number | boolean, env: Environment) {
+    if (typeof value === 'number' || typeof value === 'boolean') return value.toString()
+
+    if (!value.includes('$')) return value
+    return value.replace(/(?<![\\\$])\${(\w+)}/g, (_, key) => {
+        return env[key]?.toString() || ''
+    })
+}
+
 export function inflateExports(exports: Exports, env?: Environment) {
     if (!env) env = { ...process.env }
     if (!exports) return env
     for (const key in exports) {
         const value = exports[key]
+        const ekey = evaluate(key, env)
         if (value === undefined || value === null) {
-            delete env[key]
+            delete env[ekey]
             continue
         }
-        
+
         if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            env[key] = value.toString()
+            env[ekey] = evaluate(value, env)
             continue
         }
 
@@ -38,22 +48,22 @@ export function inflateExports(exports: Exports, env?: Environment) {
             : value.value
 
         if (!Array.isArray(variable)) {
-            env[key] = variable
+            env[ekey] = evaluate(variable, env)
             continue
         }
 
-        if (override || !env[key]) {
-            env[key] = variable.join(delimiter)
+        if (override || !env[ekey]) {
+            env[ekey] = variable.map(v => evaluate(v, env)).join(delimiter)
             continue
         }
 
-        const has = env[key].toString().split(delimiter)
+        const has = env[ekey].toString().split(delimiter)
         const add: string[] = []
         for (const item of variable) {
             if (has.includes(item)) continue
             add.push(item)
         }
-        if (add.length) env[key] = `${env[key]}${delimiter}${add.join(delimiter)}`
+        if (add.length) env[ekey] = `${env[ekey]}${delimiter}${add.map(v => evaluate(v, env)).join(delimiter)}`
     }
     return env
 }
@@ -76,7 +86,6 @@ export function inflate(inf: Inflatable, env: Environment = process.env) {
     if (projectName) env['SIDE_PROJECT_NAME'] = projectName
 
     if (inf.$structure === 'side.manifest') {
-        if (inf.exports) inflateExports(inf.exports, env)
         if (inf.project) env['SIDE_PROJECT_NAME'] = inf.project
         if (inf.dirs) {
             if (inf.dirs.module) env['SIDE_DIR_MODULE'] = inf.dirs.module
@@ -86,16 +95,16 @@ export function inflate(inf: Inflatable, env: Environment = process.env) {
             if (inf.dirs.package) env['SIDE_DIR_PACKAGE'] = inf.dirs.package
             if (inf.dirs.release) env['SIDE_DIR_RELEASE'] = inf.dirs.release
         }
+        if (inf.exports) inflateExports(inf.exports, env)
     }
 
     if (inf.$structure === 'side.final-target') {
-        if (inf.exports) inflateExports(inf.exports, env)
         env['SIDE_PROJECT_NAME'] = inf.project
         env['SIDE_TARGET'] = inf.target
+        if (inf.exports) inflateExports(inf.exports, env)
     }
 
     if (inf.$structure === 'side.build-info') {
-        inflateExports(inf.exports, env)
         env['SIDE_PROJECT_NAME'] = inf.project
         env['SIDE_PROJECT_REVISION'] = inf.revision
         env['SIDE_TARGET'] = inf.target
@@ -110,6 +119,7 @@ export function inflate(inf: Inflatable, env: Environment = process.env) {
             const res = inf.resources[resource]
             env[`SIDE_RESOURCE_${resource}`] = res.join(';')
         }
+        inflateExports(inf.exports, env)
     }
 
     return env
