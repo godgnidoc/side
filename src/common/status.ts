@@ -49,9 +49,13 @@ class StatusFeature extends Feature {
                 })
                 ch.stdout.once('data', (data) => {
                     let lines: string = data.toString()
+                    
                     if (lines.startsWith('On branch')) {
-                        lines = lines[0].toLowerCase() + lines.slice(1)
-                        lines = lines.replace(/on branch (.*)\n/, 'on branch \x1b[1;36m$1\x1b[0m\n')
+                        lines = lines
+                            .replace(/On branch (.*)\n/, 'on branch \x1b[1;36m$1\x1b[0m\n')
+                            .replace(/ahead of '(.*)' by (\d+)/, "ahead of \x1b[1;36m'$1'\x1b[0m by \x1b[33m$2\x1b[0m")
+                            .replace(/date with '(.*)'/, "date with \x1b[1;36m'$1'\x1b[0m")
+                            .replace(/use "(.*)" to/g, 'use \x1b[1;32m"$1"\x1b[0m to')
                         process.stdout.write(', ' + lines)
                     } else {
                         process.stdout.write('\n')
