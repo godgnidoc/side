@@ -1,12 +1,12 @@
 import { writeFileSync } from "fs"
-import { getFinalTarget, projectPath, rpaths } from "../environment"
+import { loadFinalTarget, projectPath, rpaths } from "../environment"
 import { join } from "path"
 import { dump } from "js-yaml"
 
 export type Stage = 'draft' | 'ready' | 'built' | 'packaged'
 
 export function getCurrentStage() {
-    return getFinalTarget()?.stage
+    return loadFinalTarget()?.stage
 }
 
 export function testStage(stage: Stage) {
@@ -26,7 +26,7 @@ export function testStage(stage: Stage) {
 
 export function setStage(stage: Stage) {
     console.debug('stage: set to %s', stage)
-    const target = getFinalTarget()
+    const target = loadFinalTarget()
     target.stage = stage
     writeFileSync(join(projectPath, rpaths.projectFinalTarget), dump(target))
 }

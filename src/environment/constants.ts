@@ -4,50 +4,7 @@ import { Exports, ProjectBuildInfo, ProjectManifest } from "../format"
 import { homedir } from "os"
 import { load } from "js-yaml"
 
-function determineProjectName() {
-    try {
-        const manifest = load(readFileSync(join(projectPath, rpaths.projectManifest), 'utf8')) as ProjectManifest
-        return manifest.project
-    } catch {
-        return undefined
-    }
-}
-
-function locateSideHome() {
-    return process.env["SIDE_HOME"] || rpaths.defaultSideHome
-}
-
-function locateProject(base = process.cwd()) {
-    let dir = base
-    while (dir !== '/') {
-        if (statSync(join(dir, rpaths.projectManifest), { throwIfNoEntry: false })?.isFile())
-            return dir
-        dir = resolve(dir, '..')
-    }
-    return undefined
-}
-
-/** Side 应用清单 */
-const nodeManifest = (() => {
-    let dir = dirname(new URL(import.meta.url).pathname)
-    while (dir !== '/') {
-        if (statSync(join(dir, 'package.json'), { throwIfNoEntry: false })?.isFile())
-            return JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
-        dir = join(dir, '..')
-    }
-    throw new Error('Cannot locate package.json')
-})()
-
-const sideBuildInfo: ProjectBuildInfo = (() => {
-    let dir = dirname(new URL(import.meta.url).pathname)
-    while (dir !== '/') {
-        if (statSync(join(dir, 'build-info.json'), { throwIfNoEntry: false })?.isFile())
-            return JSON.parse(readFileSync(join(dir, 'build-info.json'), 'utf8')) as ProjectBuildInfo
-        dir = join(dir, '..')
-    }
-    return undefined
-})()
-
+/** 定义固化的相对路径 */
 export const rpaths = new class {
     /** 相对于项目路径的元信息路径 */
     readonly projectMeta = '.project'
@@ -86,6 +43,59 @@ export const rpaths = new class {
     readonly sideSettings = 'settings'
 }
 
+/** 默认项目路径结构 */
+export const defaultDirs = new class {
+    readonly module = 'module'
+    readonly build = 'build'
+    readonly document = 'doc'
+    readonly generated = join(rpaths.projectMeta, 'generated')
+    readonly package = join(rpaths.projectMeta, 'packing')
+    readonly release = 'release'
+}
+
+function locateSideHome() {
+    return process.env["SIDE_HOME"] || rpaths.defaultSideHome
+}
+
+/** Side 应用清单 */
+const nodeManifest = (() => {
+    let dir = dirname(new URL(import.meta.url).pathname)
+    return JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
+})()
+
+const sideBuildInfo: ProjectBuildInfo = (() => {
+    let dir = dirname(new URL(import.meta.url).pathname)
+    try {
+        return JSON.parse(readFileSync(join(dir, 'build-info.json'), 'utf8')) as ProjectBuildInfo
+    } catch {
+        return undefined
+    }
+})()
+
+export const {
+    /** 项目清单或undefined */
+    projectManifest,
+
+    /** 项目路径或undefined */
+    projectPath
+} = (() => {
+    let dir = process.cwd()
+    while (dir !== '/') {
+        if (statSync(join(dir, rpaths.projectManifest), { throwIfNoEntry: false })?.isFile()) {
+            const file = join(dir, rpaths.projectManifest)
+            const source = readFileSync(file, 'utf-8')
+            const manifest = load(source) as ProjectManifest
+            manifest.dirs = {
+                ...defaultDirs,
+                ...manifest.dirs
+            }
+            return { projectManifest: manifest, projectPath: dir }
+        }
+        dir = resolve(dir, '..')
+    }
+    return { projectManifest: undefined, projectPath: undefined }
+})()
+
 /** Side home实际路径 */
 export const sideHome = locateSideHome()
 
@@ -95,14 +105,11 @@ export const sideVersion = nodeManifest.version
 /** Side 应用修订号 */
 export const sideRevision = sideBuildInfo?.revision
 
-/** 当前项目路径或当前 undefined */
-export const projectPath = locateProject()
-
 /** 项目元信息存储路径或 undefined */
 export const projectMeta = projectPath ? join(projectPath, rpaths.projectMeta) : undefined
 
 /** 项目名，取manifest.project 或 undefined */
-export const projectName = determineProjectName()
+export const projectName = projectManifest?.project
 
 /** 基于当前环境默认需要导出的内容 */
 export const basicExports: Exports = {

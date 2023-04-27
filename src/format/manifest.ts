@@ -1,5 +1,25 @@
 import { Stage } from "../stage"
 
+export interface Dirs {
+    /** 存放子模块仓库的默认相对路径路径 */
+    module?: string
+
+    /** 存放构建内容物的默认相对路径 */
+    build?: string
+
+    /** 存放文档的默认相对路径 */
+    document?: string
+
+    /** 存放自动生成的内容的默认相对路径 */
+    generated?: string
+
+    /** 打包工作环境的默认相对路径 */
+    package?: string
+
+    /** 发布包的默认相对存储路径 */
+    release?: string
+}
+
 /** 
  * 环境变量表
  * 若值为字符串、数字或布尔值，则默认为覆盖原有变量
@@ -68,6 +88,9 @@ export interface ProjectManifest {
 
     /** 集成开发环境引擎版本号 */
     engine?: string
+
+    /** 当前项目结构定制 */
+    dirs?: Dirs
 
     /** 当前目标所依赖的包 */
     requires?: Requires

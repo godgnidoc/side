@@ -1,7 +1,7 @@
 import { Brief, Feature, LongOpt } from '@godgnidoc/decli'
 import { basename, join, relative } from 'path'
 import { access, mkdir, rmdir, writeFile } from 'fs/promises'
-import { rpaths, getFinalSettings, sideVersion } from '../environment'
+import { defaultDirs, rpaths, sideVersion } from '../environment'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import { ProjectManifest } from '../format'
@@ -27,8 +27,8 @@ class ProjectInitFeature extends Feature {
 
         console.info('Initializing project in %s', target)
         await this.buildFolderStructure(target)
-        await this.initiateGitStuff(target)
         await this.initiateManifest(target)
+        await this.initiateGitStuff(target)
 
         return 0
     }
@@ -60,7 +60,7 @@ class ProjectInitFeature extends Feature {
             const result = await promisify(exec)('git init', { cwd: target })
             if (result.stderr) console.error(result.stderr.trim())
             if (result.stdout) console.info(result.stdout.trim())
-        } catch(e) {
+        } catch (e) {
             // pass
         }
 
@@ -74,9 +74,9 @@ class ProjectInitFeature extends Feature {
         )
 
         await writeFile(join(target, '.gitignore'), `# ignore files\n\n`
-            + `/${relative(target, getFinalSettings().dir.build)}/\n`
-            + `/${relative(target, getFinalSettings().dir.release)}/\n`
-            + `/${relative(target, getFinalSettings().dir.module)}/\n`
+            + `/${relative(target, defaultDirs.build)}/\n`
+            + `/${relative(target, defaultDirs.release)}/\n`
+            + `/${relative(target, defaultDirs.module)}/\n`
         )
     }
 

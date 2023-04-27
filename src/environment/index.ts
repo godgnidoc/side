@@ -1,7 +1,7 @@
 import * as yaml from 'js-yaml'
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { basicExports, projectMeta, projectPath, rpaths, sideHome } from './constants'
+import { basicExports, projectManifest, projectMeta, projectPath, rpaths, sideHome } from './constants'
 import { userInfo } from 'os'
 import { FinalSettings, LocalSettings, GlobalSettings, GlobalOptions, ProjectFinalTarget } from '../format'
 import { inflate, inflateExports } from './inflate'
@@ -42,24 +42,13 @@ export function getLocalSettings() {
 }
 
 /** 导出汇总设置 */
-let finalSettings = undefined
+let finalSettings = <FinalSettings>undefined
 export function getFinalSettings() {
     if (finalSettings !== undefined) return finalSettings
     const global = getGlobalSettings()
     const local = getLocalSettings()
     return finalSettings = new class implements FinalSettings {
         readonly $structure = 'side.final-settings'
-
-        readonly dir = {
-            module: 'module',
-            build: 'build',
-            document: 'doc',
-            generated: join(rpaths.projectMeta, 'generated'),
-            package: join(rpaths.projectMeta, 'packing'),
-            release: 'release',
-
-            ...global?.dir
-        }
 
         readonly dist = {
             apiBaseUrl: 'http://localhost:5000/api',
@@ -76,7 +65,7 @@ export function getFinalSettings() {
 }
 
 /** 每次都加载最新的目标 */
-export function getFinalTarget() {
+export function loadFinalTarget() {
     try {
         const source = readFileSync(join(projectPath, rpaths.projectFinalTarget), 'utf-8')
         const target = yaml.load(source) as ProjectFinalTarget
@@ -103,11 +92,11 @@ export function fullyInflateEnv() {
     /** 将基础环境变量导出至环境变量 */
     inflateExports(basicExports, env)
 
-    /** 将汇总设置导出至环境变量 */
-    inflate(getFinalSettings(), env)
+    /** 将汇总清单设置导出到环境变量 */
+    inflate(projectManifest, env)
 
     /** 将汇总的目标信息导出至环境变量 */
-    inflate(getFinalTarget(), env)
+    inflate(loadFinalTarget(), env)
 
     process.env = env
 }

@@ -1,3 +1,4 @@
+import { invokeHookFeature } from "./invoke_hook"
 import { vdelFeature, vfmtFeature, vgetFeature, vhasFeature, vkeysFeature, vmergeFeature, vsetFeature } from "./notion";
 import { shellFeature } from "./shell";
 import { statusFeature } from "./status";
@@ -17,4 +18,5 @@ export const common = {
     vdel: vdelFeature,
     vmerge: vmergeFeature,
     status: statusFeature,
+    invoke: invokeHookFeature
 }

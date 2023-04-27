@@ -1,13 +1,13 @@
-import { Feature } from "@godgnidoc/decli";
-import { calculateTarget, getTargetList } from "../target";
+import { Feature } from "@godgnidoc/decli"
+import { calculateTarget, getTargetList } from "../target"
 import * as yaml from 'js-yaml'
-import { join } from "path";
-import { getFinalSettings, projectName, projectPath, rpaths, sideVersion } from "../environment";
-import { ProjectFinalTarget, ProjectManifest } from "../format";
-import { readFile, writeFile } from "fs/promises";
-import { vmerge } from "../common";
-import { promisify } from "util";
-import { exec } from "child_process";
+import { join } from "path"
+import { getFinalSettings, projectManifest, projectName, projectPath, rpaths, sideVersion } from "../environment"
+import { ProjectFinalTarget, ProjectManifest } from "../format"
+import { readFile, writeFile } from "fs/promises"
+import { vmerge } from "../common"
+import { promisify } from "util"
+import { exec } from "child_process"
 
 export const projectDraftFeature = new class extends Feature {
     args = true
@@ -48,13 +48,12 @@ export const projectDraftFeature = new class extends Feature {
         /** 尝试加载项目根清单 */
         try {
             console.debug('draft: load project manifest')
-            const file = join(projectPath, rpaths.projectManifest)
-            const source = await readFile(file, 'utf-8')
-            const manifest = yaml.load(source) as ProjectManifest
+            const manifest = { ...projectManifest }
             delete manifest['$structure']
             delete manifest['project']
             delete manifest['target']
             delete manifest['engine']
+            delete manifest['dirs']
             delete manifest['stage']
             final = vmerge(final, manifest)
         } catch {
@@ -72,6 +71,7 @@ export const projectDraftFeature = new class extends Feature {
                 delete manifest['project']
                 delete manifest['target']
                 delete manifest['engine']
+                delete manifest['dirs']
                 delete manifest['inherit']
                 delete manifest['composites']
                 delete manifest['stage']

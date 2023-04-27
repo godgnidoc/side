@@ -1,5 +1,5 @@
 import { Feature, ShortOpt } from "@godgnidoc/decli"
-import { getFinalTarget, projectName, projectPath } from "../environment"
+import { loadFinalTarget, projectName, projectPath } from "../environment"
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from "child_process"
 
 class StatusFeature extends Feature {
@@ -19,7 +19,7 @@ class StatusFeature extends Feature {
         let suffix = process.stdout.isTTY ? '\x1b[0m' : ''
         let prefix1 = process.stdout.isTTY ? '\x1b[1;36m' : ''
 
-        const target = getFinalTarget()
+        const target = loadFinalTarget()
         let prefix2 = process.stdout.isTTY
             ? target
                 ? prefix1

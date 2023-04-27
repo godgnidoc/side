@@ -1,8 +1,8 @@
 import { join } from "path"
 import { getRevision } from "../common"
 import { invokeHook } from "../common/invoke_hook"
-import { getFinalSettings, getFinalTarget, projectName, projectPath } from "../environment"
-import { ProjectBuildInfo, ProjectFinalTarget } from "../format"
+import { loadFinalTarget, projectManifest, projectName, projectPath } from "../environment"
+import { ProjectBuildInfo } from "../format"
 import { projectSetupFeature } from "./setup"
 import { writeFile } from "fs/promises"
 import { Feature } from "@godgnidoc/decli"
@@ -16,8 +16,7 @@ export const projectBuildFeature = new class extends Feature {
 
     async entry(...args: string[]): Promise<number> {
         console.debug('build:', args)
-        const target = getFinalTarget()
-        if (!target) {
+        if (!loadFinalTarget()) {
             console.error('No target specified')
             return 1
         }
@@ -26,7 +25,7 @@ export const projectBuildFeature = new class extends Feature {
         }
 
         if (0 !== await invokeHook('pre-build', args)) return 1
-        await this.generateBuildInfo(target)
+        await this.generateBuildInfo()
         if (0 !== await invokeHook('build', args)) return 1
         if (0 !== await invokeHook('post-build', args)) return 1
 
@@ -34,9 +33,9 @@ export const projectBuildFeature = new class extends Feature {
         return 0
     }
 
-    async generateBuildInfo(target: ProjectFinalTarget) {
+    async generateBuildInfo() {
         console.debug('build: generating build info')
-        const settings = getFinalSettings()
+        const target = loadFinalTarget()
 
         let requires: string[]
         if (target.requires) requires = Object.entries(target.requires)
@@ -44,13 +43,13 @@ export const projectBuildFeature = new class extends Feature {
 
         let modules: { [repo: string]: string }
         if (target.modules) for (const [name, module] of Object.entries(target.modules)) {
-            if( !modules ) modules = {}
-            modules[module.repo] = await getRevision(join(projectPath, settings.dir.module, name), { dirty: true })
+            if (!modules) modules = {}
+            modules[module.repo] = await getRevision(join(projectPath, projectManifest.dirs.module, name), { dirty: true })
         }
 
         let resources: { [category: string]: string[] }
         if (target.resources) for (const [category, resource] of Object.entries(target.resources)) {
-            if( !resources ) resources = {}
+            if (!resources) resources = {}
             resources[category] = [...resource.using]
         }
 
@@ -66,7 +65,7 @@ export const projectBuildFeature = new class extends Feature {
             exports: target.exports
         }
 
-        await writeFile(join(projectPath, settings.dir.build, 'build-info.json'), JSON.stringify(info, null, 4))
+        await writeFile(join(projectPath, projectManifest.dirs.build, 'build-info.json'), JSON.stringify(info, null, 4))
 
         return 0
     }

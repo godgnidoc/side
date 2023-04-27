@@ -1,6 +1,6 @@
 import { Feature } from "@godgnidoc/decli"
 import { invokeHook } from "../common/invoke_hook"
-import { getFinalTarget } from "../environment"
+import { loadFinalTarget } from "../environment"
 import { setStage, testStage } from "../stage"
 import { projectBuildFeature } from "./build"
 
@@ -11,7 +11,7 @@ export const projectPackageFeature = new class extends Feature {
 
     async entry(...args: string[]): Promise<number> {
         console.debug('package:', args)
-        const target = getFinalTarget()
+        const target = loadFinalTarget()
         if (!target) {
             console.error('No target specified')
             return 1

@@ -1,7 +1,7 @@
 import { Feature } from "@godgnidoc/decli"
 import { invokeHook } from "../common/invoke_hook"
 import { projectDraftFeature } from "./draft"
-import { fullyInflateEnv, getFinalSettings, getFinalTarget, projectPath, rpaths } from "../environment"
+import { fullyInflateEnv, loadFinalTarget, projectManifest, projectPath, rpaths } from "../environment"
 import { getTargetList } from "../target"
 import { ProjectFinalTarget } from "../format"
 import { dirname, join } from "path"
@@ -45,7 +45,7 @@ export const projectSetupFeature = new class extends Feature {
         }
         
         /** 获取最终目标 */
-        const target = getFinalTarget()
+        const target = loadFinalTarget()
         console.debug('setup: %s', target.target)
         if (!target) {
             console.error('No target specified')
@@ -168,13 +168,12 @@ export const projectSetupFeature = new class extends Feature {
         const modules = target.modules
         if (!modules) return 0
 
-        const settings = getFinalSettings()
         for (const name in modules) {
             const module = modules[name]
 
             // 按需创建子模块目录
-            await mkdir(join(projectPath, settings.dir.module), { recursive: true })
-            const mpath = join(projectPath, settings.dir.module, name) // 子模块路径
+            await mkdir(join(projectPath, projectManifest.dirs.module), { recursive: true })
+            const mpath = join(projectPath, projectManifest.dirs.module, name) // 子模块路径
 
             // 获取子模块仓库
             try {

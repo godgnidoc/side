@@ -1,12 +1,9 @@
 import { projectMeta, projectName, sideHome, sideRevision, sideVersion } from "./constants"
 import { projectPath } from "./constants"
-import { Exports, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget } from "../format"
-import { GlobalSettings, LocalSettings, FinalSettings } from "../format"
+import { Exports, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest } from "../format"
 
 
-export type Inflatable =
-    ProjectManifest | ProjectTarget | ProjectAspect | ProjectFinalTarget
-    | ProjectBuildInfo | GlobalSettings | LocalSettings | FinalSettings
+export type Inflatable = ProjectManifest | ProjectFinalTarget | ProjectBuildInfo
 type Environment = { [key: string]: string | boolean | number }
 
 export function inflateExports(exports: Exports, env?: Environment) {
@@ -79,25 +76,26 @@ export function inflate(inf: Inflatable, env: Environment = process.env) {
     if (projectName) env['SIDE_PROJECT_NAME'] = projectName
 
     if (inf.$structure === 'side.manifest') {
+        if (inf.exports) inflateExports(inf.exports, env)
         if (inf.project) env['SIDE_PROJECT_NAME'] = inf.project
-        if (inf.exports) inflateExports(inf.exports, env)
-    }
-
-    if (inf.$structure === 'side.target') {
-        if (inf.exports) inflateExports(inf.exports, env)
-    }
-
-    if (inf.$structure === 'side.aspect') {
-        if (inf.exports) inflateExports(inf.exports, env)
+        if (inf.dirs) {
+            if (inf.dirs.module) env['SIDE_DIR_MODULE'] = inf.dirs.module
+            if (inf.dirs.build) env['SIDE_DIR_BUILD'] = inf.dirs.build
+            if (inf.dirs.document) env['SIDE_DIR_DOCUMENT'] = inf.dirs.document
+            if (inf.dirs.generated) env['SIDE_DIR_GENERATED'] = inf.dirs.generated
+            if (inf.dirs.package) env['SIDE_DIR_PACKAGE'] = inf.dirs.package
+            if (inf.dirs.release) env['SIDE_DIR_RELEASE'] = inf.dirs.release
+        }
     }
 
     if (inf.$structure === 'side.final-target') {
+        if (inf.exports) inflateExports(inf.exports, env)
         env['SIDE_PROJECT_NAME'] = inf.project
         env['SIDE_TARGET'] = inf.target
-        if (inf.exports) inflateExports(inf.exports, env)
     }
 
     if (inf.$structure === 'side.build-info') {
+        inflateExports(inf.exports, env)
         env['SIDE_PROJECT_NAME'] = inf.project
         env['SIDE_PROJECT_REVISION'] = inf.revision
         env['SIDE_TARGET'] = inf.target
@@ -111,26 +109,6 @@ export function inflate(inf: Inflatable, env: Environment = process.env) {
         for (const resource in inf.resources) {
             const res = inf.resources[resource]
             env[`SIDE_RESOURCE_${resource}`] = res.join(';')
-        }
-
-        inflateExports(inf.exports, env)
-    }
-
-    if (inf.$structure === 'side.global-settings' || inf.$structure === 'side.final-settings') {
-        if (inf.dir) {
-            if (inf.dir.module) env['SIDE_DIR_MODULE'] = inf.dir.module
-            if (inf.dir.build) env['SIDE_DIR_BUILD'] = inf.dir.build
-            if (inf.dir.document) env['SIDE_DIR_DOCUMENT'] = inf.dir.document
-            if (inf.dir.generated) env['SIDE_DIR_GENERATED'] = inf.dir.generated
-            if (inf.dir.package) env['SIDE_DIR_PACKAGE'] = inf.dir.package
-            if (inf.dir.release) env['SIDE_DIR_RELEASE'] = inf.dir.release
-        }
-
-        if (inf.dist) {
-            if (inf.dist.apiBaseUrl) env['DIST_API_BASE_URL'] = inf.dist.apiBaseUrl
-            if (inf.dist.ftpBaseUrl) env['DIST_FTP_BASE_URL'] = inf.dist.ftpBaseUrl
-            if (inf.dist.user) env['DIST_USER'] = inf.dist.user
-            if (inf.dist.token) env['DIST_TOKEN'] = inf.dist.token
         }
     }
 

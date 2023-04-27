@@ -1,23 +1,3 @@
-interface DirSettings {
-    /** 存放子模块仓库的默认相对路径路径 */
-    module?: string
-
-    /** 存放构建内容物的默认相对路径 */
-    build?: string
-
-    /** 存放文档的默认相对路径 */
-    document?: string
-
-    /** 存放自动生成的内容的默认相对路径 */
-    generated?: string
-
-    /** 打包工作环境的默认相对路径 */
-    package?: string
-
-    /** 发布包的默认相对存储路径 */
-    release?: string
-}
-
 /** 资源分发平台相关的设置 */
 interface DistSettings {
     /** 接口请求的基础URL http://side.server:port/dist */
@@ -34,8 +14,6 @@ interface DistSettings {
 }
 
 interface BasicGlobalSettings {
-    /** side运行过程中可能用到的路径变量，这些变量均相对于SideProject */
-    dir?: DirSettings
 
     /** dist 平台相关设置 */
     dist?: DistSettings
