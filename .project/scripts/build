@@ -1,8 +1,9 @@
 #!/bin/bash -e
 
 ncc build src/index.ts -m --v8-cache --no-source-map-register -o build
+sed -i -e '1s|^|#!/usr/bin/env node\n|' build/index.js
+chmod +x build/index.js
+ln -rfs build/index.js build/side
 
-if which side; then
-    version=$(side vget package.json version)
-    side vset -o build/package.json -f json build/package.json version=\"${version}\"
-fi
+version=$(build/side vget package.json version)
+build/side vset -o build/package.json -f json build/package.json version=\"${version}\"

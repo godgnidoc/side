@@ -1,9 +1,4 @@
 #!/bin/bash -e
 
-rm -rf ${SIDE_DIR_PACKAGE}
-mkdir -p ${SIDE_DIR_PACKAGE}
-ln -rs ${SIDE_DIR_BUILD} ${SIDE_DIR_PACKAGE}/side
-
 mkdir -p ${SIDE_DIR_RELEASE}
-env -C ${SIDE_DIR_PACKAGE} tar -Jhcf ${SIDE_PROJECT}/${SIDE_DIR_RELEASE}/side.tar.xz side
-rm -rf ${SIDE_DIR_PACKAGE}
+env tar --xform='s%^build%side%' -cJf ${SIDE_PROJECT}/${SIDE_DIR_RELEASE}/side.tar.xz build

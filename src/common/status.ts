@@ -51,6 +51,7 @@ class StatusFeature extends Feature {
                     let lines: string = data.toString()
                     if (lines.startsWith('On branch')) {
                         lines = lines[0].toLowerCase() + lines.slice(1)
+                        lines = lines.replace(/on branch (.*)\n/, 'on branch \x1b[1;36m$1\x1b[0m\n')
                         process.stdout.write(', ' + lines)
                     } else {
                         process.stdout.write('\n')
