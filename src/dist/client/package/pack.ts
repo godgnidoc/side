@@ -38,7 +38,7 @@ export const distPackFeature = new class extends Feature {
         await this.collectRootContent(workspace, packing, manifest)
         await this.collectHookContent(workspace, packing, manifest)
         await this.releasePackage(workspace, manifest)
-        // await this.cleanWorkspace(workspace)
+        await this.cleanWorkspace(workspace)
         return 0
     }
 

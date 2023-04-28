@@ -1,4 +1,3 @@
 #!/bin/bash -e
 
-mkdir -p ${SIDE_DIR_RELEASE}
-env tar --xform='s%^build%side%' -cJf ${SIDE_PROJECT}/${SIDE_DIR_RELEASE}/side.tar.xz build
+side dist pack $(side vget package.json version)
