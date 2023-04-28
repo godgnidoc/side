@@ -91,10 +91,10 @@ export const {
 export const sideHome = locateSideHome()
 
 /** Side 应用版本号 */
-export const sideVersion = nodeManifest.version
+export const sideVersion: string = nodeManifest.version
 
 /** Side 应用修订号 */
-export const sideRevision = nodeManifest.revision
+export const sideRevision: string = nodeManifest.revision
 
 /** 项目元信息存储路径或 undefined */
 export const projectMeta = projectPath ? join(projectPath, rpaths.projectMeta) : undefined

@@ -10,9 +10,9 @@ export function evaluate(value: string | number | boolean, env: Environment) {
     if (typeof value === 'number' || typeof value === 'boolean') return value.toString()
 
     if (!value.includes('$')) return value
-    return value.replace(/(?<![\\\$])\${(\w+)}/g, (_, key) => {
+    value.replace(/(?<![\\\$])\${(\w+)}/g, (_, key) => {
         return env[key]?.toString() || ''
-    })
+    }).replace(/\\\$|\$\$/g, '$')
 }
 
 export function inflateExports(exports: Exports, env?: Environment) {

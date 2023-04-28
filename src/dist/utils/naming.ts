@@ -8,11 +8,11 @@ import { PATH_REPOSITORIES } from "./settings"
  * @example 'name-part-one--tag1-tag2-0.0.1' 其中包名为name-part-one，标签为tag1和tag2，版本号为0.0.1
 */
 export class PackageId {
-    constructor(scope: string, name: string = 'package', version: SemVer | string = '0.0.0', tags: string[] = []) {
-        if (this.setScope(scope)) throw new Error('Invalid package scope')
+    constructor(scope?: string, name: string = 'package', version: SemVer | string = '0.0.0', tags: string[] = []) {
+        if (scope && !this.setScope(scope)) throw new Error('Invalid package scope')
         if (!this.setName(name)) throw new Error('Invalid package name')
         if (!this.setVersion(version)) throw new Error('Invalid package version')
-        if (this.setTags(tags)) throw new Error('Invalid package tags')
+        if (tags && !this.setTags(tags)) throw new Error('Invalid package tags')
     }
 
     toString() {
@@ -60,6 +60,10 @@ export class PackageId {
      * @returns 设置成功返回true，否则返回false
      */
     setTags(value: string[]) {
+        if (undefined === value) {
+            this._tags = []
+            return true
+        }
         for (const tag of value)
             if (!IsValidTag(tag)) return false
         this._tags = [...value]
@@ -214,7 +218,7 @@ export class PackageId {
         const id = maybe_version
             ? id_or_query + '-' + maybe_version
             : id_or_query
-        const match = id.match(/^(@[a-zA-Z]+(?:-[a-zA-Z0-9_]+)*\/)([a-zA-Z]+(?:-[a-zA-Z0-9_]+)*)(?:--([a-zA-Z][a-zA-Z0-9_]*(?:-[a-zA-Z][a-zA-Z0-9_]*)*))?-((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?(?:\+[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?)$/)
+        const match = id.match(/^(@[a-zA-Z]+(?:-[a-zA-Z0-9_]+)*)\/([a-zA-Z]+(?:-[a-zA-Z0-9_]+)*)(?:--([a-zA-Z][a-zA-Z0-9_]*(?:-[a-zA-Z][a-zA-Z0-9_]*)*))?-((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?(?:\+[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?)$/)
 
         if (!match) return new Error('Invalid package id: ' + id)
 
