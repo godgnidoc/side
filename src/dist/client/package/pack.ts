@@ -91,6 +91,7 @@ export const distPackFeature = new class extends Feature {
         }
 
         if (packing.root?.compress === true) {
+            await rm(join(workspace, symbol, 'root'), { recursive: true, force: true })
             await promisify(exec)(`tar -Jcf ${join(workspace, symbol, 'root.tar.xz')} ${files.join(' ')}`, { cwd: root })
         } else {
             const all = files.map(async file => {
