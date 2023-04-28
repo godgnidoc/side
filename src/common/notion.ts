@@ -183,10 +183,9 @@ export function vmerge(lhs: any, rhs: any) {
 }
 
 export const vgetFeature = new class extends Feature {
-    args = true
+    args = '<file|-> [expression...]'
     brief = 'get value from input'
-    description = 'Usage: vget [file] [expression...]\n\n'
-        + '  Evaluate the expression on the input and print the result to stdout.\n'
+    description = 'Evaluate the expression on the input and print the result to stdout.\n'
         + '  If the result is invalid, nothing will be printed.\n'
         + '  If the result is an array, the result will be printed as a line-separated list.\n'
         + '  If the result is an object, the result will be printed in "KEY=VALUE" format.\n'
@@ -222,10 +221,9 @@ export const vgetFeature = new class extends Feature {
 }
 
 class FmtFeature extends Feature {
-    args = true
+    args = '<file|-> [json|yaml]'
     brief = 'format input as json or yaml'
-    description = 'Usage: vfmt [file] [json|yaml]\n\n'
-        + '  Format the input as JSON or YAML and print the result to stdout.\n\n'
+    description = 'Format the input as JSON or YAML and print the result to stdout.\n\n'
         + '  If the file is "-", the input will be read from stdin.\n\n'
         + '  If the format is not specified, YAML will be used.'
 
@@ -259,10 +257,9 @@ class FmtFeature extends Feature {
 export const vfmtFeature = new FmtFeature
 
 export const vkeysFeature = new class extends Feature {
-    args = true
+    args = '<file|-> [expression...]'
     brief = 'get keys from input'
-    description = 'Usage: vkeys [file] [expr]\n\n'
-        + '  Print the keys of the input to stdout.\n\n'
+    description = 'Print the keys of the input to stdout.\n\n'
         + '  If the file is "-", the input will be read from stdin.\n\n'
         + '  If the input is an array, the index of each element will be printed.\n'
         + '  If the input is an object, the keys of the object will be printed.'
@@ -285,10 +282,9 @@ export const vkeysFeature = new class extends Feature {
 }
 
 export const vhasFeature = new class extends Feature {
-    args = true
+    args = '<file|-> [expression...]'
     brief = 'check if input has specified sub expression'
-    description = 'Usage: vhas [file] [expr]\n\n'
-        + '  Check if the input has the specified expression.\n\n'
+    description = 'Check if the input has the specified expression.\n\n'
         + '  If the file is "-", the input will be read from stdin.'
 
     /** 提供命令行补全推荐，为第一个参数推荐文件 */
@@ -310,10 +306,9 @@ export const vhasFeature = new class extends Feature {
 }
 
 class VsetFeature extends Feature {
-    args = true
+    args = '<file|-> [expression...] = [value]'
     brief = 'set value to input'
-    description = 'Usage: vset [file] [key] = [value]\n\n'
-        + '  Set the value of the specified key to the input.\n\n'
+    description = 'Evaluate the assignment expression on the input and print the result to stdout.\n\n'
         + '  If the file is "-", the input will be read from stdin.'
 
     /** 输出路径选项，默认为 '-' 表示输出到标准输出流 */
@@ -358,10 +353,9 @@ class VsetFeature extends Feature {
 export const vsetFeature = new VsetFeature
 
 class VdelFeature extends Feature {
-    args = true
+    args = '<file|-> [expression...]'
     brief = 'delete key from input'
-    description = 'Usage: vdel [file] [key]\n\n'
-        + '  Delete the specified key from the input.\n\n'
+    description = 'Delete the specified expression on the input and print the result to stdout.\n\n'
         + '  If the file is "-", the input will be read from stdin.'
 
     /** 输出路径选项，默认为 '-' 表示输出到标准输出流 */
@@ -406,9 +400,9 @@ class VdelFeature extends Feature {
 export const vdelFeature = new VdelFeature
 
 class VmergeFeature extends Feature {
-    args = true
+    args = '<file|-> [file...]'
     brief = 'merge the files'
-    description = 'represented by the rest of args on to the file reprented by the first arg'
+    description = 'Merge the files and print the result to stdout.\n\n'
 
     /** 输出路径选项，默认为 '-' 表示输出到标准输出流 */
     @ShortOpt('-o')

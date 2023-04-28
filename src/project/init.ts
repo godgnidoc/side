@@ -8,9 +8,9 @@ import { ProjectManifest } from '../format'
 import { dump } from 'js-yaml'
 
 class ProjectInitFeature extends Feature {
+    args = '[target-path]'
     brief = 'Initialize a new project'
     description = 'Create new project directory and initialize it with default files'
-    args = true
 
     @LongOpt('--force')
     @Brief('Overwrite existing project')

@@ -11,7 +11,7 @@ import { exec } from "child_process"
 import { setStage } from "../stage"
 
 export const projectSetupFeature = new class extends Feature {
-    args = true
+    args = '[target]'
     brief = 'Setup a project'
     description = 'Setup the project against the current target\n\n'
         + '  1. Invoke pre-setup scripts\n'

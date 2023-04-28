@@ -53,7 +53,7 @@ export async function invokeHook(hook: string, args: string[] = []) {
 }
 
 export const invokeHookFeature = new class extends Feature {
-    args = true
+    args = '<hook> [args...]'
     brief = 'Invoke hook scripts'
     description = 'Invoke the specified hook script with given arguments'
 

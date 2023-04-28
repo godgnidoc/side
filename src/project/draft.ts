@@ -10,7 +10,7 @@ import { promisify } from "util"
 import { exec } from "child_process"
 
 export const projectDraftFeature = new class extends Feature {
-    args = true
+    args = '<target>'
     brief = 'Draft a new project'
     description = 'Take a target and calculate the final target'
 

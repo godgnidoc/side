@@ -1,4 +1,4 @@
-import { Feature, ShortOpt } from "@godgnidoc/decli"
+import { Brief, Feature, ShortOpt } from "@godgnidoc/decli"
 import { loadFinalTarget, projectName, projectPath } from "../environment"
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from "child_process"
 
@@ -7,9 +7,11 @@ class StatusFeature extends Feature {
     description = 'Show project status'
 
     @ShortOpt('-s')
+    @Brief('make output short')
     short = false
 
     @ShortOpt('-n')
+    @Brief('do not show git status')
     noGit = false
 
     async entry(): Promise<number> {

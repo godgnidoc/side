@@ -5,7 +5,6 @@ import { setStage, testStage } from "../stage"
 import { projectBuildFeature } from "./build"
 
 export const projectPackageFeature = new class extends Feature {
-    args = false
     brief = 'Package project'
     description = 'Package project'
 

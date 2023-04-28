@@ -4,9 +4,9 @@ import { api } from "../api"
 import inquirer from "inquirer"
 
 export const userCreateFeature = new class extends Feature {
-    args = true
+    args = '<name> <email>'
     brief = 'Create a user'
-    description = 'Usage: dist create user <name> <email>'
+    description = 'Create a user'
 
     async entry(...args: string[]) {
         if (args.length < 2) {

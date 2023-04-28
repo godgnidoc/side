@@ -8,7 +8,7 @@ import { sideHome } from "../../environment"
 import { join } from "path"
 
 export const distLoginFeature = new class extends Feature {
-    args = true
+    args = '<username>'
     brief = 'Login to dist server'
     description = 'Login to dist server'
 

@@ -21,7 +21,6 @@ export async function getTargetList() {
 class ListTargetFeature extends Feature {
     brief = "List all targets"
     description = "List all targets"
-    args = false
 
     async entry() {
         const list = await getTargetList()
