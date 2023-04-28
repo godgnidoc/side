@@ -62,7 +62,7 @@ export class PackageManifest {
     /** 包依赖列表 query->version */
     depends: { [query: string]: SemVer }
 
-    /** 执行钩子脚本时可设置的环境变量 key->value */
+    /** 执行钩子脚本时可设置的环境变量 key->value @TODO 支持变量演算 */
     variables: { [key: string]: string }
 
     /** 部署策略 */

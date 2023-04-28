@@ -1,4 +1,0 @@
-#!/bin/bash
-
-# 启动应用
-exec node ${BASH_SOURCE[0]%/*}/index.js $@

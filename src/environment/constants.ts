@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from "fs"
 import { dirname, join, resolve } from "path"
-import { Exports, ProjectBuildInfo, ProjectManifest } from "../format"
+import { Exports, ProjectManifest } from "../format"
 import { homedir } from "os"
 import { load } from "js-yaml"
 
@@ -63,15 +63,6 @@ const nodeManifest = (() => {
     return JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
 })()
 
-const sideBuildInfo: ProjectBuildInfo = (() => {
-    let dir = dirname(new URL(import.meta.url).pathname)
-    try {
-        return JSON.parse(readFileSync(join(dir, 'build-info.json'), 'utf8')) as ProjectBuildInfo
-    } catch {
-        return undefined
-    }
-})()
-
 export const {
     /** 项目清单或undefined */
     projectManifest,
@@ -103,7 +94,7 @@ export const sideHome = locateSideHome()
 export const sideVersion = nodeManifest.version
 
 /** Side 应用修订号 */
-export const sideRevision = sideBuildInfo?.revision
+export const sideRevision = nodeManifest.revision
 
 /** 项目元信息存储路径或 undefined */
 export const projectMeta = projectPath ? join(projectPath, rpaths.projectMeta) : undefined

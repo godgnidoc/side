@@ -10,3 +10,9 @@ build/side vset \
   -o build/package.json \
   build/package.json \
   version=\"$(build/side vget package.json version)\"
+
+build/side vset \
+  -f json \
+  -o build/package.json \
+  build/package.json \
+  revision=\"$(build/side vget build/build-info.json revision)\"
