@@ -1,34 +1,40 @@
-import { randomUUID } from "crypto";
-import { RequestContext, RequestHandler } from "jetweb";
+import { randomUUID } from "crypto"
+import { RequestContext, RequestHandler } from "jetweb"
 
 
 interface Task {
     /** 超时剩余秒数 */
-    timeoutSeconds : number
+    timeoutSeconds: number
 
     /** 请求处理回调 */
-    requestHandler? : RequestHandler
+    requestHandler?: RequestHandler
 
     /** 超时处理回调 */
-    timeoutHandler? : Function
+    timeoutHandler?: Function
+
+    /** 请求处理函数的参数 */
+    args?: any[]
 }
 
-const TaskTable : {[token:string]: Task} = {}
+const TaskTable: { [token: string]: Task } = {}
 
 /**
  * 创建一个任务
  * @param requestHandler 请求处理回调
+ * @param args 调用函数时的参数
  * @param timeoutHandler 超时处理回调
  * @param timeoutSeconds 超时秒数
  * @returns 任务标识
  */
-export function CreateTask(requestHandler : RequestHandler, timeoutHandler : Function, timeoutSeconds : number = 60) : string {
+export function CreateTask(requestHandler: RequestHandler, args: any[] | undefined, timeoutHandler: Function, timeoutSeconds: number = 60): string {
     const token = randomUUID()
     TaskTable[token] = {
         timeoutSeconds,
         requestHandler,
-        timeoutHandler
+        timeoutHandler,
+        args
     }
+    console.debug('Create task %s', token)
     return token
 }
 
@@ -38,11 +44,11 @@ export function CreateTask(requestHandler : RequestHandler, timeoutHandler : Fun
  */
 export function postTasks(this: RequestContext) {
     const token = this.request.incomingMessage.headers['task-token']
-    if( typeof token == 'string') {
+    if (typeof token == 'string') {
         const task = TaskTable[token]
-        if(task) {
+        if (task) {
             delete TaskTable[token]
-            return task.requestHandler?.call(this)
+            return task.requestHandler?.call(this, ...task.args)
         }
     }
 
@@ -70,6 +76,7 @@ setInterval(() => {
 
     for (const token of timeouts) {
         delete TaskTable[token]
+        console.debug('Task %s timeout', token)
     }
 
     for (const handler of handlers) {

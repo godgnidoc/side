@@ -17,6 +17,7 @@ async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
         const tmp_dir = packageId.path + '-publishing'
         const tmp_pack = join(tmp_dir, 'package.tar')
         const pack = packageId.path + '.tar'
+        const symbol = packageId.symbol
 
         // 清理并重新创建临时目录，用于存放上传的包文件
         await promisify(exec)('rm -rf ' + tmp_dir)
@@ -32,21 +33,22 @@ async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
         await promisify(exec)('tar -xf ' + tmp_pack, { cwd: tmp_dir })
 
         // 校验包结构
-        if (!await IsDir(join(tmp_dir, 'meta')))
+        if (!await IsDir(join(tmp_dir, symbol, 'meta')))
             return fail(2, 'Invalid package structure: meta directory missing')
-        if (!await IsDir(join(tmp_dir, 'root')) && !await IsFile(join(tmp_dir, 'root.tar.xz')))
+        if (!await IsDir(join(tmp_dir, symbol, 'root')) && !await IsFile(join(tmp_dir, symbol, 'root.tar.xz')))
             return fail(2, 'Invalid package structure: root content missing')
-        if (await IsDir(join(tmp_dir, 'root')) && await IsFile(join(tmp_dir, 'root.tar.xz')))
+        if (await IsDir(join(tmp_dir, symbol, 'root')) && await IsFile(join(tmp_dir, symbol, 'root.tar.xz')))
             return fail(2, 'Invalid package structure: root content duplicated')
 
         // 校验包清单
-        const raw_manifest = await readFile(join(tmp_dir, 'meta', 'manifest'), 'utf-8')
+        const raw_manifest = await readFile(join(tmp_dir, symbol, 'meta', 'manifest'), 'utf-8')
         const manifest = PackageManifest.Parse(JSON.parse(raw_manifest.toString()))
         if (manifest instanceof Error) return fail(2, 'Invalid package manifest: ' + manifest.message)
 
         // 清理并覆盖目标包
         await rm(pack, { recursive: true, force: true })
         await rename(tmp_pack, pack)
+        await promisify(exec)('rm -rf ' + tmp_dir)
 
         return done()
     } catch (e) {
@@ -83,7 +85,7 @@ async function PublishPackageById(this: RequestContext, id: string, allowOverwri
 
     // 检查包版本是否低于最新版本，如果低于则检查是否允许降级
     const latest = LatestPackageId(id_objs)
-    if (latest.version.compare(packageId.version) > 0) {
+    if (latest && latest.version.compare(packageId.version) > 0) {
         if (!allowDowngrade) return fail(1, 'Package version is lower than latest version: ' + id)
     }
 
@@ -92,9 +94,11 @@ async function PublishPackageById(this: RequestContext, id: string, allowOverwri
     busy_packages.add(packageId.toString())
 
     // 创建任务，用于发布包
-    CreateTask(TaskCallbackPublish.bind(undefined, packageId), () => {
+    const token = CreateTask(TaskCallbackPublish, [packageId], () => {
         busy_packages.delete(packageId.toString())
     })
+
+    return done(token)
 }
 
 export const Publish = {

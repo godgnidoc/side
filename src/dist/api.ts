@@ -1,5 +1,6 @@
 import { Axios } from "axios"
 import { getFinalSettings } from "environment"
+import { createReadStream } from "fs"
 
 export interface Response<T = undefined> {
     status: number // 0 表示成功
@@ -24,7 +25,7 @@ const API = new class {
                 ...headers
             }
         })
-        console.debug('api: post %s => %o', url, result.data)
+        console.debug('api: authed post %s => %o', url, result.data)
         return JSON.parse(result.data) as Response<T>
     }
     async apost<T>(url: string, data: any, headers?: any) {
@@ -47,6 +48,18 @@ const API = new class {
         console.debug('api: get %s => %o', url, result.data)
         return JSON.parse(result.data) as Response<T>
     }
+
+    async task<T>(token: string, payload: any, headers?: any) {
+        const axios = this.axios
+        const result = await axios.post(`/tasks`, payload, {
+            headers: {
+                'Task-Token': token,
+                ...headers
+            }
+        })
+        console.debug('api: task %s => %o', token, result.data)
+        return JSON.parse(result.data) as Response<T>
+    }
 }
 
 export const api = new class {
@@ -66,6 +79,20 @@ export const api = new class {
     readonly scope = new class {
         async create(name: string) {
             return await API.apost('/scope/create', { name })
+        }
+    }
+    readonly repo = new class {
+        async create(id: string) {
+            return await API.apost('/repo/create/by_id', { id })
+        }
+    }
+
+    readonly package = new class {
+        async publish(file: string, id: string, allowOverwrite: boolean, allowDowngrade: boolean) {
+            const res = await API.apost<string>('/package/publish/by_id', { id, allowOverwrite, allowDowngrade })
+            if (res.status != 0) return res
+            const token = res.data
+            return await API.task(token, createReadStream(file))
         }
     }
 }

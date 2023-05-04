@@ -7,6 +7,8 @@ import { globalOptions, sideVersion } from 'environment'
 import { SetLogLevel } from 'logging'
 import { versionFeature } from 'commons/version'
 import { scopeCreateFeature } from './scope/create'
+import { repoCreateFeature } from './repo/create'
+import { distPublishFeature } from './package/publish'
 
 export class Dist implements Application {
     name = "dist"
@@ -30,8 +32,10 @@ export class Dist implements Application {
         create: {
             user: userCreateFeature,
             scope: scopeCreateFeature,
+            repo: repoCreateFeature
         },
         pack: distPackFeature,
+        publish: distPublishFeature
     }
 
     entry() {

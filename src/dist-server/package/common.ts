@@ -14,10 +14,10 @@ export const busy_packages = new Set<string>()
  */
 export function IdentifyPackage(path: string) {
     const rpath = relative(PATH_REPOSITORIES, path)
-    if (rpath.startsWith('..')) {
+    if (rpath.startsWith('..') || !rpath.endsWith('.tar')) {
         return new Error('invalid package path: ' + path)
     }
-    const frags = rpath.split('/')
+    const frags = rpath.slice(0, rpath.length - 4).split('/')
     if (frags.length != 3) return new Error('invalid package path: ' + path)
     const scope = frags[0]
     const symbol = frags.pop()!
@@ -43,6 +43,7 @@ export async function QueryPackages(query: string, version?: string) {
         const id = IdentifyPackage(join(path, entry.name))
         if (id instanceof PackageId && id.matchQuery(query)) {
             if (range && !satisfies(id.version, range)) continue
+            console.debug('QueryPackages: package found: %s', id.toString())
             packages.push(id)
         }
     }

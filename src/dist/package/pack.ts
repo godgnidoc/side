@@ -1,12 +1,12 @@
 import { Feature } from "@godgnidoc/decli"
 import { dirname, join } from "path"
 import * as semver from 'semver'
-import { defaultDirs, projectManifest, projectPath, rpaths } from "environment"
-import { copyFile, mkdir, readFile, rm, writeFile } from "fs/promises"
-import { load } from "js-yaml"
+import { defaultDirs, projectManifest, projectPath } from "environment"
+import { copyFile, mkdir, rm, writeFile } from "fs/promises"
 import { promisify } from "util"
 import { exec } from "child_process"
 import { PackageManifest, PackingManifest } from "format"
+import { loadPackingManifest, selectPackingManifest, selectReleasePath } from "./common"
 
 export const distPackFeature = new class extends Feature {
     args = '<version> [manifest]'
@@ -14,6 +14,18 @@ export const distPackFeature = new class extends Feature {
     description = 'Pack current project to a package\n'
         + '  version: version of the package\n'
         + '  manifest: path to the manifest file, default to final target of the project'
+
+    /**
+     * 成功打包的最终文件路径
+     * 每次成功打包后，都会将打包结果复制到这个路径
+     */
+    package: string
+
+    /**
+     * 成功打包的包ID
+     * 每次成功打包后，都会将打包结果复制到这个路径
+     */
+    packageid: string
 
     async entry(...args: string[]): Promise<number> {
         if (args.length < 1) {
@@ -28,7 +40,7 @@ export const distPackFeature = new class extends Feature {
 
         const workspace = await this.prepareWorkspace()
 
-        const packing = await this.loadPackingManifest(args[1] || join(projectPath, rpaths.projectFinalTarget))
+        const packing = await loadPackingManifest(selectPackingManifest(args[1]))
 
         const manifest = await this.writePackageManifest(workspace, packing, version)
 
@@ -49,12 +61,6 @@ export const distPackFeature = new class extends Feature {
 
         await rm(workspace, { recursive: true, force: true })
         return workspace
-    }
-
-    async loadPackingManifest(path: string) {
-        const packingManifest = PackingManifest.Parse(load(await readFile(path, 'utf8')))
-        if (packingManifest instanceof Error) throw packingManifest
-        return packingManifest.packing
     }
 
     async writePackageManifest(workspace: string, packing: PackingManifest['packing'], version: string) {
@@ -123,12 +129,12 @@ export const distPackFeature = new class extends Feature {
 
     async releasePackage(workspace: string, manifest: PackageManifest) {
         const symbol = manifest.packageId.symbol
-        const release = projectManifest
-            ? join(projectPath, projectManifest.dirs.release)
-            : join(projectPath, defaultDirs.release)
-
+        const release = selectReleasePath()
+        this.package = join(release, `${symbol}.tar`)
+        this.packageid = manifest.packageId.toString()
+        
         await mkdir(release, { recursive: true })
-        await promisify(exec)(`tar -cf ${release}/${symbol}.tar ${symbol}`, { cwd: workspace })
+        await promisify(exec)(`tar -cf ${this.package} ${symbol}`, { cwd: workspace })
     }
 
     async cleanWorkspace(workspace: string) {

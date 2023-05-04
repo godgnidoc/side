@@ -271,10 +271,10 @@ export class PackageManifest {
         if (packageId instanceof Error) return packageId
         manifest.packageId = packageId
 
-        if (value.name !== packageId.name) return new Error('package name mismatch')
-        if (value.tags !== packageId.tags.join('-')) return new Error('package tags mismatch')
-        if (value.version !== packageId.version.toString()) return new Error('package version mismatch')
-        if (value.scope !== packageId.scope) return new Error('package scope mismatch')
+        // if (value.name !== packageId.name) return new Error('package name mismatch')
+        // if (value.tags !== packageId.tags.join('-')) return new Error('package tags mismatch')
+        // if (value.version !== packageId.version.toString()) return new Error('package version mismatch')
+        // if (value.scope !== packageId.scope) return new Error('package scope mismatch')
 
         if (typeof value['create-user'] != 'string') return new Error('invalid create-user format')
         manifest.createUser = value['create-user']
@@ -299,7 +299,7 @@ export class PackageManifest {
         manifest.deploy = { strategy: 'none' }
         if (typeof value.deploy === 'object') {
             if (typeof value.deploy.strategy != 'string') return new Error('invalid deploy.strategy format')
-            if (['none', 'slink', 'hlink', 'copy'].includes(value.deploy.strategy)) return new Error('invalid deploy.strategy format')
+            if (!['none', 'slink', 'hlink', 'copy'].includes(value.deploy.strategy)) return new Error('invalid deploy.strategy')
             manifest.deploy.strategy = value.deploy.strategy
 
             if (Array.isArray(value.deploy.excludes)) {
