@@ -63,4 +63,9 @@ export const api = new class {
             return await API.apost('/user/create', { name, email, password })
         }
     }
+    readonly scope = new class {
+        async create(name: string) {
+            return await API.apost('/scope/create', { name })
+        }
+    }
 }

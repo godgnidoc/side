@@ -1,9 +1,9 @@
 import { PackageId } from 'format'
-import { invalid_argument, done } from '../../utils'
+import { invalid_argument, done } from '../utils'
 
 import { QueryPackages } from './common'
 
-export const List = {
+export const Search = {
     async getByName(scope: string, repo: string, tags: string[], version?: string) {
         const packageId = PackageId.Parse(repo)
         if (packageId instanceof Error) return invalid_argument('Invalid package name: ' + packageId.message)

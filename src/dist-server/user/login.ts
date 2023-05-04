@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "fs/promises"
-import { done, fail, invalid_argument, md5 } from "../../utils"
+import { done, fail, invalid_argument, md5 } from "../utils"
 import { join } from "path"
 import { PATH_CONTRIBUTORS } from "environment"
 import { IsValidName, UserInfo } from "format"
@@ -7,7 +7,7 @@ import { IsValidName, UserInfo } from "format"
 export async function postLogin(name: string, password: string) {
     // 检查用户名格式
     if (!name || !IsValidName(name))
-        return invalid_argument('Invalid name')
+        return invalid_argument('Invalid name : ' + name)
 
     // 检查密码格式
     if (!password)

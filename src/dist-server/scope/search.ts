@@ -1,5 +1,5 @@
 import { PATH_REPOSITORIES } from "environment"
-import { MatchPattern, done } from "../../utils"
+import { MatchPattern, done } from "../utils"
 import { readdir } from "fs/promises"
 import { IsValidScope } from "format"
 
@@ -7,7 +7,7 @@ import { IsValidScope } from "format"
  * 列举作用域
  * @param query 查询字符串，格式为文件名通配符
  */
-export async function getList(query?: string) {
+export async function getSearch(query?: string) {
     // 整理查询字符串
     if (!query) query = '@*'
     else if (!query.startsWith('@')) query = '@' + query

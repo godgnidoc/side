@@ -1,6 +1,6 @@
 import * as crypto from 'crypto'
 import { join } from 'path'
-import { md5 } from '../../utils'
+import { md5 } from '../utils'
 import base32 from 'base32'
 import { mkdir, writeFile } from 'fs/promises'
 import { PATH_CONTRIBUTORS } from 'environment'

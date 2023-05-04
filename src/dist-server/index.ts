@@ -1,15 +1,11 @@
-import { distLoginFeature } from './user/login'
-import { userCreateFeature } from './user/create'
-import { userMeFeature } from './user/me'
-import { distPackFeature } from './package/pack'
 import { Application, defaultCompleteFeature, defaultHelpFeature } from '@godgnidoc/decli'
 import { globalOptions, sideVersion } from 'environment'
 import { SetLogLevel } from 'logging'
+import { distServeFeature } from './server'
 import { versionFeature } from 'commons/version'
-import { scopeCreateFeature } from './scope/create'
 
-export class Dist implements Application {
-    name = "dist"
+export class DistServer implements Application {
+    name = "dist-server"
     version = sideVersion
     brief = "Distributed Package Manager"
     description = "This program is part of the side project."
@@ -25,13 +21,7 @@ export class Dist implements Application {
         '--version': versionFeature,
         '-v': versionFeature,
 
-        login: distLoginFeature,
-        me: userMeFeature,
-        create: {
-            user: userCreateFeature,
-            scope: scopeCreateFeature,
-        },
-        pack: distPackFeature,
+        "serve": distServeFeature
     }
 
     entry() {

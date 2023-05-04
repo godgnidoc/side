@@ -1,5 +1,5 @@
 import { access, readFile, readdir } from "fs/promises"
-import { done, fail, invalid_argument } from "../../utils"
+import { done, fail, invalid_argument } from "../utils"
 import { join } from "path"
 import { IsValidName } from "format"
 import { PATH_CONTRIBUTORS } from "environment"

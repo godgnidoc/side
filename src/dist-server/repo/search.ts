@@ -1,10 +1,10 @@
 import { join } from "path"
-import { MatchPattern, done, invalid_argument } from "../../utils"
+import { MatchPattern, done, invalid_argument } from "../utils"
 import { readdir } from "fs/promises"
 import { IsValidScope, PackageId } from "format"
 import { PATH_REPOSITORIES } from "environment"
 
-export async function getList(query?: string, scope?: string) {
+export async function getSearch(query?: string, scope?: string) {
     const scopes: string[] = []
 
     if (scope) {

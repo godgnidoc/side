@@ -1,5 +1,5 @@
 import { join } from "path"
-import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
+import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../utils"
 import { chmod } from "fs/promises"
 import { IsValidScope } from "format"
 import { PATH_REPOSITORIES } from "environment"
@@ -17,7 +17,7 @@ export async function postRevoke(scope: string) {
     if (!IsValidScope(scope)) return invalid_argument('scope name is invalid')
 
     // 检查作用域是否存在
-    if (!IsDir(join(PATH_REPOSITORIES, scope))) return fail(1, 'scope not exists')
+    if (!await IsDir(join(PATH_REPOSITORIES, scope))) return fail(1, 'scope not exists')
 
     // 检查用户是否为作用域所有者
     if (!IsOwner(user.name, join(PATH_REPOSITORIES, scope)))

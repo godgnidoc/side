@@ -1,7 +1,7 @@
-import Repo from './repo'
-import Scope from './scope'
-import Package from './package'
-import User from './user'
+import { Repo } from './repo'
+import { Scope } from './scope'
+import { Package } from './package'
+import { User } from './user'
 import { createAdmin } from './user/admin'
 import { postTasks } from './task'
 import { userInfo } from "os"

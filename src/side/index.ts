@@ -4,6 +4,7 @@ import { common } from "./common"
 import { project } from "./project"
 import { SetLogLevel } from "logging"
 import { target } from './target'
+import { versionFeature } from "commons/version"
 
 export class Side implements Application {
     name = "side"
@@ -18,6 +19,9 @@ export class Side implements Application {
         "help": defaultHelpFeature,
         "--help": defaultHelpFeature,
         "-h": defaultHelpFeature,
+        'version': versionFeature,
+        '--version': versionFeature,
+        '-v': versionFeature,
 
         ...common,
         ...project,

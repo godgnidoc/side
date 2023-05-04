@@ -6,6 +6,10 @@ if ! which side > /dev/null; then
     export PATH=$PATH:${HERE}
 fi
 
+if [[ "${PROMPT_COMMAND}" != *_side_prompt_command* ]]; then
+    PROMPT_COMMAND="_side_prompt_command;${PROMPT_COMMAND}"
+fi
+
 function _side_complete() {
     export COMP_CWORD
     export COMP_LINE
@@ -22,17 +26,18 @@ function _dist_complete() {
     eval "COMPREPLY=($(dist complete))"
 }
 
-function dist() {
-    dist $@
+function _dist_server_complete() {
+    export COMP_CWORD
+    export COMP_LINE
+    export COMP_POINT
+    export COMP_WORDBREAKS
+    eval "COMPREPLY=($(dist-server complete))"
 }
 
 function _side_prompt_command() {
     side status -sn
 }
 
-if [[ "${PROMPT_COMMAND}" != *_side_prompt_command* ]]; then
-    PROMPT_COMMAND="_side_prompt_command;${PROMPT_COMMAND}"
-fi
-
 complete -F _side_complete side
 complete -F _dist_complete dist
+complete -F _dist_server_complete dist-server

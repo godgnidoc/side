@@ -1,5 +1,5 @@
 import { join } from "path"
-import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
+import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../utils"
 import { readFile, writeFile } from "fs/promises"
 import { RequestContext } from "jetweb"
 import { PATH_CONTRIBUTORS, PATH_REPOSITORIES } from "environment"
@@ -11,20 +11,20 @@ async function GrantRepo(this: RequestContext, repo: string, scope: string, user
     if (!owner) return authorization_failed()
 
     // 检查用户是否存在
-    if (!IsDir(join(PATH_CONTRIBUTORS, user))) return fail(1, 'user not exists')
+    if (!await IsDir(join(PATH_CONTRIBUTORS, user))) return fail(1, 'user not exists')
 
     // 检查作用域名格式
     if (!IsValidScope(scope)) return invalid_argument('scope name is invalid')
 
     // 检查作用域是否存在
-    if (!IsDir(join(PATH_REPOSITORIES, scope))) return fail(1, 'scope not exists')
+    if (!await IsDir(join(PATH_REPOSITORIES, scope))) return fail(1, 'scope not exists')
 
     // 检查仓库名格式
     if (!IsValidName(repo)) return invalid_argument('repo name is invalid')
 
     // 检查仓库是否存在
     const repo_path = join(PATH_REPOSITORIES, scope, repo)
-    if (!IsDir(repo_path)) return fail(1, 'repo not exists')
+    if (!await IsDir(repo_path)) return fail(1, 'repo not exists')
 
     // 检查用户是否为作用域所有者
     if (!IsOwner(owner.name, join(PATH_REPOSITORIES, scope)))

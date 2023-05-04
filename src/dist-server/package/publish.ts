@@ -1,5 +1,5 @@
 import { RequestContext } from "jetweb"
-import { IsContributor, IsDir, IsFile, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
+import { IsContributor, IsDir, IsFile, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../utils"
 import { QueryPackages, busy_packages } from "./common"
 import { join } from "path"
 import { promisify } from "util"
@@ -32,11 +32,11 @@ async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
         await promisify(exec)('tar -xf ' + tmp_pack, { cwd: tmp_dir })
 
         // 校验包结构
-        if (!IsDir(join(tmp_dir, 'meta')))
+        if (!await IsDir(join(tmp_dir, 'meta')))
             return fail(2, 'Invalid package structure: meta directory missing')
-        if (!IsDir(join(tmp_dir, 'root')) && !IsFile(join(tmp_dir, 'root.tar.xz')))
+        if (!await IsDir(join(tmp_dir, 'root')) && !await IsFile(join(tmp_dir, 'root.tar.xz')))
             return fail(2, 'Invalid package structure: root content missing')
-        if (IsDir(join(tmp_dir, 'root')) && IsFile(join(tmp_dir, 'root.tar.xz')))
+        if (await IsDir(join(tmp_dir, 'root')) && await IsFile(join(tmp_dir, 'root.tar.xz')))
             return fail(2, 'Invalid package structure: root content duplicated')
 
         // 校验包清单
@@ -67,7 +67,7 @@ async function PublishPackageById(this: RequestContext, id: string, allowOverwri
     if (packageId instanceof Error) return invalid_argument('Invalid package id: ' + packageId.message)
 
     // 检查仓库是否存在
-    if (!IsDir(packageId.repo_path)) return fail(1, 'Repository not exists: ' + packageId.repo_path)
+    if (!await IsDir(packageId.repo_path)) return fail(1, 'Repository not exists: ' + packageId.repo_path)
 
     // 检查用户是否有权限发布包
     if (!IsContributor(user.name, packageId.repo_path))

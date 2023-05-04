@@ -1,5 +1,5 @@
 import { join } from "path"
-import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
+import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../utils"
 import { chmod, } from "fs/promises"
 import { RequestContext } from "jetweb"
 import { IsValidName, IsValidScope } from "format"
@@ -24,7 +24,7 @@ async function RevokeRepo(this: RequestContext, repo: string, scope: string) {
     const repo_path = join(PATH_REPOSITORIES, scope, repo)
 
     // 检查仓库是否存在
-    if (!IsDir(repo_path)) return fail(1, 'repo not exists')
+    if (!await IsDir(repo_path)) return fail(1, 'repo not exists')
 
     // 检查用户是否为仓库所有者
     if (!IsOwner(user.name, repo_path))

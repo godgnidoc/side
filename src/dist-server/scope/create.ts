@@ -1,5 +1,5 @@
 import { join } from "path"
-import { IsDir, authorization_failed, authorize, done, fail, internal_failure, invalid_argument } from "../../utils"
+import { IsDir, authorization_failed, authorize, done, fail, internal_failure, invalid_argument } from "../utils"
 import { mkdir, writeFile } from "fs/promises"
 import { IsValidScope } from "format"
 import { PATH_REPOSITORIES } from "environment"
@@ -10,10 +10,13 @@ export async function postCreate(name: string) {
     if (!user) return authorization_failed()
 
     // 检查作用域名格式
-    if (!IsValidScope(name)) return invalid_argument('scope name is invalid')
+    if (!IsValidScope(name))
+        return invalid_argument('scope name is invalid')
 
     // 检查作用域是否存在
-    if (IsDir(join(PATH_REPOSITORIES, name))) return fail(1, 'scope already exists')
+    console.debug('checking scope: %s', join(PATH_REPOSITORIES, name))
+    if (await IsDir(join(PATH_REPOSITORIES, name)))
+        return fail(1, 'scope already exists')
 
     try {
         // 创建作用域目录

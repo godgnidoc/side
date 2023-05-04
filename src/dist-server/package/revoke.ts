@@ -1,4 +1,4 @@
-import { authorization_failed, authorize, fail, invalid_argument, IsContributor, permission_denied, IsDir, IsFile, done } from '../../utils'
+import { authorization_failed, authorize, fail, invalid_argument, IsContributor, permission_denied, IsDir, IsFile, done } from '../utils'
 import { chmod } from 'fs/promises'
 import { RequestContext } from 'jetweb'
 import { busy_packages } from './common'
@@ -14,14 +14,14 @@ async function RevokePackage(this: RequestContext, id: string) {
     if (packageId instanceof Error) return invalid_argument('Invalid package id: ' + packageId.message)
 
     // 检查仓库是否存在
-    if (!IsDir(packageId.repo_path)) return fail(1, 'Repository not exists: ' + packageId.repo_path)
+    if (!await IsDir(packageId.repo_path)) return fail(1, 'Repository not exists: ' + packageId.repo_path)
 
     // 检查用户是否有权限发布包
     if (!IsContributor(user.name, packageId.repo_path))
         return permission_denied('You are not a contributor of this repository: ' + packageId.repo_id)
 
     // 检查包是否已存在
-    if (!IsFile(packageId.path + '.tar')) return fail(1, 'Package not exists: ' + id)
+    if (!await IsFile(packageId.path + '.tar')) return fail(1, 'Package not exists: ' + id)
 
     // 检查包是否正在发布，如果正在发布则返回错误
     if (busy_packages.has(packageId.toString())) return fail(6, 'Package is busy: ' + id)

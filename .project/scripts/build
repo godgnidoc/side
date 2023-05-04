@@ -12,6 +12,12 @@ sed -i -e '1s|^|#!/usr/bin/env node\n|' build/dist.js
 chmod +x build/dist.js
 ln -rfs build/dist.js build/dist
 
+ncc build src/dist-server.ts -q --v8-cache --no-source-map-register -o build/
+mv build/index.js build/dist-server.js
+sed -i -e '1s|^|#!/usr/bin/env node\n|' build/dist-server.js
+chmod +x build/dist-server.js
+ln -rfs build/dist-server.js build/dist-server
+
 build/side vset \
   -f json \
   -o build/package.json \
