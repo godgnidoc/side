@@ -1,7 +1,8 @@
 import { join, relative } from "path"
-import { PATH_REPOSITORIES, PackageId } from "../../utils"
 import { satisfies, validRange } from "semver"
 import { readdir } from "fs/promises"
+import { PATH_REPOSITORIES } from "environment"
+import { PackageId } from "format"
 
 
 // 用于记录正在处理的包，防止重复处理

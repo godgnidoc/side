@@ -1,6 +1,8 @@
 import { access, readFile, readdir } from "fs/promises"
-import { IsValidName, PATH_CONTRIBUTORS, done, fail, invalid_argument } from "../../utils"
+import { done, fail, invalid_argument } from "../../utils"
 import { join } from "path"
+import { IsValidName } from "format"
+import { PATH_CONTRIBUTORS } from "environment"
 
 // 检查用户是否存在
 export async function getExist(name: string) {

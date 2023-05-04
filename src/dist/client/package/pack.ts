@@ -1,12 +1,12 @@
 import { Feature } from "@godgnidoc/decli"
 import { dirname, join } from "path"
 import * as semver from 'semver'
-import { defaultDirs, projectManifest, projectPath, rpaths } from "../../../environment"
+import { defaultDirs, projectManifest, projectPath, rpaths } from "environment"
 import { copyFile, mkdir, readFile, rm, writeFile } from "fs/promises"
-import { PackageManifest, PackingManifest } from "../../utils"
 import { load } from "js-yaml"
 import { promisify } from "util"
 import { exec } from "child_process"
+import { PackageManifest, PackingManifest } from "format"
 
 export const distPackFeature = new class extends Feature {
     args = '<version> [manifest]'

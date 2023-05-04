@@ -1,6 +1,8 @@
 import { join } from "path"
-import { IsDir, IsOwner, IsValidScope, PATH_REPOSITORIES, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
+import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
 import { chmod } from "fs/promises"
+import { IsValidScope } from "format"
+import { PATH_REPOSITORIES } from "environment"
 
 /**
  * 删除作用域，实际仅将作用域权限设置为000，不真正执行删除操作

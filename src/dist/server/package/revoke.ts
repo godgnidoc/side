@@ -1,8 +1,8 @@
 import { authorization_failed, authorize, fail, invalid_argument, IsContributor, permission_denied, IsDir, IsFile, done } from '../../utils'
-import { PackageId } from '../../utils'
 import { chmod } from 'fs/promises'
 import { RequestContext } from 'jetweb'
 import { busy_packages } from './common'
+import { PackageId } from 'format'
 
 async function RevokePackage(this: RequestContext, id: string) {
     // 检查用户是否登录

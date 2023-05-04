@@ -1,13 +1,12 @@
 import { join } from "path"
 import { getRevision } from "../common"
 import { invokeHook } from "../common/invoke_hook"
-import { loadFinalTarget, projectManifest, projectName, projectPath } from "../environment"
-import { ProjectBuildInfo } from "../format"
+import { loadFinalTarget, projectManifest, projectName, projectPath } from "environment"
+import { PackageId, ProjectBuildInfo } from "format"
 import { projectSetupFeature } from "./setup"
 import { writeFile } from "fs/promises"
 import { Feature } from "@godgnidoc/decli"
 import { setStage, testStage } from "../stage"
-import { PackageId } from "../dist/utils"
 
 export const projectBuildFeature = new class extends Feature {
     args = true

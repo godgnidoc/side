@@ -1,7 +1,9 @@
 import { join } from "path"
-import { IsDir, IsOwner, IsValidName, IsValidScope, PATH_CONTRIBUTORS, PATH_REPOSITORIES, RepoManifest, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
+import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
 import { readFile, writeFile } from "fs/promises"
 import { RequestContext } from "jetweb"
+import { PATH_CONTRIBUTORS, PATH_REPOSITORIES } from "environment"
+import { IsValidName, IsValidScope, RepoManifest } from "format"
 
 async function GrantRepo(this: RequestContext, repo: string, scope: string, user: string) {
     // 鉴权并获取用户信息

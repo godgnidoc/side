@@ -1,5 +1,5 @@
 import { Brief, Feature, ShortOpt } from "@godgnidoc/decli"
-import { loadFinalTarget, projectName, projectPath } from "../environment"
+import { loadFinalTarget, projectName, projectPath } from "environment"
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from "child_process"
 
 class StatusFeature extends Feature {
@@ -59,6 +59,7 @@ class StatusFeature extends Feature {
                             .replace(/date with '(.*)'/, "date with \x1b[1;36m'$1'\x1b[0m")
                             .replace(/behind '(.*)' by (\d+) commit/, "behind \x1b[1;36m'$1'\x1b[0m by \x1b[1;33m$2\x1b[0m commit")
                             .replace(/use "(.*)" to/g, 'use \x1b[1;32m"$1"\x1b[0m to')
+                            .replace(/use "(.*)" and\/or "(.*)"/g, 'use \x1b[1;32m"$1"\x1b[0m and/or \x1b[1;32m"$2"\x1b[0m')
                         process.stdout.write(', ' + lines)
                     } else {
                         process.stdout.write('\n')

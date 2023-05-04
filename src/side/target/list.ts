@@ -1,5 +1,5 @@
 import { Feature } from "@godgnidoc/decli";
-import { projectPath, rpaths } from "../environment";
+import { projectPath, rpaths } from "environment";
 import { readdir } from "fs/promises";
 import { join } from "path";
 

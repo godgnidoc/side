@@ -1,5 +1,5 @@
 import { join } from "path"
-import { fullyInflateEnv, loadFinalTarget, projectPath, rpaths } from "../environment"
+import { fullyInflateEnv, loadFinalTarget, projectPath, rpaths } from "environment"
 import { stat, access, readdir } from "fs/promises"
 import { exec, spawn } from "child_process"
 import { promisify } from "util"

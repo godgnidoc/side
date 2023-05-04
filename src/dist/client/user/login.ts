@@ -1,10 +1,9 @@
 import { Feature } from "@godgnidoc/decli"
 import inquirer from 'inquirer'
 import { api } from "../api"
-import { getGlobalSettings } from "../../../environment"
+import { getGlobalSettings, sideHome } from "environment"
 import { mkdir, writeFile } from "fs/promises"
 import { dump } from "js-yaml"
-import { sideHome } from "../../../environment"
 import { join } from "path"
 
 export const distLoginFeature = new class extends Feature {

@@ -1,4 +1,4 @@
-import { Stage } from "../stage"
+import { Stage } from "./stage"
 
 export interface Dirs {
     /** 存放子模块仓库的默认相对路径路径 */

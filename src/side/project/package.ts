@@ -1,6 +1,6 @@
 import { Feature } from "@godgnidoc/decli"
 import { invokeHook } from "../common/invoke_hook"
-import { loadFinalTarget } from "../environment"
+import { loadFinalTarget } from "environment"
 import { setStage, testStage } from "../stage"
 import { projectBuildFeature } from "./build"
 

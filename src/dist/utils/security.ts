@@ -1,8 +1,8 @@
 import { RequestContext } from 'jetweb'
 import { join } from 'path'
-import { PATH_CONTRIBUTORS } from './settings'
+import { PATH_CONTRIBUTORS } from 'environment'
 import { readFile } from 'fs/promises'
-import { RepoManifest, UserInfo } from './structures'
+import { RepoManifest, UserInfo } from 'format'
 
 export async function IsContributor(repo_path: string, user: string): Promise<boolean> {
     try {

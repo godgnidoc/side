@@ -1,5 +1,7 @@
-import { IsValidScope, MatchPattern, PATH_REPOSITORIES, done } from "../../utils"
+import { PATH_REPOSITORIES } from "environment"
+import { MatchPattern, done } from "../../utils"
 import { readdir } from "fs/promises"
+import { IsValidScope } from "format"
 
 /**
  * 列举作用域

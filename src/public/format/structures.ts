@@ -1,7 +1,7 @@
 import { SemVer, validRange, valid } from "semver"
 import { PackageId } from "./naming"
 import { IsValidTag } from "./naming"
-import { getFinalSettings, sideVersion } from "../../environment"
+import { getFinalSettings, sideVersion } from "environment"
 
 export class UserInfo {
     name: string

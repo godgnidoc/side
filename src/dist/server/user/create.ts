@@ -1,6 +1,8 @@
 import { mkdir, writeFile } from "fs/promises"
-import { IsValidName, PATH_CONTRIBUTORS, authorize, done, fail, invalid_argument, md5, permission_denied } from "../../utils"
+import { authorize, done, fail, invalid_argument, md5, permission_denied } from "../../utils"
 import { join } from "path"
+import { IsValidName } from "format"
+import { PATH_CONTRIBUTORS } from "environment"
 
 export async function postCreate(name: string, password: string, email: string) {
     // 鉴权并获取用户信息

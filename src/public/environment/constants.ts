@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from "fs"
 import { dirname, join, resolve } from "path"
-import { Exports, ProjectManifest } from "../format"
+import { Exports, ProjectManifest } from "format"
 import { homedir } from "os"
 import { load } from "js-yaml"
 
@@ -139,3 +139,7 @@ export const basicExports: Exports = {
         projectPath ? join(projectPath, rpaths.projectSysroot, 'usr', 'sbin') : undefined,
     ]
 }
+
+export const PATH_DIST_SERVER = homedir()
+export const PATH_CONTRIBUTORS = join(PATH_DIST_SERVER, 'contributors')
+export const PATH_REPOSITORIES = join(PATH_DIST_SERVER, 'repositories')

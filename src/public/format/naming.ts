@@ -1,6 +1,6 @@
 import { join, resolve } from "path"
 import { SemVer } from "semver"
-import { PATH_REPOSITORIES } from "./settings"
+import { PATH_REPOSITORIES } from "environment"
 
 /**
  * 包唯一标识，由域、名称、标签、版本组成，格式为：<scope>/<name>[--<tag>{-<tag>}]-<version>

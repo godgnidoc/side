@@ -3,7 +3,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { basicExports, projectManifest, projectMeta, projectPath, rpaths, sideHome } from './constants'
 import { userInfo } from 'os'
-import { FinalSettings, LocalSettings, GlobalSettings, GlobalOptions, ProjectFinalTarget } from '../format'
+import { FinalSettings, LocalSettings, GlobalSettings, GlobalOptions, ProjectFinalTarget } from 'format'
 import { inflate, inflateExports } from './inflate'
 
 export * from './constants'

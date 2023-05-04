@@ -1,8 +1,8 @@
-import { ProjectAspect, ProjectTarget } from "../format";
+import { ProjectAspect, ProjectTarget } from "format";
 import * as yaml from 'js-yaml'
 import { readFile } from "fs/promises";
 import { join } from "path";
-import { projectPath, rpaths } from "../environment";
+import { projectPath, rpaths } from "environment";
 
 export async function calculateTarget(target: string, fmt: 'target' | 'aspect' = 'target') {
     const file = join(projectPath, rpaths.projectTargets, fmt + '-' + target)

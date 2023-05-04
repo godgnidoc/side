@@ -1,5 +1,5 @@
 import { Feature } from "@godgnidoc/decli"
-import { getFinalSettings } from "../../../environment"
+import { getFinalSettings } from "environment"
 
 export const userMeFeature = new class extends Feature {
     brief = "Get information about the current user"

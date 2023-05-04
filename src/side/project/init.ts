@@ -1,10 +1,10 @@
 import { Brief, Feature, LongOpt } from '@godgnidoc/decli'
 import { basename, join, relative } from 'path'
 import { access, mkdir, readFile, rmdir, writeFile } from 'fs/promises'
-import { defaultDirs, rpaths, sideVersion } from '../environment'
+import { defaultDirs, rpaths, sideVersion } from 'environment'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import { ProjectManifest } from '../format'
+import { ProjectManifest } from 'format'
 import { dump } from 'js-yaml'
 
 class ProjectInitFeature extends Feature {

@@ -1,5 +1,5 @@
 import { Axios } from "axios"
-import { getFinalSettings } from "../../environment"
+import { getFinalSettings } from "environment"
 
 export interface Response<T = undefined> {
     status: number // 0 表示成功

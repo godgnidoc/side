@@ -1,6 +1,6 @@
 import { Feature } from "@godgnidoc/decli"
 import { spawn } from "child_process"
-import { fullyInflateEnv } from "../environment"
+import { fullyInflateEnv } from "environment"
 
 export const shellFeature = new class extends Feature {
     args = '<command...>'

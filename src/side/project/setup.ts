@@ -1,9 +1,9 @@
 import { Feature } from "@godgnidoc/decli"
 import { invokeHook } from "../common/invoke_hook"
 import { projectDraftFeature } from "./draft"
-import { fullyInflateEnv, loadFinalTarget, projectManifest, projectPath, rpaths } from "../environment"
+import { fullyInflateEnv, loadFinalTarget, projectManifest, projectPath, rpaths } from "environment"
 import { getTargetList } from "../target"
-import { ProjectFinalTarget } from "../format"
+import { ProjectFinalTarget } from "format"
 import { dirname, join } from "path"
 import { access, mkdir, readdir } from "fs/promises"
 import { promisify } from "util"
@@ -35,7 +35,7 @@ export const projectSetupFeature = new class extends Feature {
             console.error('Too many arguments, only one target is allowed')
             return 1
         }
-        
+
         /** 若有必要，尝试切换目标 */
         if (args[0]) {
             console.debug('setup: switching target to', args[0])
@@ -43,7 +43,7 @@ export const projectSetupFeature = new class extends Feature {
             if (ret !== 0) return ret
             fullyInflateEnv()
         }
-        
+
         /** 获取最终目标 */
         const target = loadFinalTarget()
         console.debug('setup: %s', target.target)

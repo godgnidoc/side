@@ -1,6 +1,6 @@
 import { projectMeta, projectName, sideHome, sideRevision, sideVersion } from "./constants"
 import { projectPath } from "./constants"
-import { Exports, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest } from "../format"
+import { Exports, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest } from "format"
 
 
 export type Inflatable = ProjectManifest | ProjectFinalTarget | ProjectBuildInfo

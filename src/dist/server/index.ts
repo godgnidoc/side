@@ -5,11 +5,10 @@ import User from './user'
 import { createAdmin } from './user/admin'
 import { postTasks } from './task'
 import { userInfo } from "os"
-import { PATH_CONTRIBUTORS, PATH_REPOSITORIES } from "../utils"
 import { Feature } from '@godgnidoc/decli'
 import { Web } from 'jetweb'
 import { chmod, mkdir, readdir } from 'fs/promises'
-import { sideRevision, sideVersion } from '../../environment'
+import { PATH_CONTRIBUTORS, PATH_REPOSITORIES, sideRevision, sideVersion } from 'environment'
 
 export const distServeFeature = new class extends Feature {
     async entry() {

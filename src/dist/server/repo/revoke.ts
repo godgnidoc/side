@@ -1,7 +1,9 @@
 import { join } from "path"
-import { IsDir, IsOwner, IsValidName, IsValidScope, PATH_REPOSITORIES, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
+import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../../utils"
 import { chmod, } from "fs/promises"
 import { RequestContext } from "jetweb"
+import { IsValidName, IsValidScope } from "format"
+import { PATH_REPOSITORIES } from "environment"
 
 /**
  * 删除仓库，实际仅将仓库权限设置为000，不真正执行删除操作

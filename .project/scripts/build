@@ -1,9 +1,16 @@
 #!/bin/bash -e
 
-ncc build src/index.ts -m --v8-cache --no-source-map-register -o build
-sed -i -e '1s|^|#!/usr/bin/env node\n|' build/index.js
-chmod +x build/index.js
-ln -rfs build/index.js build/side
+ncc build src/side.ts -q -m --v8-cache --no-source-map-register -o build/
+mv build/index.js build/side.js
+sed -i -e '1s|^|#!/usr/bin/env node\n|' build/side.js
+chmod +x build/side.js
+ln -rfs build/side.js build/side
+
+ncc build src/dist.ts -q -m --v8-cache --no-source-map-register -o build/
+mv build/index.js build/dist.js
+sed -i -e '1s|^|#!/usr/bin/env node\n|' build/dist.js
+chmod +x build/dist.js
+ln -rfs build/dist.js build/dist
 
 build/side vset \
   -f json \

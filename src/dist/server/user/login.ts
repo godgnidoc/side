@@ -1,6 +1,8 @@
 import { readFile, writeFile } from "fs/promises"
-import { IsValidName, PATH_CONTRIBUTORS, UserInfo, done, fail, invalid_argument, md5 } from "../../utils"
+import { done, fail, invalid_argument, md5 } from "../../utils"
 import { join } from "path"
+import { PATH_CONTRIBUTORS } from "environment"
+import { IsValidName, UserInfo } from "format"
 
 export async function postLogin(name: string, password: string) {
     // 检查用户名格式

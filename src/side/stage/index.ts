@@ -1,9 +1,8 @@
 import { writeFileSync } from "fs"
-import { loadFinalTarget, projectPath, rpaths } from "../environment"
+import { loadFinalTarget, projectPath, rpaths } from "environment"
 import { join } from "path"
 import { dump } from "js-yaml"
-
-export type Stage = 'draft' | 'ready' | 'built' | 'packaged'
+import { Stage } from "format"
 
 export function getCurrentStage() {
     return loadFinalTarget()?.stage

@@ -1,33 +1,32 @@
-import { execute, verifyDefinitions } from "@godgnidoc/decli"
-import { Side } from "./application"
-import { GetLogLevel, InitiateLogging, SetLogLevel } from "../logging"
+import { Application, defaultCompleteFeature, defaultHelpFeature } from "@godgnidoc/decli"
+import { globalOptions, sideVersion } from "environment"
+import { common } from "./common"
+import { project } from "./project"
+import { SetLogLevel } from "logging"
+import { target } from './target'
 
-export async function main() {
-    /** 初始化日志支持 */
-    InitiateLogging()
+export class Side implements Application {
+    name = "side"
+    version = sideVersion
+    brief = "Smooth Integration Development Environment"
+    description = "Create, build, test and release your project with ease."
+    options = globalOptions
+    help = 'help'
 
-    const app = new Side()
-    const args = process.argv.slice(2)
-    try {
-        if( process.env['SIDE_DEBUG'] == 'TRUE') {
-            SetLogLevel('debug')
-            console.debug('Debug mode enabled.')
-            if(!verifyDefinitions(app)) {
-                console.error('Invalid command definitions.')
-                process.exit(-1)
-            }
-        }
-        const ret = await execute(app, args)
-        process.exit(ret)
-    } catch (err) {
-        if (err instanceof Error) {
-            if (GetLogLevel() === 'debug')
-                console.error(err)
-            else
-                console.error(err.message)
-        }
-        else
-            console.error(err)
-        process.exit(-1)
+    elements = {
+        "complete": defaultCompleteFeature,
+        "help": defaultHelpFeature,
+        "--help": defaultHelpFeature,
+        "-h": defaultHelpFeature,
+
+        ...common,
+        ...project,
+
+        target,
+    }
+
+    entry() {
+        SetLogLevel(this.options.logging)
+        return 0
     }
 }
