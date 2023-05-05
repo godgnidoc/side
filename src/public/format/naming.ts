@@ -140,6 +140,23 @@ export class PackageId {
         return resolve(join(this.lrepo_path, this.fname))
     }
 
+    get dist() {
+        return {
+            SIDE_DIST_PATH: resolve(join(this.lrepo_path, this.symbol)),
+            SIDE_DIST_ROOT: resolve(join(this.lrepo_path, this.symbol, 'root')),
+            SIDE_DIS_NAME: this.name,
+            SIDE_DIST_TAGS: this.tags.join('-'),
+            SIDE_DIST_VERSION: this.version.format(),
+            SIDE_DIST_MAJOR: this.version.major,
+            SIDE_DIST_MINOR: this.version.minor,
+            SIDE_DIST_PATCH: this.version.patch,
+            SIDE_DIST_QUERY: this.query,
+            SIDE_DIST_SYMBOL: this.symbol,
+            SIDE_DIST_SCOPE: this.scope,
+            SIDE_DIST_ID: this.toString()
+        }
+    }
+
     /**
      * 设置请求文本
      * @param value 请求文本

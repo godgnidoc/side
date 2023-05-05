@@ -15,9 +15,9 @@ export function evaluate(value: string | number | boolean, env: Environment) {
     }).replace(/\\\$|\$\$/g, '$')
 }
 
-export function inflateExports(exports: Exports, env?: Environment) {
+export function inflateExports(exports: Exports, env?: Environment): NodeJS.ProcessEnv {
     if (!env) env = { ...process.env }
-    if (!exports) return env
+    if (!exports) return env as NodeJS.ProcessEnv
     for (const key in exports) {
         const value = exports[key]
         const ekey = evaluate(key, env)
