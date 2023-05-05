@@ -1,6 +1,6 @@
 import { join, relative, resolve } from "path"
 import { SemVer } from "semver"
-import { PATH_REPOSITORIES } from "environment"
+import { PATH_REPOSITORIES, rpaths, sideHome } from "environment"
 
 /**
  * 包唯一标识，由域、名称、标签、版本组成，格式为：<scope>/<name>[--<tag>{-<tag>}]-<version>
@@ -113,10 +113,31 @@ export class PackageId {
     }
 
     /**
+     * 获取包本地仓库位置的绝对路径
+     */
+    get lrepo_path(): string {
+        return resolve(join(sideHome, rpaths.sideCaches, this.repo_id))
+    }
+
+    /**
+     * 获取包存储文件名
+     */
+    get fname(): string {
+        return this.symbol + '.tar'
+    }
+
+    /**
      * 获取包存储位置的绝对路径
      */
     get path(): string {
-        return resolve(join(this.repo_path, this.symbol))
+        return resolve(join(this.repo_path, this.fname))
+    }
+
+    /**
+     * 获取包本地存储位置的绝对路径
+     */
+    get lpath(): string {
+        return resolve(join(this.lrepo_path, this.fname))
     }
 
     /**
@@ -239,7 +260,7 @@ export class PackageId {
         if (frags.length != 3) return new Error('invalid package path: ' + path)
         const scope = frags[0]
         const symbol = frags.pop()!
-    
+
         return PackageId.Parse(scope + '/' + symbol)
     }
 }

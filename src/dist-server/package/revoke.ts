@@ -21,13 +21,13 @@ async function RevokePackage(this: RequestContext, id: string) {
         return permission_denied('You are not a contributor of this repository: ' + packageId.repo_id)
 
     // 检查包是否已存在
-    if (!await IsFile(packageId.path + '.tar')) return fail(1, 'Package not exists: ' + id)
+    if (!await IsFile(packageId.path)) return fail(1, 'Package not exists: ' + id)
 
     // 检查包是否正在发布，如果正在发布则返回错误
     if (busy_packages.has(packageId.toString())) return fail(6, 'Package is busy: ' + id)
 
     // 撤销包的任何访问权限
-    await chmod(packageId.path + '.tar', 0o000)
+    await chmod(packageId.path, 0o000)
     return done()
 }
 

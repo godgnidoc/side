@@ -11,6 +11,9 @@ import { repoCreateFeature } from './repo/create'
 import { distPublishFeature } from './package/publish'
 import { distSearchFeature } from './package/search'
 import { distReposFeature } from './repo/repos'
+import { distScopesFeature } from './scope/scopes'
+import { distQueryFeature } from './package/query'
+import { distGetFeature } from './package/get'
 
 export class Dist implements Application {
     name = "dist"
@@ -31,6 +34,7 @@ export class Dist implements Application {
 
         login: distLoginFeature,
         me: userMeFeature,
+        
         create: {
             user: userCreateFeature,
             scope: scopeCreateFeature,
@@ -38,8 +42,14 @@ export class Dist implements Application {
         },
         pack: distPackFeature,
         publish: distPublishFeature,
+
+        query: distQueryFeature,
         ls: distSearchFeature,
+        packages: distSearchFeature,
         repos: distReposFeature,
+        scopes: distScopesFeature,
+
+        get: distGetFeature,
     }
 
     entry() {

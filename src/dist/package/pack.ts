@@ -130,7 +130,7 @@ export const distPackFeature = new class extends Feature {
     async releasePackage(workspace: string, manifest: PackageManifest) {
         const symbol = manifest.packageId.symbol
         const release = selectReleasePath()
-        this.package = join(release, `${symbol}.tar`)
+        this.package = join(release, `${manifest.packageId.fname}`)
         this.packageid = manifest.packageId.toString()
         
         await mkdir(release, { recursive: true })

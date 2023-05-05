@@ -16,7 +16,7 @@ async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
     try {
         const tmp_dir = packageId.path + '.publishing'
         const tmp_pack = join(tmp_dir, 'package.tar')
-        const pack = packageId.path + '.tar'
+        const pack = packageId.path
         const symbol = packageId.symbol
 
         // 清理并重新创建临时目录，用于存放上传的包文件

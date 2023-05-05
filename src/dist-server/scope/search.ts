@@ -5,12 +5,12 @@ import { IsValidScope } from "format"
 
 /**
  * 列举作用域
- * @param query 查询字符串，格式为文件名通配符
+ * @param pattern 查询字符串，格式为文件名通配符
  */
-export async function getSearch(query?: string) {
+export async function getSearch(pattern?: string) {
     // 整理查询字符串
-    if (!query) query = '@*'
-    else if (!query.startsWith('@')) query = '@' + query
+    if (!pattern) pattern = '@*'
+    else if (!pattern.startsWith('@')) pattern = '@' + pattern
 
     try {
         // 列举所有作用域
@@ -18,7 +18,7 @@ export async function getSearch(query?: string) {
             .filter(dirent => dirent.isDirectory())
             .map(dirent => dirent.name)
             .filter(scope => IsValidScope(scope))
-            .filter(scope => !query || MatchPattern(scope, query))
+            .filter(scope => !pattern || MatchPattern(scope, pattern))
         return done(scopes)
     } catch {
         return done([])

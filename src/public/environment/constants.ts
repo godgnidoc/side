@@ -34,7 +34,7 @@ export const rpaths = new class {
     readonly defaultSideHome = join(homedir(), '.side')
 
     /** 相对于side home的路径，存储 dist 下载的资源包 */
-    readonly sidePackages = 'packages'
+    readonly sideCaches = 'caches'
 
     /** 相对于side home的路径，模拟side运行时环境所需的系统结构 */
     readonly sideSysroot = 'sysroot'

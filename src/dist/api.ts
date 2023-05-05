@@ -1,4 +1,4 @@
-import { Axios } from "axios"
+import { Axios, AxiosRequestConfig } from "axios"
 import { getFinalSettings } from "environment"
 import { createReadStream } from "fs"
 
@@ -49,16 +49,13 @@ const API = new class {
         return JSON.parse(result.data) as Response<T>
     }
 
-    async task<T>(token: string, payload: any, headers?: any) {
+    async task(token: string, payload: any, options?: AxiosRequestConfig<any>) {
         const axios = this.axios
-        const result = await axios.post(`/tasks`, payload, {
+        return await axios.post(`/tasks`, payload, {
             headers: {
                 'Task-Token': token,
-                ...headers
-            }
+            }, ...options
         })
-        console.debug('api: task %s => %o', token, result.data)
-        return JSON.parse(result.data) as Response<T>
     }
 }
 
@@ -80,6 +77,9 @@ export const api = new class {
         async create(name: string) {
             return await API.apost('/scope/create', { name })
         }
+        async search(pattern: string) {
+            return await API.get<string[]>('/scope/search', { pattern })
+        }
     }
     readonly repo = new class {
         async create(id: string) {
@@ -95,10 +95,39 @@ export const api = new class {
             const res = await API.apost<string>('/package/publish/by_id', { id, allowOverwrite, allowDowngrade })
             if (res.status != 0) return res
             const token = res.data
-            return await API.task(token, createReadStream(file))
+            const result = await API.task(token, createReadStream(file))
+            console.debug('api: publish %s => %o', token, result.data)
+            return JSON.parse(result.data) as Response
         }
         async search(pattern: string) {
             return await API.get<string[]>('/package/search/by_pattern', { pattern })
+        }
+        async query(query: string, version?: string) {
+            return await API.get<string[]>('/package/search/by_query', { query, version })
+        }
+        async stat(id: string) {
+            return await API.get<{
+                id: string,
+                size: number,
+                mtime: number
+            }>('/package/stat', { id })
+        }
+        async download(id: string) {
+            const res = await API.get<{
+                id: string,
+                size: number,
+                mtime: number,
+                token: string,
+                stream: NodeJS.ReadableStream
+            }>('/package/download', { id })
+            if (res.status != 0) return res
+            const token = res.data.token
+            const result = await API.task(token, undefined, {
+                responseType: 'stream',
+                maxContentLength: Infinity,
+            })
+            res.data.stream = result.data
+            return res
         }
     }
 }
