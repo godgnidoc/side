@@ -1,7 +1,6 @@
-import { join, relative } from "path"
+import { join } from "path"
 import { satisfies, validRange } from "semver"
 import { readdir } from "fs/promises"
-import { PATH_REPOSITORIES } from "environment"
 import { PackageId } from "format"
 
 
@@ -9,43 +8,28 @@ import { PackageId } from "format"
 export const busy_packages = new Set<string>()
 
 /**
- * 根据包路径获取包的唯一标识
- * @param path 包路径，绝对路径
- */
-export function IdentifyPackage(path: string) {
-    const rpath = relative(PATH_REPOSITORIES, path)
-    if (rpath.startsWith('..') || !rpath.endsWith('.tar')) {
-        return new Error('invalid package path: ' + path)
-    }
-    const frags = rpath.slice(0, rpath.length - 4).split('/')
-    if (frags.length != 3) return new Error('invalid package path: ' + path)
-    const scope = frags[0]
-    const symbol = frags.pop()!
-
-    return PackageId.Parse(scope + '/' + symbol)
-}
-
-/**
  * 根据包请求获取全部匹配的包唯一标识，如果指定了版本号则只返回匹配版本号的包
  * @param query 包请求，包请求格式于包唯一标识格式相似，包请求不携带版本号及后续内容
+ * @param version 版本号，符合语义化版本规范，支持范围版本号
  * @return 匹配的包唯一标识列表，按版本号降序排列
  */
 export async function QueryPackages(query: string, version?: string) {
     const range = version ? validRange(version) : undefined
 
-    const path = join(PATH_REPOSITORIES, query.split('--')[0])
-    if (relative(PATH_REPOSITORIES, path).startsWith('..')) return []
+    const qid = PackageId.Parse(query, '0.0.0')
+    if (qid instanceof Error) return []
+    const repo = qid.repo_path
 
     const packages: PackageId[] = []
-    for (const entry of await readdir(path, { withFileTypes: true })) {
+    for (const entry of await readdir(repo, { withFileTypes: true })) {
         if (!entry.isFile()) continue
 
-        const id = IdentifyPackage(join(path, entry.name))
-        if (id instanceof PackageId && id.matchQuery(query)) {
-            if (range && !satisfies(id.version, range)) continue
-            console.debug('QueryPackages: package found: %s', id.toString())
-            packages.push(id)
-        }
+        const id = PackageId.FromPath(join(repo, entry.name))
+        if (!(id instanceof PackageId)) continue
+        if (!id.matchQuery(query)) continue
+        if (range && !satisfies(id.version, range)) continue
+
+        packages.push(id)
     }
 
     // 按版本号降序排列

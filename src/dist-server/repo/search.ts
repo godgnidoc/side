@@ -1,10 +1,10 @@
 import { join } from "path"
 import { MatchPattern, done, invalid_argument } from "../utils"
 import { readdir } from "fs/promises"
-import { IsValidScope, PackageId } from "format"
+import { IsValidName, IsValidScope } from "format"
 import { PATH_REPOSITORIES } from "environment"
 
-export async function getSearch(query?: string, scope?: string) {
+export async function getSearch(pattern?: string, scope?: string) {
     const scopes: string[] = []
 
     if (scope) {
@@ -27,8 +27,8 @@ export async function getSearch(query?: string, scope?: string) {
         const repo_names = (await readdir(base_dir, { withFileTypes: true }))
             .filter(dirent => dirent.isDirectory())
             .map(dirent => dirent.name)
-            .filter(repo => PackageId.Parse(repo + '-0.0.0') instanceof PackageId)
-            .filter(repo => !query || MatchPattern(repo, query))
+            .filter(repo => IsValidName(repo))
+            .filter(repo => !pattern || MatchPattern(scope + '/' + repo, pattern) || MatchPattern(repo, pattern))
         repos.push(...repo_names.map(repo => scope + '/' + repo))
     } catch {
         // ignore

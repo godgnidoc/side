@@ -85,6 +85,9 @@ export const api = new class {
         async create(id: string) {
             return await API.apost('/repo/create/by_id', { id })
         }
+        async search(pattern: string) {
+            return await API.get<string[]>('/repo/search', { pattern })
+        }
     }
 
     readonly package = new class {
@@ -93,6 +96,9 @@ export const api = new class {
             if (res.status != 0) return res
             const token = res.data
             return await API.task(token, createReadStream(file))
+        }
+        async search(pattern: string) {
+            return await API.get<string[]>('/package/search/by_pattern', { pattern })
         }
     }
 }

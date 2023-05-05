@@ -9,6 +9,8 @@ import { versionFeature } from 'commons/version'
 import { scopeCreateFeature } from './scope/create'
 import { repoCreateFeature } from './repo/create'
 import { distPublishFeature } from './package/publish'
+import { distSearchFeature } from './package/search'
+import { distReposFeature } from './repo/repos'
 
 export class Dist implements Application {
     name = "dist"
@@ -35,7 +37,9 @@ export class Dist implements Application {
             repo: repoCreateFeature
         },
         pack: distPackFeature,
-        publish: distPublishFeature
+        publish: distPublishFeature,
+        ls: distSearchFeature,
+        repos: distReposFeature,
     }
 
     entry() {

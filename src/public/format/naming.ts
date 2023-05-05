@@ -1,4 +1,4 @@
-import { join, resolve } from "path"
+import { join, relative, resolve } from "path"
 import { SemVer } from "semver"
 import { PATH_REPOSITORIES } from "environment"
 
@@ -228,6 +228,19 @@ export class PackageId {
         const version = match[4]
 
         return new PackageId(scope, name, version, tags)
+    }
+
+    static FromPath(path: string): PackageId | Error {
+        const rpath = relative(PATH_REPOSITORIES, path)
+        if (rpath.startsWith('..') || !rpath.endsWith('.tar')) {
+            return new Error('invalid package path: ' + path)
+        }
+        const frags = rpath.slice(0, rpath.length - 4).split('/')
+        if (frags.length != 3) return new Error('invalid package path: ' + path)
+        const scope = frags[0]
+        const symbol = frags.pop()!
+    
+        return PackageId.Parse(scope + '/' + symbol)
     }
 }
 

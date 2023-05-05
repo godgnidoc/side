@@ -14,7 +14,7 @@ import { LatestPackageId, PackageId, PackageManifest } from "format"
  */
 async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
     try {
-        const tmp_dir = packageId.path + '-publishing'
+        const tmp_dir = packageId.path + '.publishing'
         const tmp_pack = join(tmp_dir, 'package.tar')
         const pack = packageId.path + '.tar'
         const symbol = packageId.symbol
