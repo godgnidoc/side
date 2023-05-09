@@ -1,185 +1,11 @@
-import { runInNewContext } from "vm"
-import * as yaml from 'js-yaml'
 import { Args, Brief, Compgen, Complete, Feature, ShortOpt } from "@godgnidoc/decli"
-import { readAllInput } from "./io"
-import { mkdir, readFile, writeFile } from "fs/promises"
-import { dirname } from "path"
+import { vdel, vfmt, vget, vhas, vkeys, vload, vmerge, vset } from "notion"
+import { inputFrom, outputTo } from "./common"
 
 function completeFile(editing: boolean, args: string[]) {
     const prefix = editing ? args[0] : ''
     if (args.length > 1 || args.length == 1 && !editing) return []
     return Compgen('file', prefix)
-}
-
-async function inputFrom(file = '-') {
-    if (file == '-') return readAllInput()
-    try {
-        return await readFile(file, 'utf-8')
-    } catch (e) {
-        console.error('failed to read file %s: %s', file, e.message)
-        return undefined
-    }
-}
-
-async function outputTo(content: string, file = '-') {
-    if (file == '-') {
-        console.log(content)
-    } else {
-        await mkdir(dirname(file), { recursive: true })
-        await writeFile(file, content)
-    }
-}
-
-/**
- * 尝试将输入解析为JS/JSON/YAML
- * @param input 输入
- * @returns 解析结果，如果解析失败则返回undefined
- */
-export function vload(input: string, feedback = { format: '' }) {
-    /** 优先尝试在空上下文将输入当作JS内容执行 */
-    try {
-        feedback.format = 'js'
-        return runInNewContext(`(${input})`, {}, {
-            filename: 'vload',
-            contextName: 'vload',
-            displayErrors: false
-        })
-    } catch {
-        console.verbose('failed to load input as js/json, try yaml')
-    }
-
-    // 如果失败则尝试当做YAML解析
-    try {
-        feedback.format = 'yaml'
-        return yaml.load(input)
-    } catch {
-        console.verbose('failed to load input as yaml')
-    }
-
-    console.error('failed to load input as js/json/yaml')
-    return undefined
-}
-
-/**
- * 尝试将输入格式化为JSON或YAML
- */
-export function vfmt(input: any, f: 'json' | 'yaml' = 'yaml') {
-    switch (f) {
-        case 'json':
-            return JSON.stringify(input, null, 4)
-        case 'yaml':
-            return yaml.dump(input)
-    }
-}
-
-/**
- * 尝试从输入中获取指定表达式的值
- * @param input 输入
- * @param expr 表达式
- * @returns 表达式的值，如果获取失败则返回undefined
- */
-export function vget(input: any, expr: string) {
-    expr = expr ? expr.trim() : ''
-    if (!expr) return input
-    if (!expr.startsWith('[')) expr = '.' + expr
-    try {
-        return runInNewContext(`(input${expr})`, { input }, {
-            filename: 'vget',
-            contextName: 'vget',
-            displayErrors: false
-        })
-    } catch (e) {
-        console.verbose('failed to get %s from input: %s', expr, e.message)
-    }
-}
-
-/**
- * 尝试获取输入的所有键
- * @param input 输入
- * @returns 输入的所有键，如果获取失败则返回空数组
- */
-export function vkeys(input: any, expr = '') {
-    input = vget(input, expr)
-    if (typeof input !== 'object') return []
-    if (Array.isArray(input)) return input.map((_, i) => i)
-    return Object.keys(input)
-}
-
-/**
- * 判断输入是否包含指定键
- * @param input 输入
- * @param expr 表达式
- * @returns 如果包含则返回true，否则返回false
- */
-export function vhas(input: any, expr: string) {
-    input = vget(input, expr)
-    return input !== undefined
-}
-
-/**
- * 尝试在输入上执行表达式
- * @param input 输入
- * @param expr 表达式
- * @returns 输入，如果执行失败则返回undefined
- */
-export function vset(input: any, expr: string) {
-    expr = expr ? expr.trim() : ''
-    if (!expr) return input
-    if (!expr.startsWith('[')) expr = '.' + expr
-    try {
-        runInNewContext(`(input${expr})`, { input }, {
-            filename: 'vset',
-            contextName: 'vset',
-            displayErrors: false
-        })
-        return input
-    } catch {
-        console.error('failed to set %s on input', expr)
-        return undefined
-    }
-}
-
-/**
- * 尝试在输入上删除指定键
- * @param input 输入
- * @param expr 子表达式
- * @returns 输入，如果删除失败则返回undefined
- */
-export function vdel(input: any, expr: string) {
-    expr = expr ? expr.trim() : ''
-    if (!expr) return input
-    if (!expr.startsWith('[')) expr = '.' + expr
-    try {
-        runInNewContext(`delete input${expr}`, { input }, {
-            filename: 'vdel',
-            contextName: 'vdel',
-            displayErrors: false
-        })
-    } catch (e) {
-        console.verbose('failed to delete %s from input: %s', expr, e.message)
-    }
-    return input
-}
-
-/**
- * 尝试将RHS覆盖到LHS上  
- * - 若二者均为对象，则递归合并
- * - 若二者均为数组，则合并数组
- * - 否则直接覆盖
- * @param lhs LHS
- * @param rhs RHS
- * @returns 合并结果，如果合并失败则返回undefined
- */
-export function vmerge(lhs: any, rhs: any) {
-    if (typeof lhs !== 'object' || typeof rhs !== 'object') return rhs
-    if (Array.isArray(lhs) && Array.isArray(rhs)) {
-        lhs.push(...rhs)
-        return lhs
-    }
-    for (const key in rhs) {
-        lhs[key] = vmerge(lhs[key], rhs[key])
-    }
-    return lhs
 }
 
 export const vgetFeature = new class extends Feature {
@@ -445,3 +271,13 @@ class VmergeFeature extends Feature {
 }
 
 export const vmergeFeature = new VmergeFeature
+
+export const notionFeatures = {
+    vget: vgetFeature,
+    vfmt: vfmtFeature,
+    vkeys: vkeysFeature,
+    vhas: vhasFeature,
+    vset: vsetFeature,
+    vdel: vdelFeature,
+    vmerge: vmergeFeature,
+}

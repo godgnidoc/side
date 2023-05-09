@@ -3,9 +3,7 @@ import { userCreateFeature } from './user/create'
 import { userMeFeature } from './user/me'
 import { distPackFeature } from './package/pack'
 import { Application, defaultCompleteFeature, defaultHelpFeature } from '@godgnidoc/decli'
-import { globalOptions, sideVersion } from 'environment'
 import { SetLogLevel } from 'logging'
-import { versionFeature } from 'commons/version'
 import { scopeCreateFeature } from './scope/create'
 import { repoCreateFeature } from './repo/create'
 import { distPublishFeature } from './package/publish'
@@ -15,13 +13,14 @@ import { distScopesFeature } from './scope/scopes'
 import { distQueryFeature } from './package/query'
 import { distGetFeature } from './package/get'
 import { distRmFeature } from './package/rm'
+import { SidePlatform } from 'platform'
 
 export class Dist implements Application {
     name = "dist"
-    version = sideVersion
+    version = SidePlatform.version
     brief = "Distributed Package Manager"
     description = "This program is part of the side project."
-    options = globalOptions
+    options = SidePlatform.options
     help = 'help'
 
     elements = {
@@ -29,9 +28,9 @@ export class Dist implements Application {
         "help": defaultHelpFeature,
         "--help": defaultHelpFeature,
         "-h": defaultHelpFeature,
-        'version': versionFeature,
-        '--version': versionFeature,
-        '-v': versionFeature,
+        'version': SidePlatform.featureVersion,
+        '--version': SidePlatform.featureVersion,
+        '-v': SidePlatform.featureVersion,
 
         login: distLoginFeature,
         me: userMeFeature,

@@ -8,7 +8,7 @@ import { userInfo } from "os"
 import { Feature } from '@godgnidoc/decli'
 import { Web } from 'jetweb'
 import { chmod, mkdir, readdir } from 'fs/promises'
-import { PATH_CONTRIBUTORS, PATH_REPOSITORIES, sideRevision, sideVersion } from 'environment'
+import { SidePlatform } from 'platform'
 
 export const distServeFeature = new class extends Feature {
     async entry() {
@@ -18,19 +18,19 @@ export const distServeFeature = new class extends Feature {
         }
 
         // 创建仓库和贡献者目录
-        await mkdir(PATH_REPOSITORIES, { recursive: true })
-        await mkdir(PATH_CONTRIBUTORS, { recursive: true })
-        await chmod(PATH_CONTRIBUTORS, 0o700)
+        await mkdir(SidePlatform.server.repositories, { recursive: true })
+        await mkdir(SidePlatform.server.contributors, { recursive: true })
+        await chmod(SidePlatform.server.contributors, 0o700)
 
         // 检查是否有用户，没有则创建 admin 用户
-        if ((await readdir(PATH_CONTRIBUTORS)).length === 0) {
+        if ((await readdir(SidePlatform.server.contributors)).length === 0) {
             console.info('No user found, creating admin user')
             await createAdmin()
         }
 
         const api = { Repo, Scope, Package, User, postTasks }
         const web = new Web({ api }, { static: true })
-        console.info('dist server supported by side - %s - %s', sideVersion, sideRevision)
+        console.info('dist server supported by side - %s - %s', SidePlatform.version, SidePlatform.revision)
         web.listen(5000)
 
         // 保持运行

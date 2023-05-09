@@ -7,7 +7,7 @@ import { PackageId } from 'format'
 async function RevokePackage(this: RequestContext, id: string) {
     // 检查用户是否登录
     const user = await authorize(this)
-    if (!user) authorization_failed()
+    if (!user) return authorization_failed()
 
     // 检查包ID是否合法
     const packageId = PackageId.Parse(id)

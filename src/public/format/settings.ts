@@ -32,22 +32,18 @@ interface BasicLocalSettings {
             checkout?: string
         }
     }
-
-    /** dist 平台相关设置 */
-    dist?: DistSettings
 }
 
-/** Side 全局设置文件的结构定义 */
+/** 
+ * Side 全局设置文件的结构定义
+ * @schema GlobalSettings
+ */
 export interface GlobalSettings extends BasicGlobalSettings {
-    $structure: 'side.global-settings'
 }
 
-/** 项目局部设置文件结构 */
+/** 
+ * 项目局部设置文件结构
+ * @schema LocalSettings
+ */
 export interface LocalSettings extends BasicLocalSettings {
-    $structure: 'side.local-settings'
-}
-
-/** 各级设置文件叠加之后表现的最终设置 */
-export interface FinalSettings extends BasicGlobalSettings, BasicLocalSettings {
-    $structure: 'side.final-settings'
 }

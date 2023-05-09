@@ -1,6 +1,6 @@
 import { RequestContext } from 'jetweb'
 import { join } from 'path'
-import { PATH_CONTRIBUTORS } from 'environment'
+import { SidePlatform } from 'platform'
 import { readFile } from 'fs/promises'
 import { RepoManifest, UserInfo } from 'format'
 
@@ -15,7 +15,7 @@ export async function IsContributor(repo_path: string, user: string): Promise<bo
 }
 
 export async function IsOwner(repo: string, user: string): Promise<boolean> {
-    const path_repo = join(PATH_CONTRIBUTORS, repo)
+    const path_repo = join(SidePlatform.server.contributors, repo)
     try {
         const raw_manifest = await readFile(join(path_repo, 'manifest'), 'utf-8')
         const manifest: RepoManifest = RepoManifest.Parse(JSON.parse(raw_manifest.toString()))
@@ -34,7 +34,7 @@ export async function authorize(requestContext: RequestContext): Promise<UserInf
     const [, user, token] = auth_token.match(/^(.*):(.*)$/)
 
     try {
-        const path_user_home = join(PATH_CONTRIBUTORS, user)
+        const path_user_home = join(SidePlatform.server.contributors, user)
         const raw_token = await readFile(join(path_user_home, 'token'), 'utf-8')
 
         if (raw_token.toString() === token) {

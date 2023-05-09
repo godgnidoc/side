@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "fs/promises"
 import { authorize, done, fail, invalid_argument, md5, permission_denied } from "../utils"
 import { join } from "path"
 import { IsValidName } from "format"
-import { PATH_CONTRIBUTORS } from "environment"
+import { SidePlatform } from 'platform'
 
 export async function postCreate(name: string, password: string, email: string) {
     // 鉴权并获取用户信息
@@ -23,7 +23,7 @@ export async function postCreate(name: string, password: string, email: string) 
         return invalid_argument('Invalid password')
 
     try {
-        const path_user_home = join(PATH_CONTRIBUTORS, name)
+        const path_user_home = join(SidePlatform.server.contributors, name)
 
         // 创建用户目录
         await mkdir(path_user_home)

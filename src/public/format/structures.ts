@@ -1,7 +1,7 @@
 import { SemVer, validRange, valid } from "semver"
 import { PackageId } from "./naming"
 import { IsValidTag } from "./naming"
-import { getFinalSettings, sideVersion } from "environment"
+import { SidePlatform } from "platform"
 
 export class UserInfo {
     name: string
@@ -323,12 +323,11 @@ export class PackageManifest {
     static Make(packing: PackingManifest['packing'], version: string): PackageManifest | Error {
         if (!valid(version)) return new Error('invalid version format')
 
-        const settings = getFinalSettings()
-        const user = settings.dist?.user
+        const user = SidePlatform.settings.dist.user
         if (!user) return new Error('please login first')
 
         const manifest = new PackageManifest()
-        manifest.engine = new SemVer(sideVersion)
+        manifest.engine = new SemVer(SidePlatform.version)
 
         manifest.packageId = new PackageId()
         manifest.packageId.setQuery(packing.repo)

@@ -1,17 +1,18 @@
 import { Application, defaultCompleteFeature, defaultHelpFeature } from "@godgnidoc/decli"
-import { globalOptions, sideVersion } from "environment"
-import { common } from "./common"
-import { project } from "./project"
+import { projectFeatures } from "./project"
 import { SetLogLevel } from "logging"
-import { target } from './target'
-import { versionFeature } from "commons/version"
+import { SidePlatform } from "platform"
+import { notionFeatures } from "./notion"
+import { statusFeature } from "./status"
+import { invokeHookFeature } from "./invoke"
+import { shellFeature } from "./shell"
 
 export class Side implements Application {
     name = "side"
-    version = sideVersion
+    version = SidePlatform.version
     brief = "Smooth Integration Development Environment"
     description = "Create, build, test and release your project with ease."
-    options = globalOptions
+    options = SidePlatform.options
     help = 'help'
 
     elements = {
@@ -19,14 +20,15 @@ export class Side implements Application {
         "help": defaultHelpFeature,
         "--help": defaultHelpFeature,
         "-h": defaultHelpFeature,
-        'version': versionFeature,
-        '--version': versionFeature,
-        '-v': versionFeature,
+        'version': SidePlatform.featureVersion,
+        '--version': SidePlatform.featureVersion,
+        '-v': SidePlatform.featureVersion,
 
-        ...common,
-        ...project,
-
-        target,
+        status: statusFeature,
+        invoke: invokeHookFeature,
+        shell: shellFeature,
+        ...notionFeatures,
+        ...projectFeatures,
     }
 
     entry() {

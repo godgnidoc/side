@@ -10,7 +10,7 @@
         "noUnusedParameters": true,
         "experimentalDecorators": true,
         "sourceMap": true,
-        "outDir": "build/dist",
+        "outDir": "build/out",
         "target": "ES2015",
         "baseUrl": "src/public",
         "paths": {

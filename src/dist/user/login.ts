@@ -1,10 +1,7 @@
 import { Feature } from "@godgnidoc/decli"
 import inquirer from 'inquirer'
 import { api } from "../api"
-import { getGlobalSettings, sideHome } from "environment"
-import { mkdir, writeFile } from "fs/promises"
-import { dump } from "js-yaml"
-import { join } from "path"
+import { SidePlatform } from "platform"
 
 export const distLoginFeature = new class extends Feature {
     args = '<username>'
@@ -35,13 +32,9 @@ export const distLoginFeature = new class extends Feature {
         }
 
         console.debug('login success %s : %s', user, res.data)
-        const settings = { ...getGlobalSettings() }
-        if (!settings.dist) settings.dist = {}
-        settings.dist.user = user
-        settings.dist.token = res.data
+        SidePlatform.settings.dist.user = user
+        SidePlatform.settings.dist.token = res.data
 
-        await mkdir(sideHome, { recursive: true })
-        await writeFile(join(sideHome, 'settings'), dump(settings))
         console.debug('settings saved')
         return 0
     }

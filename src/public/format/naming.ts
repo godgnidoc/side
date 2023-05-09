@@ -1,6 +1,6 @@
 import { join, relative, resolve } from "path"
+import { SidePlatform } from "platform"
 import { SemVer } from "semver"
-import { PATH_REPOSITORIES, rpaths, sideHome } from "environment"
 
 /**
  * 包唯一标识，由域、名称、标签、版本组成，格式为：<scope>/<name>[--<tag>{-<tag>}]-<version>
@@ -109,14 +109,14 @@ export class PackageId {
      * 获取包仓库位置的绝对路径
      */
     get repo_path(): string {
-        return resolve(join(PATH_REPOSITORIES, this.repo_id))
+        return resolve(join(SidePlatform.server.repositories, this.repo_id))
     }
 
     /**
      * 获取包本地仓库位置的绝对路径
      */
     get lrepo_path(): string {
-        return resolve(join(sideHome, rpaths.sideCaches, this.repo_id))
+        return resolve(join(SidePlatform.paths.caches, this.repo_id))
     }
 
     /**
@@ -138,6 +138,13 @@ export class PackageId {
      */
     get lpath(): string {
         return resolve(join(this.lrepo_path, this.fname))
+    }
+
+    /**
+     * 获取包的清单存储路径
+     */
+    get mpath(): string {
+        return resolve(join(this.repo_path, this.symbol + '.manifest'))
     }
 
     get dist() {
@@ -269,7 +276,7 @@ export class PackageId {
     }
 
     static FromPath(path: string): PackageId | Error {
-        const rpath = relative(PATH_REPOSITORIES, path)
+        const rpath = relative(SidePlatform.server.repositories, path)
         if (rpath.startsWith('..') || !rpath.endsWith('.tar')) {
             return new Error('invalid package path: ' + path)
         }

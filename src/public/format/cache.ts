@@ -1,8 +1,15 @@
 export interface Cache {
-    [id: string]: {
+    [packageId: string]: {
+        /** 服务端保存的最后修改时间 */
         mtime: number
+
+        /** 服务端保存的文件大小 */
         size: number
+
+        /** 本地保存的最后修改时间 */
         lmtime: number
+
+        /** 本地保存的文件大小 */
         lsize: number
     }
 }

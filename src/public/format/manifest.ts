@@ -1,40 +1,25 @@
-import { Stage } from "./stage"
+import { Exports } from "./exports"
+
+export type Stage = 'draft' | 'ready' | 'built' | 'packaged'
 
 export interface Dirs {
     /** 存放子模块仓库的默认相对路径路径 */
-    module?: string
+    MODULE?: string
 
     /** 存放构建内容物的默认相对路径 */
-    build?: string
+    BUILD?: string
 
     /** 存放文档的默认相对路径 */
-    document?: string
+    DOCUMENT?: string
 
     /** 存放自动生成的内容的默认相对路径 */
-    generated?: string
+    GENERATED?: string
 
     /** 打包工作环境的默认相对路径 */
-    package?: string
+    PACKAGE?: string
 
     /** 发布包的默认相对存储路径 */
-    release?: string
-}
-
-/** 
- * 环境变量表
- * 若值为字符串、数字或布尔值，则默认为覆盖原有变量
- * 若值为数组，则默认为不覆盖原有变量
- * 若字符串或字符串数组包含'${...}'语法，则会被视为环境变量引用，会被自动替换为对应的环境变量值
- */
-export interface Exports {
-    [key: string]: {
-        /** 是否覆盖原有变量，若值为数组，默认为 false 否则强制为 true */
-        override?: boolean
-        /** 字段分割符，默认为冒号 */
-        delimiter?: string
-        /** 字段值 */
-        value: string | number | boolean | string[]
-    } | string | number | boolean | string[]
+    RELEASE?: string
 }
 
 /** 子模块列表 */
@@ -79,11 +64,9 @@ export interface Resources {
 
 /**
  * 项目全局清单文件结构
+ * @schema ProjectManifest
  */
 export interface ProjectManifest {
-    /** 清单结构 */
-    $structure: 'side.manifest'
-
     /** 项目名称 */
     project?: string
 
@@ -108,11 +91,9 @@ export interface ProjectManifest {
 
 /**
  * 项目目标清单文件结构
+ * @schema ProjectTarget
  */
 export interface ProjectTarget {
-    /** 清单结构 */
-    $structure: 'side.target'
-
     /** 当前目标所继承的目标的名称 */
     inherit?: string
 
@@ -134,11 +115,9 @@ export interface ProjectTarget {
 
 /**
  * 项目目标切面清单文件结构
+ * @schema ProjectAspect
  */
 export interface ProjectAspect {
-    /** 清单结构 */
-    $structure: 'side.aspect'
-
     /** 当前目标所依赖的包 */
     requires?: Requires
 
@@ -154,11 +133,9 @@ export interface ProjectAspect {
 
 /**
  * 项目最终目标清单文件结构
+ * @schema ProjectFinalTarget
  */
 export interface ProjectFinalTarget {
-    /** 清单结构 */
-    $structure: 'side.final-target'
-
     /** 项目名称 */
     project: string
 
@@ -186,10 +163,9 @@ export interface ProjectFinalTarget {
 
 /**
  * 构建信息文件结构，每次构建都应该自动生成
+ * @schema ProjectBuildInfo
  */
 export interface ProjectBuildInfo {
-    $structure: 'side.build-info'
-
     /** 项目名称 */
     project: string
 

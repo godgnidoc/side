@@ -1,10 +1,13 @@
-import { projectMeta, projectName, sideHome, sideRevision, sideVersion } from "./constants"
-import { projectPath } from "./constants"
 import { Exports, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest } from "format"
-
 
 export type Inflatable = ProjectManifest | ProjectFinalTarget | ProjectBuildInfo
 type Environment = { [key: string]: string | boolean | number }
+
+/** 导出一个干净的环境变量备份 */
+const envBackup = { ...process.env }
+export function getEnvBackup() {
+    return { ...envBackup }
+}
 
 export function evaluate(value: string | number | boolean, env: Environment) {
     if (typeof value === 'number' || typeof value === 'boolean') return value.toString()
@@ -15,7 +18,7 @@ export function evaluate(value: string | number | boolean, env: Environment) {
     }).replace(/\\\$|\$\$/g, '$')
 }
 
-export function inflateExports(exports: Exports, env?: Environment): NodeJS.ProcessEnv {
+export function inflate(exports: Exports, env?: Environment): NodeJS.ProcessEnv {
     if (!env) env = { ...process.env }
     if (!exports) return env as NodeJS.ProcessEnv
     for (const key in exports) {
@@ -65,7 +68,7 @@ export function inflateExports(exports: Exports, env?: Environment): NodeJS.Proc
         }
         if (add.length) env[ekey] = `${env[ekey]}${delimiter}${add.map(v => evaluate(v, env)).join(delimiter)}`
     }
-    return env
+    return env as NodeJS.ProcessEnv
 }
 
 /**
@@ -74,53 +77,46 @@ export function inflateExports(exports: Exports, env?: Environment): NodeJS.Proc
  * @param env 要导出到的上下文，默认为当前进程环境，若指定为 null 则从当前进程环境复制一份
  * @returns 返回导出后的上下文
  */
-export function inflate(inf: Inflatable, env: Environment = process.env) {
-    if (!env) env = { ...process.env }
-    if (!inf) return env
+// export function inflate(inf: Inflatable, env: Environment = process.env) {
+//     if (!env) env = { ...process.env }
+//     if (!inf) return env
 
-    env['SIDE_HOME'] = sideHome
-    env['SIDE_VERSION'] = sideVersion
-    env['SIDE_REVISION'] = sideRevision
-    if (projectPath) env['SIDE_PROJECT'] = projectPath
-    if (projectMeta) env['SIDE_PROJECT_META'] = projectMeta
-    if (projectName) env['SIDE_PROJECT_NAME'] = projectName
+//     if (inf.$structure === 'side.manifest') {
+//         if (inf.project) env['SIDE_PROJECT_NAME'] = inf.project
+//         if (inf.dirs) {
+//             if (inf.dirs.MODULE) env['SIDE_DIR_MODULE'] = inf.dirs.MODULE
+//             if (inf.dirs.BUILD) env['SIDE_DIR_BUILD'] = inf.dirs.BUILD
+//             if (inf.dirs.DOCUMENT) env['SIDE_DIR_DOCUMENT'] = inf.dirs.DOCUMENT
+//             if (inf.dirs.GENERATED) env['SIDE_DIR_GENERATED'] = inf.dirs.GENERATED
+//             if (inf.dirs.PACKAGE) env['SIDE_DIR_PACKAGE'] = inf.dirs.PACKAGE
+//             if (inf.dirs.RELEASE) env['SIDE_DIR_RELEASE'] = inf.dirs.RELEASE
+//         }
+//         if (inf.exports) inflateExports(inf.exports, env)
+//     }
 
-    if (inf.$structure === 'side.manifest') {
-        if (inf.project) env['SIDE_PROJECT_NAME'] = inf.project
-        if (inf.dirs) {
-            if (inf.dirs.module) env['SIDE_DIR_MODULE'] = inf.dirs.module
-            if (inf.dirs.build) env['SIDE_DIR_BUILD'] = inf.dirs.build
-            if (inf.dirs.document) env['SIDE_DIR_DOCUMENT'] = inf.dirs.document
-            if (inf.dirs.generated) env['SIDE_DIR_GENERATED'] = inf.dirs.generated
-            if (inf.dirs.package) env['SIDE_DIR_PACKAGE'] = inf.dirs.package
-            if (inf.dirs.release) env['SIDE_DIR_RELEASE'] = inf.dirs.release
-        }
-        if (inf.exports) inflateExports(inf.exports, env)
-    }
+//     if (inf.$structure === 'side.final-target') {
+//         env['SIDE_PROJECT_NAME'] = inf.project
+//         env['SIDE_TARGET'] = inf.target
+//         if (inf.exports) inflateExports(inf.exports, env)
+//     }
 
-    if (inf.$structure === 'side.final-target') {
-        env['SIDE_PROJECT_NAME'] = inf.project
-        env['SIDE_TARGET'] = inf.target
-        if (inf.exports) inflateExports(inf.exports, env)
-    }
+//     if (inf.$structure === 'side.build-info') {
+//         env['SIDE_PROJECT_NAME'] = inf.project
+//         env['SIDE_PROJECT_REVISION'] = inf.revision
+//         env['SIDE_TARGET'] = inf.target
+//         // env['SIDE_BUILD_CMD'] = inf.command
+//         env['SIDE_REQUIRES'] = inf.requires.join(';')
 
-    if (inf.$structure === 'side.build-info') {
-        env['SIDE_PROJECT_NAME'] = inf.project
-        env['SIDE_PROJECT_REVISION'] = inf.revision
-        env['SIDE_TARGET'] = inf.target
-        // env['SIDE_BUILD_CMD'] = inf.command
-        env['SIDE_REQUIRES'] = inf.requires.join(';')
+//         for (const module in inf.modules) {
+//             env[`SIDE_MODULE_${module}`] = inf.modules[module]
+//         }
 
-        for (const module in inf.modules) {
-            env[`SIDE_MODULE_${module}`] = inf.modules[module]
-        }
+//         for (const resource in inf.resources) {
+//             const res = inf.resources[resource]
+//             env[`SIDE_RESOURCE_${resource}`] = res.join(';')
+//         }
+//         inflateExports(inf.exports, env)
+//     }
 
-        for (const resource in inf.resources) {
-            const res = inf.resources[resource]
-            env[`SIDE_RESOURCE_${resource}`] = res.join(';')
-        }
-        inflateExports(inf.exports, env)
-    }
-
-    return env
-}
+//     return env
+// }

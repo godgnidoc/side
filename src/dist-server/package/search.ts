@@ -3,8 +3,8 @@ import { invalid_argument, done, MatchPattern } from '../utils'
 
 import { QueryPackages } from './common'
 import { readdir } from 'fs/promises'
-import { PATH_REPOSITORIES } from 'environment'
 import { join } from 'path'
+import { SidePlatform } from 'platform'
 
 export const Search = {
     async getByName(scope: string, repo: string, tags: string[], version?: string) {
@@ -24,14 +24,14 @@ export const Search = {
     },
     async getByPattern(pattern: string) {
         // 列举所有作用域
-        const scopes = (await readdir(PATH_REPOSITORIES, { withFileTypes: true }))
+        const scopes = (await readdir(SidePlatform.server.repositories, { withFileTypes: true }))
             .filter(dirent => dirent.isDirectory())
             .map(dirent => dirent.name)
             .filter(scope => IsValidScope(scope))
 
         const repos: string[] = []
         for (const scope of scopes) {
-            const base_dir = join(PATH_REPOSITORIES, scope)
+            const base_dir = join(SidePlatform.server.repositories, scope)
             const repo_names = (await readdir(base_dir, { withFileTypes: true }))
                 .filter(dirent => dirent.isDirectory())
                 .map(dirent => dirent.name)
@@ -41,8 +41,8 @@ export const Search = {
 
         const all: string[] = []
         for (const repo of repos) {
-            for (const entry of (await readdir(join(PATH_REPOSITORIES, repo)))) {
-                const path = join(PATH_REPOSITORIES, repo, entry)
+            for (const entry of (await readdir(join(SidePlatform.server.repositories, repo)))) {
+                const path = join(SidePlatform.server.repositories, repo, entry)
                 const id = PackageId.FromPath(path)
                 if (id instanceof Error) continue
                 const idstr = id.toString()

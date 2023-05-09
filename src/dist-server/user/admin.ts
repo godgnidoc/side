@@ -3,7 +3,7 @@ import { join } from 'path'
 import { md5 } from '../utils'
 import base32 from 'base32'
 import { mkdir, writeFile } from 'fs/promises'
-import { PATH_CONTRIBUTORS } from 'environment'
+import { SidePlatform } from 'platform'
 
 function randomPassword() {
     const basis = crypto.randomBytes(64).toString('hex')
@@ -21,7 +21,7 @@ export async function createAdmin() {
     console.info('Password: %s', password)
     console.info('Notion \x1b[1;31m!!! Please remember the password since it will not be shown again !!!\x1b[0m')
 
-    const path_user_home = join(PATH_CONTRIBUTORS, name)
+    const path_user_home = join(SidePlatform.server.contributors, name)
 
     // 创建用户目录
     await mkdir(path_user_home)

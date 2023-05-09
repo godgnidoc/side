@@ -3,7 +3,7 @@ import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_f
 import { chmod, } from "fs/promises"
 import { RequestContext } from "jetweb"
 import { IsValidName, IsValidScope } from "format"
-import { PATH_REPOSITORIES } from "environment"
+import { SidePlatform } from "platform"
 
 /**
  * 删除仓库，实际仅将仓库权限设置为000，不真正执行删除操作
@@ -21,7 +21,7 @@ async function RevokeRepo(this: RequestContext, repo: string, scope: string) {
     // 检查作用域名格式
     if (!IsValidScope(scope)) return invalid_argument('scope name is invalid')
 
-    const repo_path = join(PATH_REPOSITORIES, scope, repo)
+    const repo_path = join(SidePlatform.server.repositories, scope, repo)
 
     // 检查仓库是否存在
     if (!await IsDir(repo_path)) return fail(1, 'repo not exists')

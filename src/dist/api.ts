@@ -1,6 +1,7 @@
 import { Axios, AxiosRequestConfig } from "axios"
-import { getFinalSettings } from "environment"
+import { PackageManifest } from "format"
 import { createReadStream } from "fs"
+import { SidePlatform } from "platform"
 
 export interface Response<T = undefined> {
     status: number // 0 表示成功
@@ -11,7 +12,7 @@ export interface Response<T = undefined> {
 const API = new class {
     get axios() {
         return new Axios({
-            baseURL: getFinalSettings().dist.apiBaseUrl
+            baseURL: SidePlatform.settings.dist.apiBaseUrl
         })
     }
 
@@ -29,7 +30,7 @@ const API = new class {
         return JSON.parse(result.data) as Response<T>
     }
     async apost<T>(url: string, data: any, headers?: any) {
-        const settings = getFinalSettings()
+        const settings = SidePlatform.settings
         const name = settings?.dist?.user
         const token = settings?.dist?.token
         if (!token || !name) {
@@ -91,11 +92,13 @@ export const api = new class {
     }
 
     readonly package = new class {
-        async publish(file: string, id: string, allowOverwrite: boolean, allowDowngrade: boolean) {
-            const res = await API.apost<string>('/package/publish/by_id', { id, allowOverwrite, allowDowngrade })
+        async publish(manifest: PackageManifest, path: string, allowOverwrite: boolean, allowDowngrade: boolean) {
+            const res = await API.apost<string>('/package/publish', {
+                manifest: manifest.toJson(), allowOverwrite, allowDowngrade
+            })
             if (res.status != 0) return res
             const token = res.data
-            const result = await API.task(token, createReadStream(file))
+            const result = await API.task(token, createReadStream(path))
             console.debug('api: publish %s => %o', token, result.data)
             return JSON.parse(result.data) as Response
         }

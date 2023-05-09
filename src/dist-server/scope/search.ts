@@ -1,7 +1,7 @@
-import { PATH_REPOSITORIES } from "environment"
 import { MatchPattern, done } from "../utils"
 import { readdir } from "fs/promises"
 import { IsValidScope } from "format"
+import { SidePlatform } from "platform"
 
 /**
  * 列举作用域
@@ -14,7 +14,7 @@ export async function getSearch(pattern?: string) {
 
     try {
         // 列举所有作用域
-        const scopes = (await readdir(PATH_REPOSITORIES, { withFileTypes: true }))
+        const scopes = (await readdir(SidePlatform.server.repositories, { withFileTypes: true }))
             .filter(dirent => dirent.isDirectory())
             .map(dirent => dirent.name)
             .filter(scope => IsValidScope(scope))

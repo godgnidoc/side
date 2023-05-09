@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "fs/promises"
 import { done, fail, invalid_argument, md5 } from "../utils"
 import { join } from "path"
-import { PATH_CONTRIBUTORS } from "environment"
+import { SidePlatform } from 'platform'
 import { IsValidName, UserInfo } from "format"
 
 export async function postLogin(name: string, password: string) {
@@ -14,7 +14,7 @@ export async function postLogin(name: string, password: string) {
         return invalid_argument('Invalid password')
 
     try {
-        const path_user_home = join(PATH_CONTRIBUTORS, name)
+        const path_user_home = join(SidePlatform.server.contributors, name)
 
         // 读取用户信息
         const raw_info = await readFile(join(path_user_home, 'info'), 'utf-8')

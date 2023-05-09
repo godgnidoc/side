@@ -1,23 +1,48 @@
 #!/bin/bash -e
 
-ncc build src/side.ts -q -m --v8-cache --no-source-map-register -o build/
-mv build/index.js build/side.js
-sed -i -e '1s|^|#!/usr/bin/env node\n|' build/side.js
-chmod +x build/side.js
-ln -rfs build/side.js build/side
+echo "Building..."
 
+if [[ $# == 0 || $1 == "schema" ]]; then
+  echo "Generating schema..."
+  mkdir -p build/schema
+  env -C src grep -rn "@schema" \
+    | sed -e "s%\(.*\)\.ts.*@schema \(.*\)% \
+    echo \"\1.ts -> \2.json\" ; \
+    npm exec -- typescript-json-schema \
+    --required --excludePrivate \
+    -o build/schema/\2.json \
+    src/\1.ts \2 ;%" \
+    | bash
+fi
+
+if [[ $# == 0 || $1 == "side" ]]; then
+  echo "Compiling side..."
+  ncc build src/side.ts -q -m --v8-cache --no-source-map-register -o build/
+  mv build/index.js build/side.js
+  sed -i -e '1s|^|#!/usr/bin/env node\n|' build/side.js
+  chmod +x build/side.js
+  ln -rfs build/side.js build/side
+fi
+
+if [[ $# == 0 || $1 == "dist" ]]; then
+echo "Compiling dist..."
 ncc build src/dist.ts -q -m --v8-cache --no-source-map-register -o build/
 mv build/index.js build/dist.js
 sed -i -e '1s|^|#!/usr/bin/env node\n|' build/dist.js
 chmod +x build/dist.js
 ln -rfs build/dist.js build/dist
+fi
 
+if [[ $# == 0 || $1 == "server" ]]; then
+echo "Compiling dist-server..."
 ncc build src/dist-server.ts -q --v8-cache --no-source-map-register -o build/
 mv build/index.js build/dist-server.js
 sed -i -e '1s|^|#!/usr/bin/env node\n|' build/dist-server.js
 chmod +x build/dist-server.js
 ln -rfs build/dist-server.js build/dist-server
+fi
 
+echo "Writing build info..."
 build/side vset \
   -f json \
   -o build/package.json \

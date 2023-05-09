@@ -1,8 +1,8 @@
 import { Feature } from "@godgnidoc/decli"
 import { exec } from "child_process"
-import { inflateExports } from "environment"
 import { PackageId } from "format"
 import { access } from "fs/promises"
+import { inflate } from "inflate"
 import { join } from "path"
 import { promisify } from "util"
 
@@ -30,7 +30,7 @@ export const distUninstallFeature = new class extends Feature {
             const script = join(dist.SIDE_DIST_PATH, 'hook', 'uninstall')
             await access(script)
             await promisify(exec)(`chmod +x ${script}`)
-            const env = inflateExports(dist, { ...process.env })
+            const env = inflate(dist, { ...process.env })
             try {
                 console.verbose('invoke hook %s', script)
                 const stdio = await promisify(exec)(script, { cwd: dist.SIDE_DIST_ROOT, env })
