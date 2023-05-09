@@ -1,4 +1,3 @@
-$structure: side.target
 resources:
   build:
     using:

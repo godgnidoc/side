@@ -13,7 +13,7 @@
     "js-yaml": "4.1.0",
     "semver": "7.3.8",
     "ajv": "8.6.2",
-    "@godgnidoc/decli": "^0.0.25"
+    "@godgnidoc/decli": "^0.0.26"
   },
   "devDependencies": {
     "ncc": "0.3.6",
