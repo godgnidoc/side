@@ -1,5 +1,5 @@
 import { loadJson, loadYaml } from "./validate"
-import { statSync, watchFile, writeFileSync } from "fs"
+import { accessSync, statSync, watchFile, writeFileSync } from "fs"
 import { dump } from "js-yaml"
 
 /**
@@ -79,6 +79,15 @@ export class FileDB {
         else if (config.format == 'yaml') writeFileSync(path, dump(init))
 
         return this.Open(path, config)
+    }
+
+    static OpenOrCreate<T>(path: string, init: T, config: FileDB.OpenConfig<T>): T {
+        try {
+            accessSync(path)
+            return this.Open(path, config)
+        } catch (e) {
+            return this.Create(path, init, config)
+        }
     }
 
     private cache: any

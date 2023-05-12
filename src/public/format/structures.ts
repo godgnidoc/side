@@ -65,10 +65,10 @@ export class PackingManifest {
             /** 自动部署策略默认为none */
             strategy?: 'none' | 'slink' | 'hlink' | 'copy'
 
-            /** 自动部署时应当排除的路径，这些路径是相对于 MV_DIST_ROOT 路径的相对路径。 */
+            /** 自动部署时应当排除的路径，这些路径是相对于 SIDE_DIST_ROOT 路径的相对路径。 */
             excludes?: string[]
 
-            /** 自动部署时应当包含的路径，这些路径是相对于 MV_DIST_ROOT 路径的相对路径。 */
+            /** 自动部署时应当包含的路径，这些路径是相对于 SIDE_DIST_ROOT 路径的相对路径。 */
             includes?: string[]
         }
 
@@ -234,22 +234,22 @@ export class PackageManifest {
         /**
          * 自动部署资源的策略，可以简省钩子脚本
          * None 表示不会进行任何自动部署
-         * Slink 表示将内容根路径下所有文件按原路径结构软链接到 MV_LOCAL_ROOT 路径下
-         * Hlink 表示将内容跟路径下所有文件按原路径结构硬链接到 MV_LOCAL_ROOT 路径下
-         * Copy 表示将内容跟路径下所有文件按原路径结构拷贝到 MV_LOCAL_ROOT 路径下
+         * Slink 表示将内容根路径下所有文件按原路径结构软链接到 SIDE_PROJECT/PROJECT.RPATH.SYSROOT 路径下
+         * Hlink 表示将内容跟路径下所有文件按原路径结构硬链接到 SIDE_PROJECT/PROJECT.RPATH.SYSROOT 路径下
+         * Copy 表示将内容跟路径下所有文件按原路径结构拷贝到 SIDE_PROJECT/PROJECT.RPATH.SYSROOT 路径下
          * 不填写默认为 none
-        */
+         */
         strategy?: 'none' | 'slink' | 'hlink' | 'copy'
 
-        // 自动部署时应当排除的路径，这些路径是相对于 MV_DIST_ROOT 路径的相对路径。
+        // 自动部署时应当排除的路径，这些路径是相对于 SIDE_DIST_ROOT 路径的相对路径。
         excludes?: string[]
 
-        // 自动部署时应当包含的路径，这些路径是相对于 MV_DIST_ROOT 路径的相对路径。
+        // 自动部署时应当包含的路径，这些路径是相对于 SIDE_DIST_ROOT 路径的相对路径。
         // 此选项与deploy.excludes冲突，若指定此选项，则不在deploy.includes列表内的路径将被忽略。
         includes?: string[]
     }
 
-    // 是否在集成开发环境删除 MV_LOCAL_ROOT 路径前需要提前执行灭活操作。
+    // 是否在集成开发环境删除 SIDE_PROJECT/PROJECT.RPATH.SYSROOT 路径前需要提前执行灭活操作。
     // 默认为 false，表示清理阶段不进行灭活操作
     // deactivateOnClean: boolean
 

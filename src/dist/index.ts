@@ -14,6 +14,7 @@ import { distQueryFeature } from './package/query'
 import { distGetFeature } from './package/get'
 import { distRmFeature } from './package/rm'
 import { SidePlatform } from 'platform'
+import { distInstallFeature } from './package/install'
 
 export class Dist implements Application {
     name = "dist"
@@ -50,6 +51,7 @@ export class Dist implements Application {
         scopes: distScopesFeature,
 
         get: distGetFeature,
+        install: distInstallFeature,
         rm: distRmFeature
     }
 

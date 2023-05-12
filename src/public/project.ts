@@ -9,6 +9,7 @@ import { SidePlatform } from "platform"
 import { vmerge } from "notion"
 import { getRevision, invokeHook } from "../side/common"
 import * as yaml from 'js-yaml'
+import { ActivatePackage, DeactivatePackage } from "../dist/package/common"
 
 /** 用于管理项目的抽象 */
 export class Project {
@@ -55,7 +56,7 @@ export class Project {
     }
 
     get exports() {
-        const basic = vmerge(SidePlatform.exports, {
+        let basic = vmerge(SidePlatform.exports, {
             SIDE_PROJECT: this.path,
             SIDE_PROJECT_TARGET: this.target?.target,
             SIDE_PROJECT_NAME: this.name,
@@ -85,6 +86,12 @@ export class Project {
                 join(this.path, PROJECT.RPATH.SYSROOT, 'usr', 'sbin'),
             ]
         })
+        try {
+            const source = readFileSync(join(this.path, PROJECT.RPATH.EXPORTS), 'utf-8')
+            basic = vmerge(basic, JSON.parse(source))
+        } catch {
+            // ignore
+        }
         if (this.target?.exports) return vmerge(basic, this.target.exports)
         else if (this.manifest.exports) return vmerge(basic, this.manifest.exports)
         else return basic
@@ -190,7 +197,7 @@ export class Project {
         await this.deployCascadingResources()
 
         /** 安装依赖 */
-        this.installDependencies()
+        await this.installDependencies()
 
         /** 获取子模块 */
         await this.fetchSubmodules()
@@ -356,8 +363,40 @@ export class Project {
     }
 
     private async installDependencies() {
-        // TODO
-        console.warn('setup: dependency installation is not implemented yet')
+        const target = this.target
+        if (!target.requires) return
+
+        // 读取激活记录
+        try {
+            const apath = join(this.path, PROJECT.RPATH.SYSROOT, 'activation')
+            const activation = (await readFile(apath, 'utf-8')).split('\n')
+
+            // 逐一灭活依赖
+            for(const id of activation) {
+                const pkg = PackageId.Parse(id)
+                if (pkg instanceof Error) {
+                    console.warn('setup: invalid activation record found: %s', id)
+                    continue
+                }
+                await DeactivatePackage(pkg)
+            }
+        } catch (e) {
+            console.verbose('setup: no activation record found, skipping dependency deactivation')
+        }
+
+        // 删除模拟系统根
+        await promisify(exec)(`rm -rf ${join(this.path, PROJECT.RPATH.SYSROOT)}`)
+
+        // 重新创建模拟系统根
+        await mkdir(join(this.path, PROJECT.RPATH.SYSROOT), { recursive: true })
+        
+        // 逐一激活依赖
+        for (const name in target.requires) {
+            const version = target.requires[name]
+            const id = PackageId.Parse(name, version)
+            if (id instanceof Error) throw id
+            await ActivatePackage(id)
+        }
     }
 
     private async fetchSubmodules() {
@@ -558,6 +597,9 @@ export namespace PROJECT {
 
         /** 相对于项目路径的资源包安装根路径 */
         readonly SYSROOT = join(this.META, 'sysroot')
+
+        /** 相对于项目路径的变量导出文件路径 */
+        readonly EXPORTS = join(this.SYSROOT, 'exports')
     }
 
     export const DEFAULT_DIRS = new class {

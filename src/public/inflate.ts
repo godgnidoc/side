@@ -21,52 +21,53 @@ export function evaluate(value: string | number | boolean, env: Environment) {
 export function inflate(exports: Exports, env?: Environment): NodeJS.ProcessEnv {
     if (!env) env = { ...process.env }
     if (!exports) return env as NodeJS.ProcessEnv
-    for (const key in exports) {
-        const value = exports[key]
-        const ekey = evaluate(key, env)
-        if (value === undefined || value === null) {
-            delete env[ekey]
+    for (const raw_key in exports) {
+        const key = evaluate(raw_key, env)
+
+        const target = exports[raw_key]
+        if (target === undefined || target === null) {
+            delete env[key]
             continue
         }
+
+        if (typeof target === 'string' || typeof target === 'number' || typeof target === 'boolean') {
+            env[key] = evaluate(target, env)
+            continue
+        }
+
+        const value = target instanceof Array
+            ? target.filter(v => v !== undefined && v !== null).map(v => evaluate(v, env))
+            : typeof target.value === 'string' || typeof target.value === 'number' || typeof target.value === 'boolean'
+                ? evaluate(target.value, env)
+                : target.value.filter(v => v !== undefined && v !== null).map(v => evaluate(v, env))
+
 
         if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            env[ekey] = evaluate(value, env)
+            env[key] = value
             continue
         }
 
-        const delimiter = Array.isArray(value)
-            ? ':'
-            : value.delimiter
-                ? value.delimiter
-                : ':'
+        const delimiter = target['delimiter'] ?? ':'
+        const override = target['override'] ?? false
+        const position = target['position'] ?? 'front'
 
-        const override = Array.isArray(value)
-            ? false
-            : Array.isArray(value.value)
-                ? value.override
-                : true
-
-        const variable = Array.isArray(value)
-            ? value.filter(item => item)
-            : value.value
-
-        if (!Array.isArray(variable)) {
-            env[ekey] = evaluate(variable, env)
+        if (override || !(key in env)) {
+            env[key] = value.join(delimiter)
             continue
         }
 
-        if (override || !env[ekey]) {
-            env[ekey] = variable.map(v => evaluate(v, env)).join(delimiter)
-            continue
+        const has = env[key].toString().split(delimiter)
+        for (const item of value) {
+            if (has.includes(item)) {
+                has.splice(has.indexOf(item), 1)
+            }
         }
 
-        const has = env[ekey].toString().split(delimiter)
-        const add: string[] = []
-        for (const item of variable) {
-            if (has.includes(item)) continue
-            add.push(item)
+        if (position == 'front') {
+            env[key] = `${value.join(delimiter)}${delimiter}${has.join(delimiter)}`
+        } else {
+            env[key] = `${has.join(delimiter)}${delimiter}${value.join(delimiter)}`
         }
-        if (add.length) env[ekey] = `${env[ekey]}${delimiter}${add.map(v => evaluate(v, env)).join(delimiter)}`
     }
     return env as NodeJS.ProcessEnv
 }

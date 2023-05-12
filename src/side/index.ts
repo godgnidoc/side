@@ -6,6 +6,7 @@ import { notionFeatures } from "./notion"
 import { statusFeature } from "./status"
 import { invokeHookFeature } from "./invoke"
 import { shellFeature } from "./shell"
+import { sideEnvFeatures } from "./env"
 
 export class Side implements Application {
     name = "side"
@@ -27,6 +28,7 @@ export class Side implements Application {
         status: statusFeature,
         invoke: invokeHookFeature,
         shell: shellFeature,
+        env: sideEnvFeatures,
         ...notionFeatures,
         ...projectFeatures,
     }
