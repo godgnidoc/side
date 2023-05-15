@@ -15,6 +15,11 @@ if [[ $# == 0 || $1 == "schema" ]]; then
     | bash
 fi
 
+if [[ $# == 0 || $1 == "status" ]]; then
+  echo "Compiling status..."
+  g++ src/status.cpp -Os -s -o build/__status -lstdc++fs
+fi
+
 if [[ $# == 0 || $1 == "side" ]]; then
   echo "Compiling side..."
   ncc build src/side.ts -q -m --v8-cache --no-source-map-register -o build/
@@ -38,8 +43,6 @@ echo "Compiling dist-server..."
 ncc build src/dist-server.ts -q --v8-cache --no-source-map-register -o build/
 mv build/index.js build/dist-server.js
 sed -i -e '1s|^|#!/usr/bin/env node\n|' build/dist-server.js
-chmod +x build/dist-server.js
-ln -rfs build/dist-server.js build/dist-server
 fi
 
 echo "Writing build info..."

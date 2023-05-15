@@ -88,7 +88,7 @@ const projectSetupFeature = new class extends Feature {
         /** 若有必要，尝试切换目标 */
         if (args[0]) {
             console.debug('setup: switching target to', args[0])
-            Project.This().draft(args[0])
+            await Project.This().draft(args[0])
             await Project.Open(Project.This().path).setup()
         } else {
             await Project.This().setup()

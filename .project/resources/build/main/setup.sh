@@ -34,9 +34,7 @@ function _dist_server_complete() {
     eval "COMPREPLY=($(dist-server complete))"
 }
 
-function _side_prompt_command() {
-    side status -sn
-}
+eval "function _side_prompt_command() { ${HERE}/__status; }"
 
 complete -F _side_complete side
 complete -F _dist_complete dist
