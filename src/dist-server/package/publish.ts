@@ -103,7 +103,7 @@ export async function postPublish(this: RequestContext, manifest: any, allowOver
     if (!await IsDir(pack.packageId.repo_path)) return fail(1, 'Repository not exists: ' + pack.packageId.repo_path)
 
     // 检查用户是否有权限发布包
-    if (!IsContributor(user.name, pack.packageId.repo_path))
+    if (!await IsContributor(user.name, pack.packageId.repo_path))
         return permission_denied('You are not a contributor of this repository: ' + pack.packageId.repo_id)
 
     const id_objs = await QueryPackages(pack.packageId.query)

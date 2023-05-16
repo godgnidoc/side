@@ -27,7 +27,7 @@ async function RevokeRepo(this: RequestContext, repo: string, scope: string) {
     if (!await IsDir(repo_path)) return fail(1, 'repo not exists')
 
     // 检查用户是否为仓库所有者
-    if (!IsOwner(user.name, repo_path))
+    if (!await IsOwner(user.name, repo_path))
         return permission_denied('You are not the owner of this repository: ' + scope + '/' + repo)
 
     // 将仓库权限设置为000

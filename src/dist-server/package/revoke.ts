@@ -17,7 +17,7 @@ async function RevokePackage(this: RequestContext, id: string) {
     if (!await IsDir(packageId.repo_path)) return fail(1, 'Repository not exists: ' + packageId.repo_path)
 
     // 检查用户是否有权限发布包
-    if (!IsContributor(user.name, packageId.repo_path))
+    if (!await IsContributor(user.name, packageId.repo_path))
         return permission_denied('You are not a contributor of this repository: ' + packageId.repo_id)
 
     // 检查包是否已存在

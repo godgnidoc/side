@@ -20,7 +20,7 @@ export async function postGrant(scope: string, user: string) {
     if (!await IsDir(join(SidePlatform.server.repositories, scope))) return fail(1, 'scope not exists')
 
     // 检查用户是否为作用域所有者
-    if (!IsOwner(owner.name, join(SidePlatform.server.repositories, scope)))
+    if (!await IsOwner(owner.name, join(SidePlatform.server.repositories, scope)))
         return permission_denied('you are not the owner of the scope: ' + scope)
 
     // 添加贡献者到清单文件

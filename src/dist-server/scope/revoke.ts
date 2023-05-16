@@ -20,7 +20,7 @@ export async function postRevoke(scope: string) {
     if (!await IsDir(join(SidePlatform.server.repositories, scope))) return fail(1, 'scope not exists')
 
     // 检查用户是否为作用域所有者
-    if (!IsOwner(user.name, join(SidePlatform.server.repositories, scope)))
+    if (!await IsOwner(user.name, join(SidePlatform.server.repositories, scope)))
         return permission_denied('you are not the owner of the scope: ' + scope)
 
     // 将作用域权限设置为000

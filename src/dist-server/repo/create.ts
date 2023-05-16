@@ -16,7 +16,7 @@ async function CreateRepo(this: RequestContext, name: string, scope: string) {
     // 检查作用域，作用域必须存在，且用户必须是作用域贡献者
     if (!IsValidScope(scope)) return invalid_argument('scope name is invalid')
     if (!await IsDir(join(SidePlatform.server.repositories, scope))) return fail(2, 'scope not exists')
-    if (!IsContributor(user.name, join(SidePlatform.server.repositories, scope)))
+    if (!await IsContributor(user.name, join(SidePlatform.server.repositories, scope)))
         return permission_denied('You are not a contributor of this repository: ' + scope)
 
     // 检查包仓是否存在

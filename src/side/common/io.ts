@@ -14,7 +14,7 @@ export async function readAllInput() {
 }
 
 export async function inputFrom(file = '-') {
-    if (file == '-') return readAllInput()
+    if (file == '-') return await readAllInput()
     try {
         return await readFile(file, 'utf-8')
     } catch (e) {

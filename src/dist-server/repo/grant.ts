@@ -27,7 +27,7 @@ async function GrantRepo(this: RequestContext, repo: string, scope: string, user
     if (!await IsDir(repo_path)) return fail(1, 'repo not exists')
 
     // 检查用户是否为作用域所有者
-    if (!IsOwner(owner.name, join(SidePlatform.server.repositories, scope)))
+    if (!await IsOwner(owner.name, join(SidePlatform.server.repositories, scope)))
         return permission_denied('you are not the owner of the scope: ' + scope)
 
     // 添加贡献者到清单文件
