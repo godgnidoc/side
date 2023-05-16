@@ -293,6 +293,7 @@ export class Project {
             project: this.name,
             revision: await getRevision(this.path, { dirty: true }),
             target: target.target,
+            date: new Date().toLocaleString(),
             engine: target.engine,
             requires: requires,
             modules: modules,

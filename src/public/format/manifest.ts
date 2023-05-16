@@ -175,6 +175,9 @@ export interface ProjectBuildInfo {
     /** 当前目标名 */
     target: string
 
+    /** 构建日期 */
+    date: string
+
     /** 集成开发环境引擎版本号 */
     engine: string
 
