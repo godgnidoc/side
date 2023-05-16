@@ -1,7 +1,7 @@
-import { SemVer, validRange, valid } from "semver"
-import { PackageId } from "./naming"
-import { IsValidTag } from "./naming"
-import { SidePlatform } from "platform"
+import { SemVer, validRange, valid } from 'semver'
+import { PackageId } from './naming'
+import { IsValidTag } from './naming'
+import { SidePlatform } from 'platform'
 
 export class UserInfo {
     name: string

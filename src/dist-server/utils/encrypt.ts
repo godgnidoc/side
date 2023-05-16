@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHash } from 'crypto'
 
 /**
  * 为指定字符串计算md5值

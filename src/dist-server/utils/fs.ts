@@ -1,4 +1,4 @@
-import {  stat } from "fs/promises"
+import {  stat } from 'fs/promises'
 
 export async function IsDir(path: string) {
     try {

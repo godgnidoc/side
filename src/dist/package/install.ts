@@ -1,6 +1,6 @@
-import { Brief, Feature, LongOpt, ShortOpt } from "@godgnidoc/decli"
-import { InstallPackage } from "./common"
-import { PackageId } from "format"
+import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
+import { InstallPackage } from './common'
+import { PackageId } from 'format'
 
 class DistInstallFeature extends Feature {
     args = '<package>'
@@ -9,19 +9,19 @@ class DistInstallFeature extends Feature {
 
     @Brief('Disable auto fetching or auto unpacking')
     @LongOpt('--disable-autos') @ShortOpt('-A')
-    disableAutos: boolean = false
+        disableAutos = false
 
     @Brief('Ignore local caches to fetch')
     @LongOpt('--ignore-cache') @ShortOpt('-C')
-    ignoreCache: boolean = false
+        ignoreCache = false
 
     @Brief('Force unpack')
     @LongOpt('--force-unpack') @ShortOpt('-u')
-    forceUnpack: boolean = false
+        forceUnpack = false
 
     @Brief('Force install')
     @LongOpt('--force-install') @ShortOpt('-i')
-    forceInstall: boolean = false
+        forceInstall = false
 
     async entry(id: string) {
         const packageId = PackageId.Parse(id)
@@ -40,4 +40,4 @@ class DistInstallFeature extends Feature {
         return 0
     }
 }
-export const distInstallFeature = new DistInstallFeature
+export const distInstallFeature = new DistInstallFeature()

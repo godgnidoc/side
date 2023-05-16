@@ -1,6 +1,6 @@
-import { Feature } from "@godgnidoc/decli"
-import { api } from "../api"
-import { PackageId } from "format"
+import { Feature } from '@godgnidoc/decli'
+import { api } from '../api'
+import { PackageId } from 'format'
 
 export const repoCreateFeature = new class extends Feature {
     args = '<repo-id>'

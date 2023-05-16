@@ -1,6 +1,6 @@
-import { Brief, Feature, ShortOpt } from "@godgnidoc/decli"
-import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from "child_process"
-import { Project } from "project"
+import { Brief, Feature, ShortOpt } from '@godgnidoc/decli'
+import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process'
+import { Project } from 'project'
 
 class StatusFeature extends Feature {
     brief = 'Show project status'
@@ -8,27 +8,27 @@ class StatusFeature extends Feature {
 
     @ShortOpt('-s')
     @Brief('make output short')
-    short = false
+        short = false
 
     @ShortOpt('-n')
     @Brief('do not show git status')
-    noGit = false
+        noGit = false
 
     async entry(): Promise<number> {
         console.debug('status')
         const pstat = Project.Stat(process.cwd())
         if (!pstat.name) return 0
-        let first = pstat.name
-        let suffix = process.stdout.isTTY ? '\x1b[0m' : ''
-        let prefix1 = process.stdout.isTTY ? '\x1b[1;36m' : ''
+        const first = pstat.name
+        const suffix = process.stdout.isTTY ? '\x1b[0m' : ''
+        const prefix1 = process.stdout.isTTY ? '\x1b[1;36m' : ''
 
-        let prefix2 = process.stdout.isTTY
+        const prefix2 = process.stdout.isTTY
             ? pstat.target
                 ? prefix1
                 : '\x1b[1;33m'
             : ''
-        let second = pstat.target ?? 'no target'
-        let third = pstat.stage ?? 'no stage'
+        const second = pstat.target ?? 'no target'
+        const third = pstat.stage ?? 'no stage'
 
         let ch: ChildProcess | ChildProcessWithoutNullStreams
         if (this.short) {
@@ -55,9 +55,9 @@ class StatusFeature extends Feature {
                     if (lines.startsWith('On branch')) {
                         lines = lines
                             .replace(/On branch (.*)\n/, 'on branch \x1b[1;36m$1\x1b[0m\n')
-                            .replace(/ahead of '(.*)' by (\d+)/, "ahead of \x1b[1;36m'$1'\x1b[0m by \x1b[33m$2\x1b[0m")
-                            .replace(/date with '(.*)'/, "date with \x1b[1;36m'$1'\x1b[0m")
-                            .replace(/behind '(.*)' by (\d+) commit/, "behind \x1b[1;36m'$1'\x1b[0m by \x1b[1;33m$2\x1b[0m commit")
+                            .replace(/ahead of '(.*)' by (\d+)/, 'ahead of \x1b[1;36m\'$1\'\x1b[0m by \x1b[33m$2\x1b[0m')
+                            .replace(/date with '(.*)'/, 'date with \x1b[1;36m\'$1\'\x1b[0m')
+                            .replace(/behind '(.*)' by (\d+) commit/, 'behind \x1b[1;36m\'$1\'\x1b[0m by \x1b[1;33m$2\x1b[0m commit')
                             .replace(/use "(.*)" to/g, 'use \x1b[1;32m"$1"\x1b[0m to')
                             .replace(/use "(.*)" and\/or "(.*)"/g, 'use \x1b[1;32m"$1"\x1b[0m and/or \x1b[1;32m"$2"\x1b[0m')
                         process.stdout.write(', ' + lines)
@@ -77,4 +77,4 @@ class StatusFeature extends Feature {
         })
     }
 }
-export const statusFeature = new StatusFeature
+export const statusFeature = new StatusFeature()

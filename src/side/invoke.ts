@@ -1,10 +1,10 @@
-import { join } from "path"
-import { access, readdir } from "fs/promises"
-import { exec, spawn } from "child_process"
-import { promisify } from "util"
-import { Feature } from "@godgnidoc/decli"
-import { PROJECT, Project } from "project"
-import { getEnvBackup, inflate } from "inflate"
+import { join } from 'path'
+import { access, readdir } from 'fs/promises'
+import { exec, spawn } from 'child_process'
+import { promisify } from 'util'
+import { Feature } from '@godgnidoc/decli'
+import { PROJECT, Project } from 'project'
+import { getEnvBackup, inflate } from 'inflate'
 
 export const invokeHookFeature = new class extends Feature {
     args = '<hook> [args...]'
@@ -27,7 +27,7 @@ export const invokeHookFeature = new class extends Feature {
         if (args.length === 0) return console.error('no hook script specified'), 1
 
         const name = args.shift()
-        let script = join(Project.This().path, PROJECT.RPATH.SCRIPTS, name)
+        const script = join(Project.This().path, PROJECT.RPATH.SCRIPTS, name)
         try {
             await access(script)
         } catch {

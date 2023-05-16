@@ -1,9 +1,9 @@
-import { Feature } from "@godgnidoc/decli"
-import { exec } from "child_process"
-import { FetchPackage } from "./common"
-import { mkdir } from "fs/promises"
-import { promisify } from "util"
-import { PackageId } from "format"
+import { Feature } from '@godgnidoc/decli'
+import { exec } from 'child_process'
+import { FetchPackage } from './common'
+import { mkdir } from 'fs/promises'
+import { promisify } from 'util'
+import { PackageId } from 'format'
 
 class DistGetFeature extends Feature {
     args = '<package> [folder]'
@@ -37,4 +37,4 @@ class DistGetFeature extends Feature {
     }
 }
 
-export const distGetFeature = new DistGetFeature
+export const distGetFeature = new DistGetFeature()

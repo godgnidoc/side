@@ -1,9 +1,9 @@
-import { join } from "path"
-import { stat, access } from "fs/promises"
-import { exec, spawn } from "child_process"
-import { promisify } from "util"
-import { PROJECT, Project } from "project"
-import { getEnvBackup, inflate } from "inflate"
+import { join } from 'path'
+import { stat, access } from 'fs/promises'
+import { exec, spawn } from 'child_process'
+import { promisify } from 'util'
+import { PROJECT, Project } from 'project'
+import { getEnvBackup, inflate } from 'inflate'
 
 /**
  * 调用钩子脚本，如果钩子不存在则返回 0  

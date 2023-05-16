@@ -1,7 +1,7 @@
-import { Axios, AxiosRequestConfig } from "axios"
-import { PackageManifest } from "format"
-import { createReadStream } from "fs"
-import { SidePlatform } from "platform"
+import { Axios, AxiosRequestConfig } from 'axios'
+import { PackageManifest } from 'format'
+import { createReadStream } from 'fs'
+import { SidePlatform } from 'platform'
 
 export interface Response<T = undefined> {
     status: number // 0 表示成功
@@ -52,7 +52,7 @@ const API = new class {
 
     async task(token: string, payload: any, options?: AxiosRequestConfig<any>) {
         const axios = this.axios
-        return await axios.post(`/tasks`, payload, {
+        return await axios.post('/tasks', payload, {
             headers: {
                 'Task-Token': token,
             }, ...options

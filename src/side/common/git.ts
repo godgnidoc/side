@@ -1,5 +1,5 @@
-import { exec } from "child_process"
-import { promisify } from "util"
+import { exec } from 'child_process'
+import { promisify } from 'util'
 
 /**
  * 获取当前工作目录的 git 仓库的当前提交
@@ -24,7 +24,7 @@ export async function getRevision(path: string, options?: { short?: boolean, dir
 
     if (dirty) {
         try {
-            await promisify(exec)(`git diff-index --quiet HEAD`, { cwd: path, shell: '/bin/bash' })
+            await promisify(exec)('git diff-index --quiet HEAD', { cwd: path, shell: '/bin/bash' })
         } catch {
             revision += '*'
         }

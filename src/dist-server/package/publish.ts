@@ -1,52 +1,52 @@
-import { RequestContext } from "jetweb"
-import { IsContributor, IsDir, IsFile, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../utils"
-import { QueryPackages, busy_packages } from "./common"
-import { join } from "path"
-import { promisify } from "util"
-import { exec } from "child_process"
-import { mkdir, readFile, rename, rm, writeFile } from "fs/promises"
-import { createWriteStream } from "fs"
-import { CreateTask } from "../task"
-import { LatestPackageId, PackageId, PackageManifest } from "format"
+import { RequestContext } from 'jetweb'
+import { IsContributor, IsDir, IsFile, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from '../utils'
+import { QueryPackages, busyPackages } from './common'
+import { join } from 'path'
+import { promisify } from 'util'
+import { exec } from 'child_process'
+import { mkdir, readFile, rename, rm, writeFile } from 'fs/promises'
+import { createWriteStream } from 'fs'
+import { CreateTask } from '../task'
+import { LatestPackageId, PackageId, PackageManifest } from 'format'
 
 /**
  * 获取资源包文件，校验资源包文件的完整性并发布到正确位置
  */
 async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
     try {
-        const tmp_dir = packageId.path + '.publishing'
-        const tmp_pack = join(tmp_dir, 'package.tar')
+        const tmpDir = packageId.path + '.publishing'
+        const tmpPack = join(tmpDir, 'package.tar')
 
         // 清理并重新创建临时目录，用于存放上传的包文件
-        await promisify(exec)('rm -rf ' + tmp_dir)
-        await mkdir(tmp_dir, { recursive: true })
+        await promisify(exec)('rm -rf ' + tmpDir)
+        await mkdir(tmpDir, { recursive: true })
 
         // 等待包文件上传完成
-        const file = createWriteStream(tmp_pack, { autoClose: true })
+        const file = createWriteStream(tmpPack, { autoClose: true })
         this.request.incomingMessage.pipe(file)
         this.response.writeContinue()
-        await new Promise((resolve, _reject) => { this.request.incomingMessage.on('end', resolve) })
+        await new Promise((resolve) => { this.request.incomingMessage.on('end', resolve) })
 
         // 解压包文件
-        await promisify(exec)('tar -xf ' + tmp_pack, { cwd: tmp_dir })
+        await promisify(exec)('tar -xf ' + tmpPack, { cwd: tmpDir })
 
         // 校验包结构
-        if (!await IsDir(join(tmp_dir, 'meta')))
+        if (!await IsDir(join(tmpDir, 'meta')))
             return fail(2, 'Invalid package structure: meta directory missing')
-        if (!await IsDir(join(tmp_dir, 'root')) && !await IsFile(join(tmp_dir, 'root.tar.xz')))
+        if (!await IsDir(join(tmpDir, 'root')) && !await IsFile(join(tmpDir, 'root.tar.xz')))
             return fail(2, 'Invalid package structure: root content missing')
-        if (await IsDir(join(tmp_dir, 'root')) && await IsFile(join(tmp_dir, 'root.tar.xz')))
+        if (await IsDir(join(tmpDir, 'root')) && await IsFile(join(tmpDir, 'root.tar.xz')))
             return fail(2, 'Invalid package structure: root content duplicated')
 
         // 校验包清单
-        const raw_manifest = await readFile(join(tmp_dir, 'meta', 'manifest'), 'utf-8')
+        const raw_manifest = await readFile(join(tmpDir, 'meta', 'manifest'), 'utf-8')
         const manifest = PackageManifest.Parse(JSON.parse(raw_manifest.toString()))
         if (manifest instanceof Error) return fail(2, 'Invalid package manifest: ' + manifest.message)
 
         // 清理并覆盖目标包
         await rm(packageId.path, { recursive: true, force: true })
-        await rename(tmp_pack, packageId.path)
-        await promisify(exec)('rm -rf ' + tmp_dir)
+        await rename(tmpPack, packageId.path)
+        await promisify(exec)('rm -rf ' + tmpDir)
 
         // 更新包清单
         await writeFile(packageId.mpath, raw_manifest)
@@ -56,7 +56,7 @@ async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
         console.error(e)
         return internal_failure()
     } finally {
-        busy_packages.delete(packageId.toString())
+        busyPackages.delete(packageId.toString())
     }
 }
 
@@ -127,12 +127,12 @@ export async function postPublish(this: RequestContext, manifest: any, allowOver
     }
 
     // 检查包是否正在发布，如果正在发布则返回错误
-    if (busy_packages.has(pack.packageId.toString())) return fail(6, 'Package is busy: ' + pack.packageId.toString())
-    busy_packages.add(pack.packageId.toString())
+    if (busyPackages.has(pack.packageId.toString())) return fail(6, 'Package is busy: ' + pack.packageId.toString())
+    busyPackages.add(pack.packageId.toString())
 
     // 创建任务，用于发布包
     const token = CreateTask(TaskCallbackPublish, [pack.packageId], () => {
-        busy_packages.delete(pack.packageId.toString())
+        busyPackages.delete(pack.packageId.toString())
     })
 
     return done(token)

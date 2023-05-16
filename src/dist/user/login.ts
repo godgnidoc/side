@@ -1,7 +1,7 @@
-import { Feature } from "@godgnidoc/decli"
+import { Feature } from '@godgnidoc/decli'
 import inquirer from 'inquirer'
-import { api } from "../api"
-import { SidePlatform } from "platform"
+import { api } from '../api'
+import { SidePlatform } from 'platform'
 
 export const distLoginFeature = new class extends Feature {
     args = '<username>'

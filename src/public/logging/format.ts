@@ -1,43 +1,43 @@
-import { LogLevel } from "./level"
+import { LogLevel } from './level'
 
 export function upgradeFormat(format: string, sev: LogLevel | 'verbose') {
     if (typeof format !== 'string') return format
     let severity = sev.toUpperCase()
     if (process.stderr.isTTY) {
         switch (sev) {
-            case 'debug':
-                severity = '\x1b[1;30mDEBUG\x1b[0m';
-                break;
-            case 'info':
-                severity = '\x1b[1;34mINFO\x1b[0m';
-                break;
-            case 'warn':
-                severity = '\x1b[1;35mWARN\x1b[0m';
-                break;
-            case 'error':
-                severity = '\x1b[1;31mERROR\x1b[0m';
-                break;
-            case 'verbose':
-                severity = '\x1b[1;30mVERBOSE\x1b[0m';
-                break;
+        case 'debug':
+            severity = '\x1b[1;30mDEBUG\x1b[0m'
+            break
+        case 'info':
+            severity = '\x1b[1;34mINFO\x1b[0m'
+            break
+        case 'warn':
+            severity = '\x1b[1;35mWARN\x1b[0m'
+            break
+        case 'error':
+            severity = '\x1b[1;31mERROR\x1b[0m'
+            break
+        case 'verbose':
+            severity = '\x1b[1;30mVERBOSE\x1b[0m'
+            break
         }
     }
 
     return '[' + now() + '] [' + severity + '] ' + format.replace(/%([a-zA-Z])/g, (match, p1) => {
         if (p1 != '%') {
             if (process.stdout.isTTY) {
-                return '\x1b[1;36m' + match + '\x1b[0m';
+                return '\x1b[1;36m' + match + '\x1b[0m'
             } else {
-                return match;
+                return match
             }
         } else {
-            return match;
+            return match
         }
-    });
+    })
 }
 
 function now() {
-    const date = new Date();
+    const date = new Date()
 
     const formattedDate = new Intl.DateTimeFormat('en-US', {
         year: 'numeric',
@@ -47,7 +47,7 @@ function now() {
         minute: '2-digit',
         second: '2-digit',
         hour12: false,
-    }).formatToParts(date);
+    }).formatToParts(date)
 
     const month = formattedDate.find(part => part.type === 'month').value
     const day = formattedDate.find(part=>part.type === 'day').value

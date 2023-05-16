@@ -1,7 +1,7 @@
-import Ajv, { ValidateFunction } from "ajv"
-import { readFileSync } from "fs"
-import { load } from "js-yaml"
-import { dirname, join } from "path"
+import Ajv, { ValidateFunction } from 'ajv'
+import { readFileSync } from 'fs'
+import { load } from 'js-yaml'
+import { dirname, join } from 'path'
 
 export function getValidator(schema: string) {
     if (!(schema in validators)) {

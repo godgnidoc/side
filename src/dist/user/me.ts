@@ -1,9 +1,9 @@
-import { Feature } from "@godgnidoc/decli"
-import { SidePlatform } from "platform"
+import { Feature } from '@godgnidoc/decli'
+import { SidePlatform } from 'platform'
 
 export const userMeFeature = new class extends Feature {
-    brief = "Get information about the current user"
-    description = "Get information about the current user"
+    brief = 'Get information about the current user'
+    description = 'Get information about the current user'
 
     entry() {
         const user = SidePlatform.settings.dist.user

@@ -1,6 +1,6 @@
-import { loadJson, loadYaml } from "./validate"
-import { accessSync, statSync, watchFile, writeFileSync } from "fs"
-import { dump } from "js-yaml"
+import { loadJson, loadYaml } from './validate'
+import { accessSync, statSync, watchFile, writeFileSync } from 'fs'
+import { dump } from 'js-yaml'
 
 /**
  * 文件数据库类
@@ -91,7 +91,7 @@ export class FileDB {
     }
 
     private cache: any
-    private timestamp: number = 0
+    private timestamp = 0
 }
 
 export namespace FileDB {
@@ -164,7 +164,7 @@ class ArrayProxyHandler<T extends object> implements ProxyHandler<T> {
         if (key === 'pop' || key === 'push' || key === 'shift' || key === 'unshift' || key === 'splice' || key === 'sort' || key === 'reverse') {
             const obj = this.db.get(this.keys)
             return (...args: any[]) => {
-                const res = obj[key].apply(obj, args)
+                const res = obj[key](...args)
                 this.db.save()
                 return res
             }

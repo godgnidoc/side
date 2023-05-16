@@ -17,18 +17,18 @@ import { SidePlatform } from 'platform'
 import { distInstallFeature } from './package/install'
 
 export class Dist implements Application {
-    name = "dist"
+    name = 'dist'
     version = SidePlatform.version
-    brief = "Distributed Package Manager"
-    description = "This program is part of the side project."
+    brief = 'Distributed Package Manager'
+    description = 'This program is part of the side project.'
     options = SidePlatform.options
     help = 'help'
 
     elements = {
-        "complete": defaultCompleteFeature,
-        "help": defaultHelpFeature,
-        "--help": defaultHelpFeature,
-        "-h": defaultHelpFeature,
+        'complete': defaultCompleteFeature,
+        'help': defaultHelpFeature,
+        '--help': defaultHelpFeature,
+        '-h': defaultHelpFeature,
         'version': SidePlatform.featureVersion,
         '--version': SidePlatform.featureVersion,
         '-v': SidePlatform.featureVersion,

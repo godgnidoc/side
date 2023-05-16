@@ -1,6 +1,6 @@
-import { execute, verifyDefinitions } from "@godgnidoc/decli"
-import { GetLogLevel, InitiateLogging, SetLogLevel } from "logging"
-import { DistServer } from "./dist-server/index"
+import { execute, verifyDefinitions } from '@godgnidoc/decli'
+import { GetLogLevel, InitiateLogging, SetLogLevel } from 'logging'
+import { DistServer } from './dist-server/index'
 
 export async function main() {
     /** 初始化日志支持 */
@@ -9,7 +9,7 @@ export async function main() {
     const app = new DistServer()
     const args = process.argv.slice(2)
     try {
-        if( process.env['SIDE_DEBUG'] == 'TRUE') {
+        if( process.env['SIDE_DEBUG'] === 'TRUE') {
             SetLogLevel('debug')
             console.debug('Debug mode enabled.')
             if(!verifyDefinitions(app)) {

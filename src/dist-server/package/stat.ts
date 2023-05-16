@@ -1,6 +1,6 @@
-import { PackageId } from "format"
-import { done, invalid_argument } from "../utils"
-import { stat } from "fs/promises"
+import { PackageId } from 'format'
+import { done, invalid_argument } from '../utils'
+import { stat } from 'fs/promises'
 
 export async function getStat(id: string) {
     const package_id = PackageId.Parse(id)

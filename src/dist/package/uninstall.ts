@@ -1,6 +1,6 @@
-import { Feature } from "@godgnidoc/decli"
-import { PackageId } from "format"
-import { UninstallPackage } from "./common"
+import { Feature } from '@godgnidoc/decli'
+import { PackageId } from 'format'
+import { UninstallPackage } from './common'
 
 export const distUninstallFeature = new class extends Feature {
     args = '<package>'

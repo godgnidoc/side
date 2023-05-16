@@ -1,7 +1,7 @@
-import { Feature } from "@godgnidoc/decli"
-import { api } from "../api"
-import inquirer from "inquirer"
-import { IsValidName } from "format"
+import { Feature } from '@godgnidoc/decli'
+import { api } from '../api'
+import inquirer from 'inquirer'
+import { IsValidName } from 'format'
 
 export const userCreateFeature = new class extends Feature {
     args = '<name> <email>'

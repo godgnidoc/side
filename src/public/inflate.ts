@@ -1,4 +1,4 @@
-import { Exports, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest } from "format"
+import { Exports, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest } from 'format'
 
 export type Inflatable = ProjectManifest | ProjectFinalTarget | ProjectBuildInfo
 type Environment = { [key: string]: string | boolean | number }
@@ -13,7 +13,7 @@ export function evaluate(value: string | number | boolean, env: Environment) {
     if (typeof value === 'number' || typeof value === 'boolean') return value.toString()
 
     if (!value.includes('$')) return value
-    value.replace(/(?<![\\\$])\${(\w+)}/g, (_, key) => {
+    value.replace(/(?<![\\$])\${(\w+)}/g, (_, key) => {
         return env[key]?.toString() || ''
     }).replace(/\\\$|\$\$/g, '$')
 }

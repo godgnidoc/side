@@ -1,9 +1,9 @@
-import { join } from "path"
-import { IsContributor, IsDir, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../utils"
-import { mkdir, writeFile } from "fs/promises"
-import { RequestContext } from "jetweb"
-import { IsValidName, IsValidScope } from "format"
-import { SidePlatform } from "platform"
+import { join } from 'path'
+import { IsContributor, IsDir, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from '../utils'
+import { mkdir, writeFile } from 'fs/promises'
+import { RequestContext } from 'jetweb'
+import { IsValidName, IsValidScope } from 'format'
+import { SidePlatform } from 'platform'
 
 async function CreateRepo(this: RequestContext, name: string, scope: string) {
     // 鉴权并获取用户信息

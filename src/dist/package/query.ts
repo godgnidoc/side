@@ -1,6 +1,6 @@
-import { Brief, Feature, LongOpt, ShortOpt } from "@godgnidoc/decli"
-import { QueryPackage } from "./common"
-import { parse } from "semver"
+import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
+import { QueryPackage } from './common'
+import { parse } from 'semver'
 
 class DistQueryFeature extends Feature {
     args = '<query> [version|range]'
@@ -9,7 +9,7 @@ class DistQueryFeature extends Feature {
 
     @Brief('Print all matched packages')
     @LongOpt('--all') @ShortOpt('-a')
-    all: boolean = false
+        all = false
 
     async entry(query: string, version?: string) {
         if (!query) {
@@ -25,4 +25,4 @@ class DistQueryFeature extends Feature {
         return 0
     }
 }
-export const distQueryFeature = new DistQueryFeature
+export const distQueryFeature = new DistQueryFeature()

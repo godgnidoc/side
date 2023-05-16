@@ -1,7 +1,7 @@
-import { access, readFile, readdir } from "fs/promises"
-import { done, fail, invalid_argument } from "../utils"
-import { join } from "path"
-import { IsValidName } from "format"
+import { access, readFile, readdir } from 'fs/promises'
+import { done, fail, invalid_argument } from '../utils'
+import { join } from 'path'
+import { IsValidName } from 'format'
 import { SidePlatform } from 'platform'
 
 // 检查用户是否存在

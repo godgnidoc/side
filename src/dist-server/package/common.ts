@@ -1,11 +1,11 @@
-import { join } from "path"
-import { satisfies, validRange } from "semver"
-import { readdir } from "fs/promises"
-import { PackageId } from "format"
+import { join } from 'path'
+import { satisfies, validRange } from 'semver'
+import { readdir } from 'fs/promises'
+import { PackageId } from 'format'
 
 
 // 用于记录正在处理的包，防止重复处理
-export const busy_packages = new Set<string>()
+export const busyPackages = new Set<string>()
 
 /**
  * 根据包请求获取全部匹配的包唯一标识，如果指定了版本号则只返回匹配版本号的包

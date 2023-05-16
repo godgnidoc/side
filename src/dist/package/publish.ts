@@ -1,8 +1,8 @@
-import { Brief, Compgen, Feature, LongOpt } from "@godgnidoc/decli"
-import { api } from "../api"
-import { promisify } from "util"
-import { exec } from "child_process"
-import { PackageManifest } from "format"
+import { Brief, Compgen, Feature, LongOpt } from '@godgnidoc/decli'
+import { api } from '../api'
+import { promisify } from 'util'
+import { exec } from 'child_process'
+import { PackageManifest } from 'format'
 
 class DistPublishFeature extends Feature {
     args = '<path/to/package>'
@@ -12,11 +12,11 @@ class DistPublishFeature extends Feature {
 
     @Brief('Allow overwrite existing package')
     @LongOpt('--allow-overwrite')
-    allowOverwrite = false
+        allowOverwrite = false
 
     @Brief('Allow downgrade published package')
     @LongOpt('--allow-downgrade')
-    allowDowngrade = false
+        allowDowngrade = false
 
     complete = (editing: boolean, args: string[]) => {
         if (editing) return Compgen('file', args[args.length - 1])
@@ -46,4 +46,4 @@ class DistPublishFeature extends Feature {
         return 0
     }
 }
-export const distPublishFeature = new DistPublishFeature
+export const distPublishFeature = new DistPublishFeature()

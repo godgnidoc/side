@@ -1,6 +1,6 @@
-import { execute, verifyDefinitions } from "@godgnidoc/decli"
-import { GetLogLevel, InitiateLogging, SetLogLevel } from "logging"
-import { Dist } from "./dist/index"
+import { execute, verifyDefinitions } from '@godgnidoc/decli'
+import { GetLogLevel, InitiateLogging, SetLogLevel } from 'logging'
+import { Dist } from './dist/index'
 
 export async function main() {
     /** 初始化日志支持 */

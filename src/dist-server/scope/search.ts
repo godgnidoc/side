@@ -1,7 +1,7 @@
-import { MatchPattern, done } from "../utils"
-import { readdir } from "fs/promises"
-import { IsValidScope } from "format"
-import { SidePlatform } from "platform"
+import { MatchPattern, done } from '../utils'
+import { readdir } from 'fs/promises'
+import { IsValidScope } from 'format'
+import { SidePlatform } from 'platform'
 
 /**
  * 列举作用域

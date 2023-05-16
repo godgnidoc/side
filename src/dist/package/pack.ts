@@ -1,12 +1,12 @@
-import { Feature } from "@godgnidoc/decli"
-import { dirname, join } from "path"
+import { Feature } from '@godgnidoc/decli'
+import { dirname, join } from 'path'
 import * as semver from 'semver'
-import { copyFile, mkdir, rm, writeFile } from "fs/promises"
-import { promisify } from "util"
-import { exec } from "child_process"
-import { PackageManifest, PackingManifest } from "format"
-import { loadPackingManifest, selectPackingManifest, selectReleasePath } from "./common"
-import { Project } from "project"
+import { copyFile, mkdir, rm, writeFile } from 'fs/promises'
+import { promisify } from 'util'
+import { exec } from 'child_process'
+import { PackageManifest, PackingManifest } from 'format'
+import { loadPackingManifest, selectPackingManifest, selectReleasePath } from './common'
+import { Project } from 'project'
 
 export const distPackFeature = new class extends Feature {
     args = '<version> [manifest]'
@@ -67,12 +67,12 @@ export const distPackFeature = new class extends Feature {
                 files.push(...cmd.stdout.trim().split('\n'))
             }
         } else if (packing.root?.excludes) {
-            const c = `find . -not -type d -not -path ` + packing.root.excludes.map(e => `-path ${e}`).join(' -not -path ')
+            const c = 'find . -not -type d -not -path ' + packing.root.excludes.map(e => `-path ${e}`).join(' -not -path ')
 
             const cmd = await promisify(exec)(c, { cwd: root })
             files.push(...cmd.stdout.trim().split('\n'))
         } else {
-            const cmd = await promisify(exec)(`find . -not -type d`, { cwd: root })
+            const cmd = await promisify(exec)('find . -not -type d', { cwd: root })
             files.push(...cmd.stdout.trim().split('\n'))
         }
 

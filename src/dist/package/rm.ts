@@ -1,11 +1,11 @@
-import { Feature } from "@godgnidoc/decli"
-import { exec } from "child_process"
-import { Cache, PackageId } from "format"
-import { readFile, writeFile } from "fs/promises"
-import { join } from "path"
-import { promisify } from "util"
-import { distUninstallFeature } from "./uninstall"
-import { SidePlatform } from "platform"
+import { Feature } from '@godgnidoc/decli'
+import { exec } from 'child_process'
+import { Cache, PackageId } from 'format'
+import { readFile, writeFile } from 'fs/promises'
+import { join } from 'path'
+import { promisify } from 'util'
+import { distUninstallFeature } from './uninstall'
+import { SidePlatform } from 'platform'
 
 export const distRmFeature = new class extends Feature {
     args = '<package>'

@@ -1,5 +1,5 @@
-import { mkdir, readFile, writeFile } from "fs/promises"
-import { dirname } from "path"
+import { mkdir, readFile, writeFile } from 'fs/promises'
+import { dirname } from 'path'
 
 export async function readAllInput() {
     let input = ''

@@ -1,7 +1,7 @@
-import { Args, Brief, Feature, LongOpt, ShortOpt } from "@godgnidoc/decli"
-import { ComplexExport, Exports, FileDB, SimpleExport } from "format"
-import { join } from "path"
-import { PROJECT, Project } from "project"
+import { Args, Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
+import { ComplexExport, Exports, FileDB, SimpleExport } from 'format'
+import { join } from 'path'
+import { PROJECT, Project } from 'project'
 
 class sideEnvSetFeature extends Feature {
     args = '<key> <value...>'
@@ -12,26 +12,26 @@ class sideEnvSetFeature extends Feature {
 
     @Brief('Make it array')
     @LongOpt('--array') @ShortOpt('-a')
-    array = <boolean>undefined
+        array = <boolean>undefined
 
     @Brief('Override when exporting')
     @LongOpt('--override') @ShortOpt('-o')
     @Args(['true', 'false', 'default'])
-    override = <'true' | 'false' | 'default'>undefined
+        override = <'true' | 'false' | 'default'>undefined
 
     @Brief('Delimiter of exports or "default"')
     @LongOpt('--delimiter') @ShortOpt('-d')
     @Args(arg => arg.length === 1)
-    delimiter = <string>undefined
+        delimiter = <string>undefined
 
     @Brief('Position of value in exports')
     @LongOpt('--position') @ShortOpt('-p')
     @Args(['front', 'back', 'default'])
-    position = <'front' | 'back' | 'default'>undefined
+        position = <'front' | 'back' | 'default'>undefined
 
     @Brief('Clear existing exports of key')
     @LongOpt('--clear') @ShortOpt('-c')
-    clear = false
+        clear = false
 
     async entry(key: string, ...value: string[]) {
         if (!key) {
@@ -168,6 +168,6 @@ class SideEnvDeleteFeature extends Feature {
 }
 
 export const sideEnvFeatures = {
-    set: new sideEnvSetFeature,
-    del: new SideEnvDeleteFeature
+    set: new sideEnvSetFeature(),
+    del: new SideEnvDeleteFeature()
 }

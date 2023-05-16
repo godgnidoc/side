@@ -1,6 +1,6 @@
-import { Args, Brief, Compgen, Complete, Feature, ShortOpt } from "@godgnidoc/decli"
-import { vdel, vfmt, vget, vhas, vkeys, vload, vmerge, vset } from "notion"
-import { inputFrom, outputTo } from "./common"
+import { Args, Brief, Compgen, Complete, Feature, ShortOpt } from '@godgnidoc/decli'
+import { vdel, vfmt, vget, vhas, vkeys, vload, vmerge, vset } from 'notion'
+import { inputFrom, outputTo } from './common'
 
 function completeFile(editing: boolean, args: string[]) {
     const prefix = editing ? args[0] : ''
@@ -60,7 +60,7 @@ class FmtFeature extends Feature {
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
     @Complete(arg => Compgen('file', arg))
-    outputFile: string = '-'
+        outputFile = '-'
 
     async entry(...args: string[]) {
         const input = await inputFrom(args.shift())
@@ -73,14 +73,14 @@ class FmtFeature extends Feature {
         const origin = vload(input)
         if (!origin) return 1
 
-        let output = vfmt(origin, format)
+        const output = vfmt(origin, format)
         await outputTo(output, this.outputFile)
 
         return 0
     }
 
 }
-export const vfmtFeature = new FmtFeature
+export const vfmtFeature = new FmtFeature()
 
 export const vkeysFeature = new class extends Feature {
     args = '<file|-> [expression...]'
@@ -142,13 +142,13 @@ class VsetFeature extends Feature {
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
     @Complete(arg => Compgen('file', arg))
-    outputFile: string = '-'
+        outputFile = '-'
 
     /** 输出格式选项，默认为yaml */
     @ShortOpt('-f')
     @Brief('Specify the output format, json or yaml, default is yaml')
     @Args(['json', 'yaml'])
-    format: 'json' | 'yaml' = 'yaml'
+        format: 'json' | 'yaml' = 'yaml'
 
     /** 提供命令行补全推荐，为第一个参数推荐文件 */
     complete = completeFile
@@ -176,7 +176,7 @@ class VsetFeature extends Feature {
         return 0
     }
 }
-export const vsetFeature = new VsetFeature
+export const vsetFeature = new VsetFeature()
 
 class VdelFeature extends Feature {
     args = '<file|-> [expression...]'
@@ -189,13 +189,13 @@ class VdelFeature extends Feature {
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
     @Complete(arg => Compgen('file', arg))
-    outputFile: string = '-'
+        outputFile = '-'
 
     /** 输出格式选项，默认为yaml */
     @ShortOpt('-f')
     @Brief('Specify the output format, json or yaml, default is yaml')
     @Args(['json', 'yaml'])
-    format: 'json' | 'yaml' = 'yaml'
+        format: 'json' | 'yaml' = 'yaml'
 
     /** 提供命令行补全推荐，为第一个参数推荐文件 */
     complete = completeFile
@@ -223,7 +223,7 @@ class VdelFeature extends Feature {
         return 0
     }
 }
-export const vdelFeature = new VdelFeature
+export const vdelFeature = new VdelFeature()
 
 class VmergeFeature extends Feature {
     args = '<file|-> [file...]'
@@ -235,13 +235,13 @@ class VmergeFeature extends Feature {
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
     @Complete(arg => Compgen('file', arg))
-    outputFile: string = '-'
+        outputFile = '-'
 
     /** 输出格式选项，默认为yaml */
     @ShortOpt('-f')
     @Brief('Specify the output format, json or yaml, default is yaml')
     @Args(['json', 'yaml'])
-    format: 'json' | 'yaml' = 'yaml'
+        format: 'json' | 'yaml' = 'yaml'
 
     /** 命令行补全提示，全部参数均为文件 */
     complete = (editing: boolean, args: string[]) => {
@@ -270,7 +270,7 @@ class VmergeFeature extends Feature {
     }
 }
 
-export const vmergeFeature = new VmergeFeature
+export const vmergeFeature = new VmergeFeature()
 
 export const notionFeatures = {
     vget: vgetFeature,

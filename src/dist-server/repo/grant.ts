@@ -1,9 +1,9 @@
-import { join } from "path"
-import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from "../utils"
-import { readFile, writeFile } from "fs/promises"
-import { RequestContext } from "jetweb"
-import { IsValidName, IsValidScope, RepoManifest } from "format"
-import { SidePlatform } from "platform"
+import { join } from 'path'
+import { IsDir, IsOwner, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from '../utils'
+import { readFile, writeFile } from 'fs/promises'
+import { RequestContext } from 'jetweb'
+import { IsValidName, IsValidScope, RepoManifest } from 'format'
+import { SidePlatform } from 'platform'
 
 async function GrantRepo(this: RequestContext, repo: string, scope: string, user: string) {
     // 鉴权并获取用户信息

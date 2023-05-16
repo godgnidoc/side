@@ -1,5 +1,5 @@
-import { dump, load } from "js-yaml"
-import { runInNewContext } from "vm"
+import { dump, load } from 'js-yaml'
+import { runInNewContext } from 'vm'
 
 
 /**
@@ -37,10 +37,10 @@ export function vload(input: string, feedback = { format: '' }) {
  */
 export function vfmt(input: any, f: 'json' | 'yaml' = 'yaml') {
     switch (f) {
-        case 'json':
-            return JSON.stringify(input, null, 4)
-        case 'yaml':
-            return dump(input)
+    case 'json':
+        return JSON.stringify(input, null, 4)
+    case 'yaml':
+        return dump(input)
     }
 }
 

@@ -1,15 +1,15 @@
-import { readFileSync } from "fs"
-import { dirname, join } from "path"
-import { homedir, userInfo } from "os"
-import { FileDB, GlobalSettings } from "format"
-import { Args, Brief, Feature, LongOpt } from "@godgnidoc/decli"
+import { readFileSync } from 'fs'
+import { dirname, join } from 'path'
+import { homedir, userInfo } from 'os'
+import { FileDB, GlobalSettings } from 'format'
+import { Args, Brief, Feature, LongOpt } from '@godgnidoc/decli'
 
 class GlobalOptions {
     /** 日志等级 */
     @LongOpt('--logging')
     @Brief('The logging level (default: info)')
     @Args(['debug', 'info', 'warn', 'error'])
-    logging: 'debug' | 'info' | 'warn' | 'error' = 'info'
+        logging: 'debug' | 'info' | 'warn' | 'error' = 'info'
 }
 
 export const SidePlatform = new class {
@@ -21,7 +21,7 @@ export const SidePlatform = new class {
         readonly DEFAULT_HOME = join(homedir(), '.side')
 
         /** side home的绝对路径 */
-        get home() { return process.env["SIDE_HOME"] || this.DEFAULT_HOME }
+        get home() { return process.env['SIDE_HOME'] || this.DEFAULT_HOME }
 
         /** 绝对路径，模拟side运行时环境所需的系统结构 */
         get sysroot() { return join(this.home, 'sysroot') }
@@ -48,7 +48,7 @@ export const SidePlatform = new class {
 
     /** Side 应用清单 */
     get manifest() {
-        let dir = dirname(new URL(import.meta.url).pathname)
+        const dir = dirname(new URL(import.meta.url).pathname)
         return JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
     }
 
@@ -105,8 +105,8 @@ export const SidePlatform = new class {
     }
 
     readonly featureVersion = new class extends Feature {
-        brief = "Show version information"
-        description = "Show version information"
+        brief = 'Show version information'
+        description = 'Show version information'
         entry() {
             console.log(`side - ${SidePlatform.version} - ${SidePlatform.revision}`)
             return 0

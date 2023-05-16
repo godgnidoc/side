@@ -1,6 +1,6 @@
-import { format } from "util";
-import { upgradeFormat } from "./format";
-import { LogLevel, isEnabled } from "./level";
+import { format } from 'util'
+import { upgradeFormat } from './format'
+import { LogLevel, isEnabled } from './level'
 
 declare global {
     interface Console {
@@ -10,7 +10,7 @@ declare global {
 
 export function InitiateLogging() {
     console.verbose = function (fmt: string, ...args: any[]) {
-        if (process.env["SIDE_VERBOSE"] === "TRUE") {
+        if (process.env['SIDE_VERBOSE'] === 'TRUE') {
             fmt = upgradeFormat(fmt, 'verbose')
             const message = format(fmt, ...args)
             process.stderr.write(message + '\n')
@@ -28,8 +28,8 @@ export function InitiateLogging() {
                 const message = format(fmt, ...args)
                 process.stderr.write(message + '\n')
             }
-        };
+        }
     }
 }
 
-export { SetLogLevel, GetLogLevel, LogLevel } from "./level";
+export { SetLogLevel, GetLogLevel, LogLevel } from './level'

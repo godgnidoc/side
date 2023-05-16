@@ -4,7 +4,7 @@ import { Package } from './package'
 import { User } from './user'
 import { createAdmin } from './user/admin'
 import { postTasks } from './task'
-import { userInfo } from "os"
+import { userInfo } from 'os'
 import { Feature } from '@godgnidoc/decli'
 import { Web } from 'jetweb'
 import { chmod, mkdir, readdir } from 'fs/promises'

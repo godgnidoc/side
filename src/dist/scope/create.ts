@@ -1,6 +1,6 @@
-import { Feature } from "@godgnidoc/decli"
-import { api } from "../api"
-import { IsValidScope } from "format"
+import { Feature } from '@godgnidoc/decli'
+import { api } from '../api'
+import { IsValidScope } from 'format'
 
 export const scopeCreateFeature = new class extends Feature {
     args = '<name>'

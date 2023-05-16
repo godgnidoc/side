@@ -1,8 +1,8 @@
-import { join } from "path"
-import { IsDir, authorization_failed, authorize, done, fail, internal_failure, invalid_argument } from "../utils"
-import { mkdir, writeFile } from "fs/promises"
-import { IsValidScope } from "format"
-import { SidePlatform } from "platform"
+import { join } from 'path'
+import { IsDir, authorization_failed, authorize, done, fail, internal_failure, invalid_argument } from '../utils'
+import { mkdir, writeFile } from 'fs/promises'
+import { IsValidScope } from 'format'
+import { SidePlatform } from 'platform'
 
 export async function postCreate(name: string) {
     // 鉴权并获取用户信息

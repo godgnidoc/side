@@ -1,5 +1,5 @@
-import { Brief, Feature, LongOpt } from "@godgnidoc/decli"
-import { Project } from "project"
+import { Brief, Feature, LongOpt } from '@godgnidoc/decli'
+import { Project } from 'project'
 
 class ProjectInitFeature extends Feature {
     args = '[target-path]'
@@ -8,7 +8,7 @@ class ProjectInitFeature extends Feature {
 
     @LongOpt('--force')
     @Brief('Overwrite existing project')
-    force = false
+        force = false
 
     async entry(...args: string[]): Promise<number> {
         if (args.length > 1) {

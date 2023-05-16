@@ -1,5 +1,5 @@
-import { Feature } from "@godgnidoc/decli"
-import { api } from "../api"
+import { Feature } from '@godgnidoc/decli'
+import { api } from '../api'
 
 export const distScopesFeature = new class extends Feature {
     args = '<pattern>'

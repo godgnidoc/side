@@ -1,6 +1,6 @@
-import { join, relative, resolve } from "path"
-import { SidePlatform } from "platform"
-import { SemVer } from "semver"
+import { join, relative, resolve } from 'path'
+import { SidePlatform } from 'platform'
+import { SemVer } from 'semver'
 
 /**
  * 包唯一标识，由域、名称、标签、版本组成，格式为：<scope>/<name>[--<tag>{-<tag>}]-<version>
@@ -8,7 +8,7 @@ import { SemVer } from "semver"
  * @example 'name-part-one--tag1-tag2-0.0.1' 其中包名为name-part-one，标签为tag1和tag2，版本号为0.0.1
 */
 export class PackageId {
-    constructor(scope?: string, name: string = 'package', version: SemVer | string = '0.0.0', tags: string[] = []) {
+    constructor(scope?: string, name = 'package', version: SemVer | string = '0.0.0', tags: string[] = []) {
         if (scope && !this.setScope(scope)) throw new Error('Invalid package scope')
         if (!this.setName(name)) throw new Error('Invalid package name')
         if (!this.setVersion(version)) throw new Error('Invalid package version')
@@ -283,7 +283,7 @@ export class PackageId {
         const frags = rpath.slice(0, rpath.length - 4).split('/')
         if (frags.length != 3) return new Error('invalid package path: ' + path)
         const scope = frags[0]
-        const symbol = frags.pop()!
+        const symbol = frags.pop()
 
         return PackageId.Parse(scope + '/' + symbol)
     }

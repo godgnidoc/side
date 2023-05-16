@@ -1,7 +1,7 @@
-import { mkdir, writeFile } from "fs/promises"
-import { authorize, done, fail, invalid_argument, md5, permission_denied } from "../utils"
-import { join } from "path"
-import { IsValidName } from "format"
+import { mkdir, writeFile } from 'fs/promises'
+import { authorize, done, fail, invalid_argument, md5, permission_denied } from '../utils'
+import { join } from 'path'
+import { IsValidName } from 'format'
 import { SidePlatform } from 'platform'
 
 export async function postCreate(name: string, password: string, email: string) {

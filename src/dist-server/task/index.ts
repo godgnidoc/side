@@ -1,5 +1,5 @@
-import { randomUUID } from "crypto"
-import { RequestContext, RequestHandler } from "jetweb"
+import { randomUUID } from 'crypto'
+import { RequestContext, RequestHandler } from 'jetweb'
 
 
 interface Task {
@@ -10,7 +10,7 @@ interface Task {
     requestHandler?: RequestHandler
 
     /** 超时处理回调 */
-    timeoutHandler?: Function
+    timeoutHandler?: () => void
 
     /** 请求处理函数的参数 */
     args?: any[]
@@ -26,7 +26,7 @@ const TaskTable: { [token: string]: Task } = {}
  * @param timeoutSeconds 超时秒数
  * @returns 任务标识
  */
-export function CreateTask(requestHandler: RequestHandler, args: any[] | undefined, timeoutHandler: Function, timeoutSeconds: number = 60): string {
+export function CreateTask(requestHandler: RequestHandler, args: any[] | undefined, timeoutHandler: () => void, timeoutSeconds = 60): string {
     const token = randomUUID()
     TaskTable[token] = {
         timeoutSeconds,
@@ -61,7 +61,7 @@ export function postTasks(this: RequestContext) {
  */
 setInterval(() => {
     const timeouts: string[] = []
-    const handlers: Function[] = []
+    const handlers: (() => void)[] = []
 
     for (const token in TaskTable) {
         const task = TaskTable[token]

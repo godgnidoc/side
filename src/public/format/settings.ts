@@ -38,12 +38,10 @@ interface BasicLocalSettings {
  * Side 全局设置文件的结构定义
  * @schema GlobalSettings
  */
-export interface GlobalSettings extends BasicGlobalSettings {
-}
+export type GlobalSettings = BasicGlobalSettings
 
 /** 
  * 项目局部设置文件结构
  * @schema LocalSettings
  */
-export interface LocalSettings extends BasicLocalSettings {
-}
+export type LocalSettings = BasicLocalSettings

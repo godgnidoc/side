@@ -1,7 +1,7 @@
 import { authorization_failed, authorize, fail, invalid_argument, IsContributor, permission_denied, IsDir, IsFile, done } from '../utils'
 import { chmod } from 'fs/promises'
 import { RequestContext } from 'jetweb'
-import { busy_packages } from './common'
+import { busyPackages } from './common'
 import { PackageId } from 'format'
 
 async function RevokePackage(this: RequestContext, id: string) {
@@ -24,7 +24,7 @@ async function RevokePackage(this: RequestContext, id: string) {
     if (!await IsFile(packageId.path)) return fail(1, 'Package not exists: ' + id)
 
     // 检查包是否正在发布，如果正在发布则返回错误
-    if (busy_packages.has(packageId.toString())) return fail(6, 'Package is busy: ' + id)
+    if (busyPackages.has(packageId.toString())) return fail(6, 'Package is busy: ' + id)
 
     // 撤销包的任何访问权限
     await chmod(packageId.path, 0o000)

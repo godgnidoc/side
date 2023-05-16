@@ -1,16 +1,16 @@
-import { FileDB, LocalSettings, PackageId, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYaml } from "format"
-import { access, mkdir, readFile, readdir, rmdir, writeFile } from "fs/promises"
-import { basename, dirname, join, relative, resolve } from "path"
-import { promisify } from "util"
-import { exec } from "child_process"
-import { readFileSync, statSync } from "fs"
-import { dump } from "js-yaml"
-import { SidePlatform } from "platform"
-import { vmerge } from "notion"
-import { getRevision, invokeHook } from "../side/common"
+import { FileDB, LocalSettings, PackageId, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYaml } from 'format'
+import { access, mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
+import { basename, dirname, join, relative, resolve } from 'path'
+import { promisify } from 'util'
+import { exec } from 'child_process'
+import { readFileSync, statSync } from 'fs'
+import { dump } from 'js-yaml'
+import { SidePlatform } from 'platform'
+import { vmerge } from 'notion'
+import { getRevision, invokeHook } from '../side/common'
 import * as yaml from 'js-yaml'
-import { ActivatePackage, DeactivatePackage } from "../dist/package/common"
-import { PROJECT } from "project.path"
+import { ActivatePackage, DeactivatePackage } from '../dist/package/common'
+import { PROJECT } from 'project.path'
 
 /** 导出静态定义 */
 export { PROJECT } from './project.path'
@@ -26,7 +26,7 @@ export class Project {
         const order: Stage[] = ['draft', 'ready', 'built', 'packaged']
         const oc = order.indexOf(this.stage)
         const os = order.indexOf(stage)
-        let op = oc > os
+        const op = oc > os
             ? '>'
             : oc < os
                 ? '<'
@@ -312,30 +312,30 @@ export class Project {
 
             // 清理目标目录
             switch (cln) {
-                case 'auto': {
-                    // 搜集所有可能需要删除的文件
-                    const entries = new Set<string>
-                    for (const entry of await readdir(src, { withFileTypes: true })) {
-                        if (entry.isDirectory()) {
-                            const nodes = await readdir(join(src, entry.name))
-                            nodes.forEach(n => entries.add(n))
-                        }
+            case 'auto': {
+                // 搜集所有可能需要删除的文件
+                const entries = new Set<string>()
+                for (const entry of await readdir(src, { withFileTypes: true })) {
+                    if (entry.isDirectory()) {
+                        const nodes = await readdir(join(src, entry.name))
+                        nodes.forEach(n => entries.add(n))
                     }
-
-                    // 删除所有可能需要删除的文件
-                    const cmd = `env -C ${dst} rm -rf ${[...entries].join(' ')}`
-                    console.debug('setup: cleaning files in %s: %s', dst, cmd)
-                    await promisify(exec)(cmd, { cwd: dst })
-                } break
-                case 'all': {
-                    // 删除所有文件
-                    console.debug('setup: cleaning all files in %s', dst)
-                    await promisify(exec)(`rm -rf ${dst}`)
-                } break
-                case 'never': break
-                default: {
-                    throw new Error('Unknown clean strategy: %s', cln)
                 }
+
+                // 删除所有可能需要删除的文件
+                const cmd = `env -C ${dst} rm -rf ${[...entries].join(' ')}`
+                console.debug('setup: cleaning files in %s: %s', dst, cmd)
+                await promisify(exec)(cmd, { cwd: dst })
+            } break
+            case 'all': {
+                // 删除所有文件
+                console.debug('setup: cleaning all files in %s', dst)
+                await promisify(exec)(`rm -rf ${dst}`)
+            } break
+            case 'never': break
+            default: {
+                throw new Error('Unknown clean strategy: %s', cln)
+            }
             }
 
             // 按需创建目标路径
@@ -344,23 +344,23 @@ export class Project {
             // 部署资源
             for (const using of usings) {
                 switch (stg) {
-                    case 'copy': {
-                        console.debug('setup: copying %s to %s', join(src, using), dst)
-                        await promisify(exec)(`cp -r ${join(src, using)}/* ${dst}/.`)
-                    } break
-                    case 'slink': {
-                        // 定位源路径下所有的文件
-                        const files = (await promisify(exec)(`find ${join(src, using)} -type f -printf "%P\n"`))
-                            .stdout.split('\n')
-                        for (const file of files) {
-                            console.debug('setup: creating symlink %s to %s', join(dst, file), join(src, using, file))
-                            await mkdir(dirname(join(dst, file)), { recursive: true })
-                            await promisify(exec)(`ln -rsf ${join(src, using, file)} ${join(dst, file)}`)
-                        }
-                    } break
-                    default: {
-                        throw new Error('Unknown deploy strategy: %s', stg)
+                case 'copy': {
+                    console.debug('setup: copying %s to %s', join(src, using), dst)
+                    await promisify(exec)(`cp -r ${join(src, using)}/* ${dst}/.`)
+                } break
+                case 'slink': {
+                    // 定位源路径下所有的文件
+                    const files = (await promisify(exec)(`find ${join(src, using)} -type f -printf "%P\n"`))
+                        .stdout.split('\n')
+                    for (const file of files) {
+                        console.debug('setup: creating symlink %s to %s', join(dst, file), join(src, using, file))
+                        await mkdir(dirname(join(dst, file)), { recursive: true })
+                        await promisify(exec)(`ln -rsf ${join(src, using, file)} ${join(dst, file)}`)
                     }
+                } break
+                default: {
+                    throw new Error('Unknown deploy strategy: %s', stg)
+                }
                 }
             }
         }
@@ -425,7 +425,7 @@ export class Project {
             }
 
             // 将子仓库更新到最新
-            await promisify(exec)(`git pull`, { cwd: mpath })
+            await promisify(exec)('git pull', { cwd: mpath })
 
             // 切换到指定分支
             if (module.checkout) {
@@ -514,13 +514,13 @@ export class Project {
         }
 
         // 创建项目元空间的 .gitignore 文件
-        await writeFile(join(path, PROJECT.RPATH.META, '.gitignore'), `# ignore files\n\n`
-            + `/*\n`
+        await writeFile(join(path, PROJECT.RPATH.META, '.gitignore'), '# ignore files\n\n'
+            + '/*\n'
             + `!/${relative(PROJECT.RPATH.META, PROJECT.RPATH.RESOURCES)}/\n`
             + `!/${relative(PROJECT.RPATH.META, PROJECT.RPATH.SCRIPTS)}/\n`
             + `!/${relative(PROJECT.RPATH.META, PROJECT.RPATH.TARGETS)}/\n`
             + `!/${relative(PROJECT.RPATH.META, PROJECT.RPATH.MANIFEST)}\n`
-            + `!/.gitignore\n`
+            + '!/.gitignore\n'
         )
 
         try {
@@ -533,7 +533,7 @@ export class Project {
             await writeFile(join(path, '.gitignore'), ignore)
         } catch {
             // 若不存在 .gitignore 文件，则创建文件
-            await writeFile(join(path, '.gitignore'), `# ignore files generated by side\n\n`
+            await writeFile(join(path, '.gitignore'), '# ignore files generated by side\n\n'
                 + `/${relative(path, PROJECT.DEFAULT_DIRS.BUILD)}/\n`
                 + `/${relative(path, PROJECT.DEFAULT_DIRS.RELEASE)}/\n`
                 + `/${relative(path, PROJECT.DEFAULT_DIRS.MODULE)}/\n`
