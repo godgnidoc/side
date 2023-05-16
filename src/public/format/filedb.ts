@@ -81,6 +81,10 @@ export class FileDB {
         return this.Open(path, config)
     }
 
+    static Dump<T>(proxy: T): T {
+        return JSON.parse(JSON.stringify(proxy))
+    }
+
     static OpenOrCreate<T>(path: string, init: T, config: FileDB.OpenConfig<T>): T {
         try {
             accessSync(path)

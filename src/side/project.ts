@@ -8,7 +8,7 @@ class ProjectInitFeature extends Feature {
 
     @LongOpt('--force')
     @Brief('Overwrite existing project')
-        force = false
+    force = false
 
     async entry(...args: string[]): Promise<number> {
         if (args.length > 1) {
@@ -37,7 +37,7 @@ const projectDraftFeature = new class extends Feature {
     }
 
     async entry(...args: string[]) {
-        console.debug('draft: %s', args.join(' '))
+        console.verbose('draft: %s', args.join(' '))
         if (args.length !== 1)
             return console.error('This feature requires exactly one argument'), 1
 
@@ -87,7 +87,7 @@ const projectSetupFeature = new class extends Feature {
 
         /** 若有必要，尝试切换目标 */
         if (args[0]) {
-            console.debug('setup: switching target to', args[0])
+            console.verbose('setup: switching target to', args[0])
             await Project.This().draft(args[0])
             await Project.Open(Project.This().path).setup()
         } else {
@@ -127,10 +127,26 @@ const projectPackageFeature = new class extends Feature {
     }
 }
 
+const projectCleanFeature = new class extends Feature {
+    brief = 'Clean project'
+    description = 'Clean project'
+
+    async entry(): Promise<number> {
+        if (!Project.This()) {
+            console.error('This feature requires a project')
+            return 1
+        }
+
+        await Project.This().clean()
+        return 0
+    }
+}
+
 export const projectFeatures = {
     init: projectInitFeature,
     draft: projectDraftFeature,
     setup: projectSetupFeature,
     build: projectBuildFeature,
-    package: projectPackageFeature
+    package: projectPackageFeature,
+    clean: projectCleanFeature,
 }

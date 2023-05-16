@@ -15,7 +15,7 @@ export const distLoginFeature = new class extends Feature {
         }
 
         const user = args[0]
-        console.debug('login: %s', user)
+        console.verbose('login: %s', user)
 
         const answer = await inquirer.prompt([{
             type: 'password',
@@ -31,11 +31,11 @@ export const distLoginFeature = new class extends Feature {
             return 1
         }
 
-        console.debug('login success %s : %s', user, res.data)
+        console.verbose('login success %s : %s', user, res.data)
         SidePlatform.settings.dist.user = user
         SidePlatform.settings.dist.token = res.data
 
-        console.debug('settings saved')
+        console.verbose('settings saved')
         return 0
     }
 }

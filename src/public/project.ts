@@ -31,7 +31,7 @@ export class Project {
             : oc < os
                 ? '<'
                 : '=='
-        console.debug('stage: (current) %s %s %s (target)', this.stage, op, stage)
+        console.verbose('stage: (current) %s %s %s (target)', this.stage, op, stage)
         return oc >= os
     }
 
@@ -111,7 +111,7 @@ export class Project {
             }
             return list
         } catch (e) {
-            console.debug('Failed to list target', e)
+            console.verbose('Failed to list target', e)
             return []
         }
     }
@@ -121,7 +121,6 @@ export class Project {
         /** 计算目标 */
         const targets = await this.collectTargets(target)
         if (!targets) throw new Error('Failed to calculate target')
-        console.debug('draft: target: %s', targets.join(' '))
 
         let final: ProjectFinalTarget = {
             project: this.name,
@@ -131,7 +130,7 @@ export class Project {
         }
 
         /** 尝试加载项目根清单 */
-        console.debug('draft: load project manifest')
+        console.verbose('draft: load project manifest %o', FileDB.Dump(this.manifest))
         const manifest = { ...this.manifest }
         delete manifest['project']
         delete manifest['target']
@@ -142,7 +141,7 @@ export class Project {
 
         /** 尝试加载项目目标清单 */
         for (const target of targets) {
-            console.debug('draft: load project target/aspect %s', target)
+            console.verbose('draft: load target manifest %o', FileDB.Dump(target))
             delete target['project']
             delete target['target']
             delete target['engine']
@@ -157,14 +156,14 @@ export class Project {
         let email = ''
         try {
             email = (await promisify(exec)('git config user.email')).stdout.trim()
-            console.debug('draft: git user email: %s', email)
+            console.verbose('draft: git user email: %s', email)
         } catch {
             console.warn('Failed to get git user email, module filter may not work')
         }
 
         /** 整理子仓库，过滤掉不需要的仓库，并根据本地配置修正检出目标 */
         if (final.modules) {
-            console.debug('draft: filter modules')
+            console.verbose('draft: filter modules')
             const settings = this.settings
             const filter: string[] = []
             for (const name in final.modules) {
@@ -181,9 +180,12 @@ export class Project {
             for (const name of filter) delete final.modules[name]
         }
 
+        // 清理当前环境
+        await this.clean()
+
         /** 写入最终目标清单 */
         await writeFile(join(this.path, PROJECT.RPATH.TARGET), dump(final))
-        console.debug('draft: final target written')
+        console.verbose('draft: final target written')
     }
 
     /** 搭建目标开发环境 */
@@ -191,17 +193,23 @@ export class Project {
         if (!this.target) {
             throw new Error('No target specified')
         }
-        console.debug('setup: %s', this.target)
+        console.verbose('setup: %o', FileDB.Dump(this.target))
 
         /** 执行前置钩子 */
         if (0 !== await invokeHook('pre-setup'))
             throw new Error('Failed to invoke pre-setup hook')
 
+        /** 清理层叠资源 */
+        await this.cleanCascadingResources()
+
         /** 部署层叠资源 */
         await this.deployCascadingResources()
 
+        /** 清理依赖 */
+        await this.deactivateDependencies()
+
         /** 安装依赖 */
-        await this.installDependencies()
+        await this.activateDependencies()
 
         /** 获取子模块 */
         await this.fetchSubmodules()
@@ -214,8 +222,19 @@ export class Project {
         this.target.stage = 'ready'
     }
 
+    async clean() {
+        /** 清理层叠资源 */
+        await this.cleanCascadingResources()
+
+        /** 清理依赖 */
+        await this.deactivateDependencies()
+
+        // 删除汇总目标文件
+        await promisify(exec)(`rm -rf ${join(this.path, PROJECT.RPATH.TARGET)}`)
+    }
+
     async build(...args: string[]) {
-        console.debug('build:', args)
+        console.verbose('build:', args)
         if (!this.target) {
             throw new Error('No target specified')
         }
@@ -251,7 +270,7 @@ export class Project {
     }
 
     private async generateBuildInfo() {
-        console.debug('build: generating build info')
+        console.verbose('build: generating build info')
         const target = this.target
 
         let requires: string[]
@@ -284,6 +303,63 @@ export class Project {
         await writeFile(join(this.path, this.manifest.dirs.BUILD, 'build-info.json'), JSON.stringify(info, null, 4))
     }
 
+    private async cleanCascadingResources() {
+        const target = this.target
+        if (!target?.resources) return
+
+        for (const category in target.resources) {
+            const resources = target.resources[category]
+            const usings = resources.using
+            if (!usings || usings.length == 0) continue
+            console.verbose('CRM: clean cascading resources %s: %s', category, usings.join(', '))
+
+            const src = resources.src
+                ? join(this.path, resources.src)
+                : join(this.path, PROJECT.RPATH.RESOURCES, category)
+            console.verbose('CRM: src = %s', src)
+
+            const dst = resources.dst
+                ? join(this.path, resources.dst)
+                : join(this.path, category)
+            console.verbose('CRM: dst = %s', dst)
+
+            const stg = resources.deploy || 'copy'
+            console.verbose('CRM: deploy = %s', stg)
+
+            const cln = resources.clean || 'auto'
+            console.verbose('CRM: clean = %s', cln)
+
+            // 清理目标目录
+            switch (cln) {
+                case 'auto': {
+                    // 搜集所有可能需要删除的文件
+                    const entries = new Set<string>()
+                    for (const entry of await readdir(src, { withFileTypes: true })) {
+                        if (entry.isDirectory()) {
+                            const nodes = await readdir(join(src, entry.name))
+                            nodes.forEach(n => entries.add(n))
+                        }
+                    }
+
+                    // 删除所有可能需要删除的文件
+                    const cmd = `env -C ${dst} rm -rf ${[...entries].join(' ')}`
+                    console.verbose('CRM: cleaning files in %s: %s', dst, cmd)
+                    await promisify(exec)(cmd, { cwd: dst })
+                } break
+                case 'all': {
+                    // 删除所有文件
+                    console.verbose('CRM: cleaning all files in %s', dst)
+                    await promisify(exec)(`rm -rf ${dst}`)
+                } break
+                case 'never': break
+                default: {
+                    throw new Error('Unknown clean strategy: %s', cln)
+                }
+            }
+        }
+        console.verbose('CRM: cascading resources cleaned')
+    }
+
     private async deployCascadingResources() {
         const target = this.target
         if (!target.resources) return
@@ -292,51 +368,23 @@ export class Project {
             const resources = target.resources[category]
             const usings = resources.using
             if (!usings || usings.length == 0) continue
-            console.debug('setup: deploying cascading resources %s: %s', category, usings.join(', '))
+            console.verbose('CRM: deploying cascading resources %s: %s', category, usings.join(', '))
 
             const src = resources.src
                 ? join(this.path, resources.src)
                 : join(this.path, PROJECT.RPATH.RESOURCES, category)
-            console.debug('setup: -> src: %s', src)
+            console.verbose('CRM: src = %s', src)
 
             const dst = resources.dst
                 ? join(this.path, resources.dst)
                 : join(this.path, category)
-            console.debug('setup: -> dst: %s', dst)
+            console.verbose('CRM: dst = %s', dst)
 
             const stg = resources.deploy || 'copy'
-            console.debug('setup: -> deploy: %s', stg)
+            console.verbose('CRM: deploy = %s', stg)
 
             const cln = resources.clean || 'auto'
-            console.debug('setup: -> clean: %s', cln)
-
-            // 清理目标目录
-            switch (cln) {
-            case 'auto': {
-                // 搜集所有可能需要删除的文件
-                const entries = new Set<string>()
-                for (const entry of await readdir(src, { withFileTypes: true })) {
-                    if (entry.isDirectory()) {
-                        const nodes = await readdir(join(src, entry.name))
-                        nodes.forEach(n => entries.add(n))
-                    }
-                }
-
-                // 删除所有可能需要删除的文件
-                const cmd = `env -C ${dst} rm -rf ${[...entries].join(' ')}`
-                console.debug('setup: cleaning files in %s: %s', dst, cmd)
-                await promisify(exec)(cmd, { cwd: dst })
-            } break
-            case 'all': {
-                // 删除所有文件
-                console.debug('setup: cleaning all files in %s', dst)
-                await promisify(exec)(`rm -rf ${dst}`)
-            } break
-            case 'never': break
-            default: {
-                throw new Error('Unknown clean strategy: %s', cln)
-            }
-            }
+            console.verbose('CRM: clean = %s', cln)
 
             // 按需创建目标路径
             await mkdir(dst, { recursive: true })
@@ -344,34 +392,47 @@ export class Project {
             // 部署资源
             for (const using of usings) {
                 switch (stg) {
-                case 'copy': {
-                    console.debug('setup: copying %s to %s', join(src, using), dst)
-                    await promisify(exec)(`cp -r ${join(src, using)}/* ${dst}/.`)
-                } break
-                case 'slink': {
-                    // 定位源路径下所有的文件
-                    const files = (await promisify(exec)(`find ${join(src, using)} -type f -printf "%P\n"`))
-                        .stdout.split('\n')
-                    for (const file of files) {
-                        console.debug('setup: creating symlink %s to %s', join(dst, file), join(src, using, file))
-                        await mkdir(dirname(join(dst, file)), { recursive: true })
-                        await promisify(exec)(`ln -rsf ${join(src, using, file)} ${join(dst, file)}`)
+                    case 'copy': {
+                        console.verbose('CRM: copying %s to %s', join(src, using), dst)
+                        await promisify(exec)(`cp -r ${join(src, using)}/* ${dst}/.`)
+                    } break
+                    case 'slink': {
+                        // 定位源路径下所有的文件
+                        const files = (await promisify(exec)(`find ${join(src, using)} -type f -printf "%P\n"`))
+                            .stdout.split('\n')
+                        for (const file of files) {
+                            console.verbose('CRM: creating symlink %s to %s', join(dst, file), join(src, using, file))
+                            await mkdir(dirname(join(dst, file)), { recursive: true })
+                            await promisify(exec)(`ln -rsf ${join(src, using, file)} ${join(dst, file)}`)
+                        }
+                    } break
+                    default: {
+                        throw new Error('Unknown deploy strategy: %s', stg)
                     }
-                } break
-                default: {
-                    throw new Error('Unknown deploy strategy: %s', stg)
-                }
                 }
             }
         }
 
-        console.debug('setup: cascading resources deployed')
+        console.verbose('CRM: cascading resources deployed')
     }
 
-    private async installDependencies() {
+    private async activateDependencies() {
         const target = this.target
         if (!target.requires) return
 
+        // 重新创建模拟系统根
+        await mkdir(join(this.path, PROJECT.RPATH.SYSROOT), { recursive: true })
+
+        // 逐一激活依赖
+        for (const name in target.requires) {
+            const version = target.requires[name]
+            const id = PackageId.Parse(name, version)
+            if (id instanceof Error) throw id
+            await ActivatePackage(id)
+        }
+    }
+
+    private async deactivateDependencies() {
         // 读取激活记录
         try {
             const apath = join(this.path, PROJECT.RPATH.SYSROOT, 'activation')
@@ -392,17 +453,6 @@ export class Project {
 
         // 删除模拟系统根
         await promisify(exec)(`rm -rf ${join(this.path, PROJECT.RPATH.SYSROOT)}`)
-
-        // 重新创建模拟系统根
-        await mkdir(join(this.path, PROJECT.RPATH.SYSROOT), { recursive: true })
-
-        // 逐一激活依赖
-        for (const name in target.requires) {
-            const version = target.requires[name]
-            const id = PackageId.Parse(name, version)
-            if (id instanceof Error) throw id
-            await ActivatePackage(id)
-        }
     }
 
     private async fetchSubmodules() {
@@ -476,7 +526,7 @@ export class Project {
     }
 
     static async Create(path: string = process.cwd(), force = false) {
-        console.debug('Creating project in %s', path)
+        console.verbose('Creating project in %s', path)
 
         // 如果项目已存在，且不强制覆盖，则抛出异常
         const { projectManifest } = await locateProjectManifest(path)
@@ -487,14 +537,14 @@ export class Project {
         }
 
         // 创建项目目录结构
-        console.debug('build folder structure')
+        console.verbose('build folder structure')
         await mkdir(join(path, PROJECT.RPATH.TARGETS), { recursive: true })
         await mkdir(join(path, PROJECT.RPATH.SCRIPTS), { recursive: true })
         await mkdir(join(path, PROJECT.RPATH.RESOURCES), { recursive: true })
         await mkdir(join(path, PROJECT.RPATH.SYSROOT), { recursive: true })
 
         // 初始化项目清单
-        console.debug('initiate manifest')
+        console.verbose('initiate manifest')
         FileDB.Create<ProjectManifest>(join(path, PROJECT.RPATH.MANIFEST), {
             project: basename(path),
             engine: SidePlatform.version
@@ -504,7 +554,7 @@ export class Project {
         })
 
         // 初始化 Git 相关
-        console.debug('initiate git stuff')
+        console.verbose('initiate git stuff')
         try {
             const result = await promisify(exec)('git init', { cwd: path })
             if (result.stderr) console.error(result.stderr.trim())
@@ -546,7 +596,7 @@ export class Project {
             try {
                 thisProject = Project.Open()
             } catch (e) {
-                console.verbose('Failed to open project: %s', e.message)
+                console.debug('Failed to open project: %s', e.message)
                 thisProject = null
             }
         }

@@ -35,7 +35,7 @@ export const invokeHookFeature = new class extends Feature {
         }
 
         await promisify(exec)(`chmod +x ${script}`)
-        console.debug('invoke: %s %s', script, args.join(' '))
+        console.verbose('invoke: %s %s', script, args.join(' '))
         const child = spawn(script, args, {
             cwd: Project.This().path,
             env: inflate(Project.This().exports, getEnvBackup()),

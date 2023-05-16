@@ -19,14 +19,14 @@ const API = new class {
     async post<T>(url: string, data: any, headers?: any) {
         const axios = this.axios
         const json = JSON.stringify(data)
-        console.debug('api: post %s %s', url, json)
+        console.verbose('api: post %s %s', url, json)
         const result = await axios.post(url, json, {
             headers: {
                 'Content-Type': 'application/json',
                 ...headers
             }
         })
-        console.debug('api: authed post %s => %o', url, result.data)
+        console.verbose('api: authed post %s => %o', url, result.data)
         return JSON.parse(result.data) as Response<T>
     }
     async apost<T>(url: string, data: any, headers?: any) {
@@ -44,9 +44,9 @@ const API = new class {
 
     async get<T>(url: string, params: any) {
         const axios = this.axios
-        console.debug('api: get %s: %o', url, params)
+        console.verbose('api: get %s: %o', url, params)
         const result = await axios.get(url, { params })
-        console.debug('api: get %s => %o', url, result.data)
+        console.verbose('api: get %s => %o', url, result.data)
         return JSON.parse(result.data) as Response<T>
     }
 
@@ -99,7 +99,7 @@ export const api = new class {
             if (res.status != 0) return res
             const token = res.data
             const result = await API.task(token, createReadStream(path))
-            console.debug('api: publish %s => %o', token, result.data)
+            console.verbose('api: publish %s => %o', token, result.data)
             return JSON.parse(result.data) as Response
         }
         async search(pattern: string) {

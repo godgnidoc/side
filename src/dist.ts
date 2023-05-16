@@ -11,7 +11,7 @@ export async function main() {
     try {
         if( process.env['SIDE_DEBUG'] == 'TRUE') {
             SetLogLevel('debug')
-            console.debug('Debug mode enabled.')
+            console.verbose('Debug mode enabled.')
             if(!verifyDefinitions(app)) {
                 console.error('Invalid command definitions.')
                 process.exit(-1)

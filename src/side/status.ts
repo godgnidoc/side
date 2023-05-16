@@ -15,7 +15,7 @@ class StatusFeature extends Feature {
         noGit = false
 
     async entry(): Promise<number> {
-        console.debug('status')
+        console.verbose('status')
         const pstat = Project.Stat(process.cwd())
         if (!pstat.name) return 0
         const first = pstat.name

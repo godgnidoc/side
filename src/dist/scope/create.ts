@@ -16,7 +16,7 @@ export const scopeCreateFeature = new class extends Feature {
         const name = args[0]
 
         // 检查作用域名是否合法
-        console.debug('create scope: %s', name)
+        console.verbose('create scope: %s', name)
         if (!IsValidScope(name)) {
             console.error('Invalid scope name')
             return 1

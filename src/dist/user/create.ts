@@ -18,7 +18,7 @@ export const userCreateFeature = new class extends Feature {
         const email = args[1]
 
         // 检查用户名是否合法
-        console.debug('create user: %s %s', name, email)
+        console.verbose('create user: %s %s', name, email)
         if (!IsValidName(name)) {
             console.error('Invalid name')
             return 1
