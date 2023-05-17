@@ -3,7 +3,6 @@ import { projectFeatures } from './project'
 import { SetLogLevel } from 'logging'
 import { SidePlatform } from 'platform'
 import { notionFeatures } from './notion'
-import { statusFeature } from './status'
 import { invokeHookFeature } from './invoke'
 import { shellFeature } from './shell'
 import { sideEnvFeatures } from './env'
@@ -25,7 +24,6 @@ export class Side implements Application {
         '--version': SidePlatform.featureVersion,
         '-v': SidePlatform.featureVersion,
 
-        status: statusFeature,
         invoke: invokeHookFeature,
         shell: shellFeature,
         env: sideEnvFeatures,

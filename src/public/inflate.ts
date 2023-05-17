@@ -1,12 +1,55 @@
-import { Exports, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest } from 'format'
+import { ComplexExport, Exports, SimpleExport } from 'format'
 
-export type Inflatable = ProjectManifest | ProjectFinalTarget | ProjectBuildInfo
+// export type Inflatable = ProjectManifest | ProjectFinalTarget | ProjectBuildInfo
 type Environment = { [key: string]: string | boolean | number }
 
 /** 导出一个干净的环境变量备份 */
 const envBackup = { ...process.env }
 export function getEnvBackup() {
     return { ...envBackup }
+}
+
+function getDirectDependencies(value: SimpleExport | ComplexExport): string[] {
+    if (typeof value === 'string') {
+        const match = value.match(/\${(\w+)}/g)
+        return match ? match.map(v => v.slice(2, -1)) : []
+    } else if (typeof value === 'object' && !Array.isArray(value)) {
+        return getDirectDependencies(value.value)
+    } else if (Array.isArray(value)) {
+        return value.flatMap(getDirectDependencies)
+    } else {
+        return []
+    }
+}
+
+function topologicalSort(exports: Exports) {
+    const results: string[] = []
+    const resultsSet: Set<string> = new Set()
+    const pending: string[] = Object.keys(exports)
+    const pendingSet: Set<string> = new Set(pending)
+
+    const Collect = (key: string) => {
+        const dependencies = getDirectDependencies(exports[key])
+        for (const dependency of dependencies) {
+            if (resultsSet.has(dependency)) continue
+            if (pendingSet.has(dependency)) {
+                pendingSet.delete(dependency)
+                Collect(dependency)
+            }
+        }
+        if (!resultsSet.has(key)) {
+            resultsSet.add(key)
+            results.push(key)
+        }
+    }
+
+    while (pending.length) {
+        const node = pending.shift()
+        pendingSet.delete(node)
+        Collect(node)
+    }
+
+    return results
 }
 
 export function evaluate(value: string | number | boolean, env: Environment) {
@@ -18,106 +61,40 @@ export function evaluate(value: string | number | boolean, env: Environment) {
     }).replace(/\\\$|\$\$/g, '$')
 }
 
-export function inflate(exports: Exports, env?: Environment): NodeJS.ProcessEnv {
-    if (!env) env = getEnvBackup()
-    if (!exports) return env as NodeJS.ProcessEnv
-    for (const raw_key in exports) {
-        const key = evaluate(raw_key, env)
+export function inflate(exports: Exports, env: Environment = getEnvBackup()): NodeJS.ProcessEnv {
+    const keys = topologicalSort(exports)
+    for (const key of keys) {
+        const target = exports[key]
 
-        const target = exports[raw_key]
         if (target === undefined || target === null) {
             delete env[key]
             continue
         }
 
-        if (typeof target === 'string' || typeof target === 'number' || typeof target === 'boolean') {
-            env[key] = evaluate(target, env)
-            continue
-        }
-
-        const value = target instanceof Array
-            ? target.filter(v => v !== undefined && v !== null).map(v => evaluate(v, env))
-            : typeof target.value === 'string' || typeof target.value === 'number' || typeof target.value === 'boolean'
-                ? evaluate(target.value, env)
-                : target.value.filter(v => v !== undefined && v !== null).map(v => evaluate(v, env))
-
-
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            env[key] = value
-            continue
-        }
-
-        const delimiter = target['delimiter'] ?? ':'
-        const override = target['override'] ?? false
-        const position = target['position'] ?? 'front'
+        const complexTarget = Array.isArray(target)
+            ? { value: target }
+            : typeof target === 'object'
+                ? target
+                : { value: target }
+        const value = Array.isArray(complexTarget.value)
+            ? complexTarget.value.filter(v => v !== undefined && v !== null).map(v => evaluate(v, env))
+            : evaluate(complexTarget.value, env)
+        const delimiter = complexTarget['delimiter'] ?? ':'
+        const override = Array.isArray(complexTarget.value)
+            ? complexTarget['override'] ?? false
+            : true
+        const position = complexTarget['position'] ?? 'front'
 
         if (override || !(key in env)) {
-            env[key] = value.join(delimiter)
+            env[key] = Array.isArray(value) ? value.join(delimiter) : value
             continue
         }
 
         const has = env[key].toString().split(delimiter)
-        for (const item of value) {
-            if (has.includes(item)) {
-                has.splice(has.indexOf(item), 1)
-            }
-        }
+        const valueArray = Array.isArray(value) ? value : [value]
+        const filteredValues = valueArray.filter(item => !has.includes(item))
 
-        if (position == 'front') {
-            env[key] = `${value.join(delimiter)}${delimiter}${has.join(delimiter)}`
-        } else {
-            env[key] = `${has.join(delimiter)}${delimiter}${value.join(delimiter)}`
-        }
+        env[key] = position == 'front' ? [...filteredValues, ...has].join(delimiter) : [...has, ...filteredValues].join(delimiter)
     }
     return env as NodeJS.ProcessEnv
 }
-
-/**
- * 将指定可充入的内容充入环境
- * @param inf 要导出的可充入内容
- * @param env 要导出到的上下文，默认为当前进程环境，若指定为 null 则从当前进程环境复制一份
- * @returns 返回导出后的上下文
- */
-// export function inflate(inf: Inflatable, env: Environment = process.env) {
-//     if (!env) env = { ...process.env }
-//     if (!inf) return env
-
-//     if (inf.$structure === 'side.manifest') {
-//         if (inf.project) env['SIDE_PROJECT_NAME'] = inf.project
-//         if (inf.dirs) {
-//             if (inf.dirs.MODULE) env['SIDE_DIR_MODULE'] = inf.dirs.MODULE
-//             if (inf.dirs.BUILD) env['SIDE_DIR_BUILD'] = inf.dirs.BUILD
-//             if (inf.dirs.DOCUMENT) env['SIDE_DIR_DOCUMENT'] = inf.dirs.DOCUMENT
-//             if (inf.dirs.GENERATED) env['SIDE_DIR_GENERATED'] = inf.dirs.GENERATED
-//             if (inf.dirs.PACKAGE) env['SIDE_DIR_PACKAGE'] = inf.dirs.PACKAGE
-//             if (inf.dirs.RELEASE) env['SIDE_DIR_RELEASE'] = inf.dirs.RELEASE
-//         }
-//         if (inf.exports) inflateExports(inf.exports, env)
-//     }
-
-//     if (inf.$structure === 'side.final-target') {
-//         env['SIDE_PROJECT_NAME'] = inf.project
-//         env['SIDE_TARGET'] = inf.target
-//         if (inf.exports) inflateExports(inf.exports, env)
-//     }
-
-//     if (inf.$structure === 'side.build-info') {
-//         env['SIDE_PROJECT_NAME'] = inf.project
-//         env['SIDE_PROJECT_REVISION'] = inf.revision
-//         env['SIDE_TARGET'] = inf.target
-//         // env['SIDE_BUILD_CMD'] = inf.command
-//         env['SIDE_REQUIRES'] = inf.requires.join(';')
-
-//         for (const module in inf.modules) {
-//             env[`SIDE_MODULE_${module}`] = inf.modules[module]
-//         }
-
-//         for (const resource in inf.resources) {
-//             const res = inf.resources[resource]
-//             env[`SIDE_RESOURCE_${resource}`] = res.join(';')
-//         }
-//         inflateExports(inf.exports, env)
-//     }
-
-//     return env
-// }
