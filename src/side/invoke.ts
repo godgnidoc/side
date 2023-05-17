@@ -4,7 +4,7 @@ import { exec, spawn } from 'child_process'
 import { promisify } from 'util'
 import { Feature } from '@godgnidoc/decli'
 import { PROJECT, Project } from 'project'
-import { getEnvBackup, inflate } from 'inflate'
+import { inflate } from 'inflate'
 
 export const invokeHookFeature = new class extends Feature {
     args = '<hook> [args...]'
@@ -38,7 +38,7 @@ export const invokeHookFeature = new class extends Feature {
         console.verbose('invoke: %s %s', script, args.join(' '))
         const child = spawn(script, args, {
             cwd: Project.This().path,
-            env: inflate(Project.This().exports, getEnvBackup()),
+            env: inflate(Project.This().exports),
             stdio: 'inherit',
             shell: '/bin/bash'
         })

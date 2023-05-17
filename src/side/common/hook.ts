@@ -3,7 +3,7 @@ import { stat, access } from 'fs/promises'
 import { exec, spawn } from 'child_process'
 import { promisify } from 'util'
 import { PROJECT, Project } from 'project'
-import { getEnvBackup, inflate } from 'inflate'
+import { inflate } from 'inflate'
 
 /**
  * 调用钩子脚本，如果钩子不存在则返回 0  
@@ -37,7 +37,7 @@ export async function invokeHook(hook: string, args: string[] = []) {
     console.verbose('invoke: %s %s', script, args.join(' '))
     const child = spawn(script, args, {
         cwd: Project.This().path,
-        env: inflate(Project.This().exports, getEnvBackup()),
+        env: inflate(Project.This().exports),
         stdio: 'inherit',
         shell: '/bin/bash'
     })

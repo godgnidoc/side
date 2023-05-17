@@ -9,7 +9,7 @@ import { PROJECT, Project } from 'project'
 import { SidePlatform } from 'platform'
 import { promisify } from 'util'
 import { exec, spawn } from 'child_process'
-import { getEnvBackup, inflate } from 'inflate'
+import { inflate } from 'inflate'
 import { vmerge } from 'notion'
 import { SemVer } from 'semver'
 
@@ -353,7 +353,7 @@ export async function invokePackageHook(packageId: PackageId, hook: string, fail
     }
 
     await promisify(exec)(`chmod +x ${script}`)
-    const env = inflate(vmerge(Project.This().exports, dist), getEnvBackup())
+    const env = inflate(vmerge(Project.This().exports, dist))
     console.verbose('invoke hook %s', script)
     const child = spawn(script, {
         env,

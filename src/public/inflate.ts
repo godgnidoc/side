@@ -13,13 +13,13 @@ export function evaluate(value: string | number | boolean, env: Environment) {
     if (typeof value === 'number' || typeof value === 'boolean') return value.toString()
 
     if (!value.includes('$')) return value
-    value.replace(/(?<![\\$])\${(\w+)}/g, (_, key) => {
+    return value.replace(/(?<![\\\$])\${(\w+)}/g, (_, key) => {
         return env[key]?.toString() || ''
     }).replace(/\\\$|\$\$/g, '$')
 }
 
 export function inflate(exports: Exports, env?: Environment): NodeJS.ProcessEnv {
-    if (!env) env = { ...process.env }
+    if (!env) env = getEnvBackup()
     if (!exports) return env as NodeJS.ProcessEnv
     for (const raw_key in exports) {
         const key = evaluate(raw_key, env)

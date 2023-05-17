@@ -1,6 +1,7 @@
 import { loadJson, loadYaml } from './validate'
-import { accessSync, statSync, watchFile, writeFileSync } from 'fs'
+import { accessSync, mkdirSync, statSync, watchFile, writeFileSync } from 'fs'
 import { dump } from 'js-yaml'
+import { dirname } from 'path'
 
 /**
  * 文件数据库类
@@ -75,6 +76,7 @@ export class FileDB {
     }
 
     static Create<T>(path: string, init: T, config: FileDB.OpenConfig<T>): T {
+        mkdirSync(dirname(path), { recursive: true })
         if (config.format == 'json') writeFileSync(path, JSON.stringify(init))
         else if (config.format == 'yaml') writeFileSync(path, dump(init))
 

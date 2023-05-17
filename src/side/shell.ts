@@ -1,6 +1,6 @@
 import { Feature } from '@godgnidoc/decli'
 import { spawn } from 'child_process'
-import { getEnvBackup, inflate } from 'inflate'
+import { inflate } from 'inflate'
 import { SidePlatform } from 'platform'
 import { Project } from 'project'
 
@@ -11,7 +11,7 @@ export const shellFeature = new class extends Feature {
     async entry(...args: string[]) {
         const cmd = args.join(' ')
         const exports = Project.This()?.exports ?? SidePlatform.exports
-        const cp = spawn(cmd, { shell: '/bin/bash', stdio: 'inherit', env: inflate(exports, getEnvBackup()) })
+        const cp = spawn(cmd, { shell: '/bin/bash', stdio: 'inherit', env: inflate(exports) })
         return new Promise<number>((resolve) => cp.on('exit', (code) => resolve(code)))
     }
 }
