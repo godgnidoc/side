@@ -12,7 +12,7 @@ fi
 
 if [[ $# == 0 || $1 == "status" ]]; then
   echo "Compiling status..."
-  g++ src/status.cpp -Os -s -o build/__status -lstdc++fs
+  g++ src/status.cpp -static -Os -s -o build/__status -lstdc++fs
 fi
 
 if [[ $# == 0 || $1 == "side" ]]; then
