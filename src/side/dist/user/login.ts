@@ -1,6 +1,6 @@
 import { Feature } from '@godgnidoc/decli'
 import inquirer from 'inquirer'
-import { api } from '../api'
+import { api } from 'dist/api'
 import { SidePlatform } from 'platform'
 
 export const distLoginFeature = new class extends Feature {

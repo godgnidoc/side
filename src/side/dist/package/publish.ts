@@ -1,8 +1,8 @@
 import { Brief, Compgen, Feature, LongOpt } from '@godgnidoc/decli'
-import { api } from '../api'
+import { api } from 'dist/api'
 import { promisify } from 'util'
 import { exec } from 'child_process'
-import { PackageManifest } from 'format'
+import { PackageManifest, getLastValidateErrorText, validateSync } from 'format'
 
 class DistPublishFeature extends Feature {
     args = '<path/to/package>'
@@ -12,11 +12,11 @@ class DistPublishFeature extends Feature {
 
     @Brief('Allow overwrite existing package')
     @LongOpt('--allow-overwrite')
-        allowOverwrite = false
+    allowOverwrite = false
 
     @Brief('Allow downgrade published package')
     @LongOpt('--allow-downgrade')
-        allowDowngrade = false
+    allowDowngrade = false
 
     complete = (editing: boolean, args: string[]) => {
         if (editing) return Compgen('file', args[args.length - 1])
@@ -31,7 +31,9 @@ class DistPublishFeature extends Feature {
 
         try {
             const raw = await promisify(exec)('tar -xOf ' + path + ' meta/manifest')
-            const manifest = PackageManifest.Parse(JSON.parse(raw.stdout))
+            const manifest = JSON.parse(raw.stdout)
+            if (!validateSync<PackageManifest>(manifest, 'PackageManifest'))
+                throw new Error(getLastValidateErrorText('PackageManifest'))
             if (manifest instanceof Error) throw manifest
             const res = await api.package.publish(manifest, path, this.allowOverwrite, this.allowDowngrade)
             if (res.status !== 0) {

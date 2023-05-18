@@ -16,9 +16,9 @@ export const busyPackages = new Set<string>()
 export async function QueryPackages(query: string, version?: string) {
     const range = version ? validRange(version) : undefined
 
-    const qid = PackageId.Parse(query, '0.0.0')
+    const qid = PackageId.FromQuery(query)
     if (qid instanceof Error) return []
-    const repo = qid.repo_path
+    const repo = qid.repoPath
 
     const packages: PackageId[] = []
     for (const entry of await readdir(repo, { withFileTypes: true })) {

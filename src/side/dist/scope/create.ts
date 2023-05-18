@@ -1,5 +1,5 @@
 import { Feature } from '@godgnidoc/decli'
-import { api } from '../api'
+import { api } from 'dist/api'
 import { IsValidScope } from 'format'
 
 export const scopeCreateFeature = new class extends Feature {

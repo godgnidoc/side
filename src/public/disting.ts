@@ -1,10 +1,9 @@
 import { readFile, mkdir, stat, writeFile, access } from 'fs/promises'
 import { createWriteStream } from 'fs'
-import { load } from 'js-yaml'
 import { dirname, join } from 'path'
 
-import { PackingManifest, Cache, PackageId, PackageManifest } from 'format'
-import { api } from '../api'
+import { Cache, PackageId, PackageManifest, loadJson } from 'format'
+import { api } from 'dist/api'
 import { PROJECT, Project } from 'project'
 import { SidePlatform } from 'platform'
 import { promisify } from 'util'
@@ -49,15 +48,9 @@ export async function QueryPackage(query: string, version?: SemVer) {
     return result.data
 }
 
-export async function loadPackingManifest(path: string) {
-    const packingManifest = PackingManifest.Parse(load(await readFile(path, 'utf8')))
-    if (packingManifest instanceof Error) throw packingManifest
-    return packingManifest.packing
-}
-
 export async function IsPackageExists(packageId: PackageId) {
     try {
-        await stat(packageId.lpath)
+        await stat(packageId.localPath)
         console.verbose('Package %s already exists', packageId.toString())
         return true
     } catch {
@@ -68,7 +61,7 @@ export async function IsPackageExists(packageId: PackageId) {
 export async function IsPackageUpToDate(packageId: PackageId) {
     const id = packageId.toString()
     console.verbose('stat package : %s', id)
-    const lstat = await stat(packageId.lpath)
+    const lstat = await stat(packageId.localPath)
     console.verbose('Local stat: size=%s mtime=%s', lstat.size, lstat.mtimeMs)
 
     const index: Cache = JSON.parse(await readFile(join(SidePlatform.paths.caches, 'index.json'), 'utf-8'))
@@ -117,7 +110,7 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
     // 检查缓冲，判断是否需要下载
     if (!options?.ignoreCache && await IsPackageExists(packageId) && await IsPackageUpToDate(packageId)) {
         console.verbose('Package %s is up to date', id)
-        return packageId.lpath
+        return packageId.localPath
     }
 
     // 获取远端文件流
@@ -126,14 +119,14 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
     if (download.status !== 0) return new Error(download.message)
 
     // 下载文件
-    await mkdir(packageId.lrepo_path, { recursive: true })
-    const ws = createWriteStream(packageId.lpath)
+    await mkdir(packageId.localRepoPath, { recursive: true })
+    const ws = createWriteStream(packageId.localPath)
     download.data.stream.pipe(ws, { end: true })
     await new Promise(resolve => { download.data.stream.on('end', resolve) })
     console.verbose('Package %s downloaded', id)
 
     // 更新缓冲
-    const lstat = await stat(packageId.lpath)
+    const lstat = await stat(packageId.localPath)
     let index: Cache = {}
     try {
         index = JSON.parse(await readFile(join(SidePlatform.paths.caches, 'index.json'), 'utf-8'))
@@ -149,7 +142,7 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
     await mkdir(join(SidePlatform.paths.caches), { recursive: true })
     await writeFile(join(SidePlatform.paths.caches, 'index.json'), JSON.stringify(index))
 
-    return packageId.lpath
+    return packageId.localPath
 }
 
 export async function UnpackPackage(packageId: PackageId, options?: PackageOpOptions) {
@@ -173,7 +166,7 @@ export async function UnpackPackage(packageId: PackageId, options?: PackageOpOpt
     await promisify(exec)(`chmod -R 777 ${dist.SIDE_DIST_PATH}`)
     await promisify(exec)(`rm -rf ${dist.SIDE_DIST_PATH}`)
     await mkdir(dist.SIDE_DIST_PATH, { recursive: true })
-    await promisify(exec)(`tar -xf ${packageId.lpath} -C ${dist.SIDE_DIST_PATH}`)
+    await promisify(exec)(`tar -xf ${packageId.localPath} -C ${dist.SIDE_DIST_PATH}`)
     try {
         await access(join(dist.SIDE_DIST_PATH, 'root.tar.xz'))
         await mkdir(dist.SIDE_DIST_ROOT)
@@ -200,17 +193,16 @@ export async function InstallPackage(packageId: PackageId, options?: PackageOpOp
     }
 
     // 加载包清单
-    const manifest = PackageManifest.Parse(JSON.parse(await readFile(join(packageId.dist.SIDE_DIST_PATH, 'meta', 'manifest'), 'utf-8')))
-    if (manifest instanceof Error) throw manifest
+    const manifest = await loadJson<PackageManifest>(join(packageId.dist.SIDE_DIST_PATH, 'meta', 'manifest'), 'PackageManifest')
 
     // 逐个安装依赖
     if (!options.disableRecursive && manifest.depends) {
         for (const dep in manifest.depends) {
-            const pids = await QueryPackage(dep, manifest.depends[dep])
+            const pids = await QueryPackage(dep, new SemVer(manifest.depends[dep]))
             if (pids.length === 0) {
                 throw new Error('Package ' + dep + ':' + manifest.depends[dep] + ' not found')
             }
-            const pid = PackageId.Parse(pids[0])
+            const pid = PackageId.FromString(pids[0])
             if (pid instanceof Error) throw pid
             await InstallPackage(pid, options)
         }
@@ -233,17 +225,16 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
     }
 
     // 加载包清单
-    const manifest = PackageManifest.Parse(JSON.parse(await readFile(join(dist.SIDE_DIST_PATH, 'meta', 'manifest'), 'utf-8')))
-    if (manifest instanceof Error) throw manifest
+    const manifest = await loadJson<PackageManifest>(join(dist.SIDE_DIST_PATH, 'meta', 'manifest'), 'PackageManifest')
 
     // 逐个激活依赖
     if (!options.disableRecursive && manifest.depends) {
         for (const dep in manifest.depends) {
-            const pids = await QueryPackage(dep, manifest.depends[dep])
+            const pids = await QueryPackage(dep, new SemVer(manifest.depends[dep]))
             if (pids.length === 0) {
                 throw new Error('Package ' + dep + ':' + manifest.depends[dep] + ' not found')
             }
-            const pid = PackageId.Parse(pids[0])
+            const pid = PackageId.FromString(pids[0])
             if (pid instanceof Error) throw pid
             await ActivatePackage(pid, options)
         }
@@ -252,49 +243,49 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
     // 自动部署
     const project = Project.This()
     switch (manifest.deploy?.strategy) {
-    case 'none': break
-    case 'slink': {
-        // 定位源路径下所有的文件
-        const files = (await promisify(exec)(`find ${dist.SIDE_DIST_ROOT} -type f -printf "%P\\n"`))
-            .stdout.split('\n')
-            .filter(file => {
-                if (manifest.deploy.excludes) return !manifest.deploy.excludes.some(exclude => file.startsWith(exclude))
-                if (manifest.deploy.includes) return manifest.deploy.includes.some(include => file.startsWith(include))
-                return true
-            })
-        for (const file of files) {
-            await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
-            await promisify(exec)(`ln -rsf ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
-        }
-    } break
-    case 'hlink': {
-        // 定位源路径下所有的文件
-        const files = (await promisify(exec)(`find ${dist.SIDE_DIST_ROOT} -type f -printf "%P\\n"`))
-            .stdout.split('\n')
-            .filter(file => {
-                if (manifest.deploy.excludes) return !manifest.deploy.excludes.some(exclude => file.startsWith(exclude))
-                if (manifest.deploy.includes) return manifest.deploy.includes.some(include => file.startsWith(include))
-                return true
-            })
-        for (const file of files) {
-            await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
-            await promisify(exec)(`ln -f ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
-        }
-    } break
-    case 'copy': {
-        // 定位源路径下所有的文件
-        const files = (await promisify(exec)(`find ${dist.SIDE_DIST_ROOT} -type f -printf "%P\\n"`))
-            .stdout.split('\n')
-            .filter(file => {
-                if (manifest.deploy.excludes) return !manifest.deploy.excludes.some(exclude => file.startsWith(exclude))
-                if (manifest.deploy.includes) return manifest.deploy.includes.some(include => file.startsWith(include))
-                return true
-            })
-        for (const file of files) {
-            await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
-            await promisify(exec)(`cp ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
-        }
-    } break
+        case 'none': break
+        case 'slink': {
+            // 定位源路径下所有的文件
+            const files = (await promisify(exec)(`find ${dist.SIDE_DIST_ROOT} -type f -printf "%P\\n"`))
+                .stdout.split('\n')
+                .filter(file => {
+                    if (manifest.deploy.excludes) return !manifest.deploy.excludes.some(exclude => file.startsWith(exclude))
+                    if (manifest.deploy.includes) return manifest.deploy.includes.some(include => file.startsWith(include))
+                    return true
+                })
+            for (const file of files) {
+                await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
+                await promisify(exec)(`ln -rsf ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
+            }
+        } break
+        case 'hlink': {
+            // 定位源路径下所有的文件
+            const files = (await promisify(exec)(`find ${dist.SIDE_DIST_ROOT} -type f -printf "%P\\n"`))
+                .stdout.split('\n')
+                .filter(file => {
+                    if (manifest.deploy.excludes) return !manifest.deploy.excludes.some(exclude => file.startsWith(exclude))
+                    if (manifest.deploy.includes) return manifest.deploy.includes.some(include => file.startsWith(include))
+                    return true
+                })
+            for (const file of files) {
+                await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
+                await promisify(exec)(`ln -f ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
+            }
+        } break
+        case 'copy': {
+            // 定位源路径下所有的文件
+            const files = (await promisify(exec)(`find ${dist.SIDE_DIST_ROOT} -type f -printf "%P\\n"`))
+                .stdout.split('\n')
+                .filter(file => {
+                    if (manifest.deploy.excludes) return !manifest.deploy.excludes.some(exclude => file.startsWith(exclude))
+                    if (manifest.deploy.includes) return manifest.deploy.includes.some(include => file.startsWith(include))
+                    return true
+                })
+            for (const file of files) {
+                await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
+                await promisify(exec)(`cp ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
+            }
+        } break
     }
 
     // 尝试调用激活脚本
@@ -341,7 +332,7 @@ export async function UninstallPackage(packageId: PackageId) {
     await promisify(exec)('rm -rf ' + packageId.dist.SIDE_DIST_PATH)
 }
 
-export async function invokePackageHook(packageId: PackageId, hook: string, fail_on_missing = false) {
+export async function invokePackageHook(packageId: PackageId, hook: string, failOnMissing = false) {
     const dist = packageId.dist
     const script = join(dist.SIDE_DIST_PATH, 'hook', hook)
 
@@ -349,7 +340,7 @@ export async function invokePackageHook(packageId: PackageId, hook: string, fail
         await access(script)
     } catch {
         console.verbose('package hook %s not found, skiped', hook)
-        return fail_on_missing ? 1 : 0
+        return failOnMissing ? 1 : 0
     }
 
     await promisify(exec)(`chmod +x ${script}`)

@@ -1,5 +1,5 @@
 import { Feature } from '@godgnidoc/decli'
-import { api } from '../api'
+import { api } from 'dist/api'
 
 export const distSearchFeature = new class extends Feature {
     args = '<pattern>'

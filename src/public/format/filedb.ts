@@ -1,4 +1,4 @@
-import { loadJson, loadYaml } from './validate'
+import { loadJsonSync, loadYamlSync } from './validate'
 import { accessSync, mkdirSync, statSync, watchFile, writeFileSync } from 'fs'
 import { dump } from 'js-yaml'
 import { dirname } from 'path'
@@ -20,8 +20,8 @@ export class FileDB {
     load(): void {
         const stat = statSync(this.path)
         if (stat.mtimeMs <= this.timestamp) return
-        if (this.format == 'json') this.cache = loadJson(this.path, this.schema)
-        else if (this.format == 'yaml') this.cache = loadYaml(this.path, this.schema)
+        if (this.format == 'json') this.cache = loadJsonSync(this.path, this.schema)
+        else if (this.format == 'yaml') this.cache = loadYamlSync(this.path, this.schema)
     }
 
     /** 保存缓冲内容到文件 */
@@ -112,12 +112,12 @@ class ObjectProxyHandler<T extends object> implements ProxyHandler<T> {
     constructor(private db: FileDB, private keys: (string | symbol)[] = []) { }
 
     get(_target: T, key: string | symbol, _receiver: any): any {
-        const new_keys = [...this.keys, key]
-        const res = this.db.get(new_keys)
+        const newKeys = [...this.keys, key]
+        const res = this.db.get(newKeys)
         if (res instanceof Array)
-            return new Proxy(res, new ArrayProxyHandler(this.db, new_keys))
+            return new Proxy(res, new ArrayProxyHandler(this.db, newKeys))
         else if (res instanceof Object)
-            return new Proxy(res, new ObjectProxyHandler(this.db, new_keys))
+            return new Proxy(res, new ObjectProxyHandler(this.db, newKeys))
         else
             return res
     }
@@ -175,12 +175,12 @@ class ArrayProxyHandler<T extends object> implements ProxyHandler<T> {
                 return res
             }
         }
-        const new_keys = [...this.keys, key]
-        const res = this.db.get(new_keys)
+        const newKeys = [...this.keys, key]
+        const res = this.db.get(newKeys)
         if (res instanceof Array)
-            return new Proxy(res, new ArrayProxyHandler(this.db, new_keys))
+            return new Proxy(res, new ArrayProxyHandler(this.db, newKeys))
         else if (res instanceof Object)
-            return new Proxy(res, new ObjectProxyHandler(this.db, new_keys))
+            return new Proxy(res, new ObjectProxyHandler(this.db, newKeys))
         else
             return res
     }

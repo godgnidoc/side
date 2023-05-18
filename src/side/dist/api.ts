@@ -84,7 +84,7 @@ export const api = new class {
     }
     readonly repo = new class {
         async create(id: string) {
-            return await API.apost('/repo/create/by_id', { id })
+            return await API.apost('/repo/create/byId', { id })
         }
         async search(pattern: string) {
             return await API.get<string[]>('/repo/search', { pattern })
@@ -94,7 +94,7 @@ export const api = new class {
     readonly package = new class {
         async publish(manifest: PackageManifest, path: string, allowOverwrite: boolean, allowDowngrade: boolean) {
             const res = await API.apost<string>('/package/publish', {
-                manifest: manifest.toJson(), allowOverwrite, allowDowngrade
+                manifest: manifest, allowOverwrite, allowDowngrade
             })
             if (res.status != 0) return res
             const token = res.data
@@ -103,10 +103,10 @@ export const api = new class {
             return JSON.parse(result.data) as Response
         }
         async search(pattern: string) {
-            return await API.get<string[]>('/package/search/by_pattern', { pattern })
+            return await API.get<string[]>('/package/search/byPattern', { pattern })
         }
         async query(query: string, version?: string) {
-            return await API.get<string[]>('/package/search/by_query', { query, version })
+            return await API.get<string[]>('/package/search/byQuery', { query, version })
         }
         async stat(id: string) {
             return await API.get<{

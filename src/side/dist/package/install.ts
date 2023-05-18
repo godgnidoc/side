@@ -1,5 +1,5 @@
 import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
-import { InstallPackage } from './common'
+import { InstallPackage } from 'disting'
 import { PackageId } from 'format'
 
 class DistInstallFeature extends Feature {
@@ -24,7 +24,7 @@ class DistInstallFeature extends Feature {
         forceInstall = false
 
     async entry(id: string) {
-        const packageId = PackageId.Parse(id)
+        const packageId = PackageId.FromString(id)
         if (packageId instanceof Error) {
             console.error(packageId.message)
             return 1

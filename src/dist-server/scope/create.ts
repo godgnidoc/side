@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { IsDir, authorization_failed, authorize, done, fail, internal_failure, invalid_argument } from '../utils'
+import { IsDir, authorizationFailed, authorize, done, fail, internalFailure, invalidArgument } from 'server/utils'
 import { mkdir, writeFile } from 'fs/promises'
 import { IsValidScope } from 'format'
 import { SidePlatform } from 'platform'
@@ -7,11 +7,11 @@ import { SidePlatform } from 'platform'
 export async function postCreate(name: string) {
     // 鉴权并获取用户信息
     const user = await authorize(this)
-    if (!user) return authorization_failed()
+    if (!user) return authorizationFailed()
 
     // 检查作用域名格式
     if (!IsValidScope(name))
-        return invalid_argument('scope name is invalid')
+        return invalidArgument('scope name is invalid')
 
     // 检查作用域是否存在
     console.debug('checking scope: %s', join(SidePlatform.server.repositories, name))
@@ -28,6 +28,6 @@ export async function postCreate(name: string) {
         }))
         return done()
     } catch (error) {
-        return internal_failure('create scope failed: ' + error.message)
+        return internalFailure('create scope failed: ' + error.message)
     }
 }

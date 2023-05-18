@@ -1,5 +1,5 @@
 import { Feature } from '@godgnidoc/decli'
-import { api } from '../api'
+import { api } from 'dist/api'
 import { PackageId } from 'format'
 
 export const repoCreateFeature = new class extends Feature {
@@ -14,14 +14,14 @@ export const repoCreateFeature = new class extends Feature {
         }
 
         const id = args[0]
-        const pid = PackageId.Parse(id, '0.0.0')
+        const pid = PackageId.FromRepoId(id)
         if (pid instanceof Error) {
             console.error('Invalid repo id: %s', id)
             return 1
         }
 
         // 尝试创建仓库
-        const res = await api.repo.create(pid.repo_id)
+        const res = await api.repo.create(pid.repoId)
         if (res.status !== 0) {
             console.error('Create scope failed: %s', res.message)
             return 1

@@ -101,28 +101,28 @@ export class PackageId {
     /**
      * 包仓库ID，格式为：<scope>/<name>
      */
-    get repo_id(): string {
+    get repoId(): string {
         return this.scope + '/' + this.name
     }
 
     /**
      * 获取包仓库位置的绝对路径
      */
-    get repo_path(): string {
-        return resolve(join(SidePlatform.server.repositories, this.repo_id))
+    get repoPath(): string {
+        return resolve(join(SidePlatform.server.repositories, this.repoId))
     }
 
     /**
      * 获取包本地仓库位置的绝对路径
      */
-    get lrepo_path(): string {
-        return resolve(join(SidePlatform.paths.caches, this.repo_id))
+    get localRepoPath(): string {
+        return resolve(join(SidePlatform.paths.caches, this.repoId))
     }
 
     /**
      * 获取包存储文件名
      */
-    get fname(): string {
+    get fileName(): string {
         return this.symbol + '.tar'
     }
 
@@ -130,27 +130,27 @@ export class PackageId {
      * 获取包存储位置的绝对路径
      */
     get path(): string {
-        return resolve(join(this.repo_path, this.fname))
+        return resolve(join(this.repoPath, this.fileName))
     }
 
     /**
      * 获取包本地存储位置的绝对路径
      */
-    get lpath(): string {
-        return resolve(join(this.lrepo_path, this.fname))
+    get localPath(): string {
+        return resolve(join(this.localRepoPath, this.fileName))
     }
 
     /**
      * 获取包的清单存储路径
      */
-    get mpath(): string {
-        return resolve(join(this.repo_path, this.symbol + '.manifest'))
+    get manifestPath(): string {
+        return resolve(join(this.repoPath, this.symbol + '.manifest'))
     }
 
     get dist() {
         return {
-            SIDE_DIST_PATH: resolve(join(this.lrepo_path, this.symbol)),
-            SIDE_DIST_ROOT: resolve(join(this.lrepo_path, this.symbol, 'root')),
+            SIDE_DIST_PATH: resolve(join(this.localRepoPath, this.symbol)),
+            SIDE_DIST_ROOT: resolve(join(this.localRepoPath, this.symbol, 'root')),
             SIDE_DIS_NAME: this.name,
             SIDE_DIST_TAGS: this.tags.join('-'),
             SIDE_DIST_VERSION: this.version.format(),
@@ -170,7 +170,7 @@ export class PackageId {
      * @returns 设置是否成功
      */
     setQuery(value: string) {
-        const part = PackageId.Parse(value + '-0.0.0')
+        const part = PackageId.FromQuery(value)
 
         if (part instanceof Error) return false
 
@@ -187,7 +187,7 @@ export class PackageId {
      * @returns 匹配返回true，否则返回false
      */
     matchQuery(query: string) {
-        const part = PackageId.Parse(query + '-0.0.0')
+        const part = PackageId.FromQuery(query)
         if (part instanceof Error) return false
 
         if (!part) return false
@@ -208,9 +208,8 @@ export class PackageId {
      * @returns 设置是否成功
      */
     setSymbol(value: string) {
-        const part = PackageId.Parse(value)
+        const part = PackageId.FromString(value)
         if (part instanceof Error) return false
-
 
         this._name = part.name
         this._tags = part.tags
@@ -246,23 +245,10 @@ export class PackageId {
 
     /**
      * 从字符串解析出包唯一标识
-     * @param query 包请求
-     * @param version 版本号
-     * @returns 包唯一标识对象
-     */
-    static Parse(query: string, version: string): PackageId | Error
-
-    /**
-     * 从字符串解析出包唯一标识
      * @param id 包请求
      * @returns 包唯一标识对象
      */
-    static Parse(id: string): PackageId | Error
-
-    static Parse(id_or_query: string, maybe_version?: string): PackageId | Error {
-        const id = maybe_version
-            ? id_or_query + '-' + maybe_version
-            : id_or_query
+    static FromString(id: string): PackageId | Error {
         const match = id.match(/^(@[a-zA-Z]+(?:-[a-zA-Z0-9_]+)*)\/([a-zA-Z]+(?:-[a-zA-Z0-9_]+)*)(?:--([a-zA-Z][a-zA-Z0-9_]*(?:-[a-zA-Z][a-zA-Z0-9_]*)*))?-((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?(?:\+[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?)$/)
 
         if (!match) return new Error('Invalid package id: ' + id)
@@ -275,6 +261,26 @@ export class PackageId {
         return new PackageId(scope, name, version, tags)
     }
 
+    /**
+     * 从字符串解析出包唯一标识
+     * @param query 包请求
+     * @param version 版本号
+     * @returns 包唯一标识对象
+     */
+    static FromQuery(query: string, version = '0.0.0'): PackageId | Error {
+        return PackageId.FromString(query + '-' + version)
+    }
+
+    static FromRepoId(reqoId: string, version = '0.0.0', tags: string[] = []): PackageId | Error {
+        if (tags.length) return PackageId.FromString(reqoId + '--' + tags.join('-') + '-' + version)
+        else return PackageId.FromString(reqoId + '-' + version)
+    }
+
+    static FromScopeAndName(scope: string, name: string, version = '0.0.0', tags: string[] = []): PackageId | Error {
+        if (tags.length) return PackageId.FromString(scope + '/' + name + '--' + tags.join('-') + '-' + version)
+        else return PackageId.FromString(scope + '/' + name + '-' + version)
+    }
+
     static FromPath(path: string): PackageId | Error {
         const rpath = relative(SidePlatform.server.repositories, path)
         if (rpath.startsWith('..') || !rpath.endsWith('.tar')) {
@@ -285,7 +291,7 @@ export class PackageId {
         const scope = frags[0]
         const symbol = frags.pop()
 
-        return PackageId.Parse(scope + '/' + symbol)
+        return PackageId.FromString(scope + '/' + symbol)
     }
 }
 

@@ -1,8 +1,8 @@
 import { PackageId } from 'format'
-import { done, invalid_argument } from '../utils'
+import { done, invalidArgument } from 'server/utils'
 import { stat } from 'fs/promises'
 import { RequestContext } from 'jetweb'
-import { CreateTask } from '../task'
+import { CreateTask } from 'server/task'
 import { createReadStream } from 'fs'
 
 async function TaskCallbackDownload(this: RequestContext, path: string) {
@@ -18,8 +18,8 @@ async function TaskCallbackDownload(this: RequestContext, path: string) {
 }
 
 export async function getDownload(id: string) {
-    const packageId = PackageId.Parse(id)
-    if (packageId instanceof Error) return invalid_argument(packageId.message)
+    const packageId = PackageId.FromString(id)
+    if (packageId instanceof Error) return invalidArgument(packageId.message)
 
     try {
         const st = await stat(packageId.path)
@@ -30,6 +30,6 @@ export async function getDownload(id: string) {
             token: CreateTask(TaskCallbackDownload, [packageId.path], undefined)
         })
     } catch (e) {
-        return invalid_argument('Package ' + id + ' not found')
+        return invalidArgument('Package ' + id + ' not found')
     }
 }

@@ -1,6 +1,6 @@
 import { Feature } from '@godgnidoc/decli'
 import { exec } from 'child_process'
-import { FetchPackage } from './common'
+import { FetchPackage } from 'disting'
 import { mkdir } from 'fs/promises'
 import { promisify } from 'util'
 import { PackageId } from 'format'
@@ -16,7 +16,7 @@ class DistGetFeature extends Feature {
 
     async entry(pack: string, folder?: string) {
 
-        const packageId = PackageId.Parse(pack)
+        const packageId = PackageId.FromString(pack)
         if (packageId instanceof Error) {
             console.error('Invalid package id: %s', pack)
             return 1

@@ -4,9 +4,10 @@ import * as semver from 'semver'
 import { copyFile, mkdir, rm, writeFile } from 'fs/promises'
 import { promisify } from 'util'
 import { exec } from 'child_process'
-import { PackageManifest, PackingManifest } from 'format'
-import { loadPackingManifest, selectPackingManifest, selectReleasePath } from './common'
+import { PackageId, PackageManifest, PackingManifest, loadYamlSync } from 'format'
+import { selectPackingManifest, selectReleasePath } from 'disting'
 import { Project } from 'project'
+import { SidePlatform } from 'platform'
 
 export const distPackFeature = new class extends Feature {
     args = '<version> [manifest]'
@@ -28,23 +29,58 @@ export const distPackFeature = new class extends Feature {
 
         const workspace = await this.prepareWorkspace()
 
-        const packing = await loadPackingManifest(selectPackingManifest(args[1]))
+        const packing = loadYamlSync<PackingManifest>(selectPackingManifest(args[1]), 'PackingManifest')
 
-        const manifest = PackageManifest.Make(packing, version)
+        const manifest = this.makeManifest(packing.packing, version)
         if (manifest instanceof Error) {
             console.error('Failed to make package manifest: %s', manifest.message)
             return 1
         }
-        await writeFile(join(workspace, 'meta', 'manifest'), JSON.stringify(manifest.toJson()))
+        await writeFile(join(workspace, 'meta', 'manifest'), JSON.stringify(manifest))
 
         /**@TODO collect doc content */
         // await this.collectDocContent(workspace, packing, manifest)
 
-        await this.collectRootContent(workspace, packing)
-        await this.collectHookContent(workspace, packing)
+        await this.collectRootContent(workspace, packing.packing)
+        await this.collectHookContent(workspace, packing.packing)
         await this.releasePackage(workspace, manifest)
         await this.cleanWorkspace(workspace)
         return 0
+    }
+
+    makeManifest(packing: PackingManifest['packing'], version: string): PackageManifest | Error {
+        if (!semver.valid(version)) return new Error('invalid version format')
+        const packageId = PackageId.FromRepoId(packing.repo, version, packing.tags)
+        if (packageId instanceof Error) return packageId
+
+        const user = SidePlatform.settings.dist.user
+        if (!user) return new Error('please login first')
+
+        const manifest: PackageManifest = {
+            packageId: packageId.toString(),
+            engine: SidePlatform.version,
+            createUser: user,
+            createTime: new Date().toLocaleString(),
+            depends: {},
+            deploy: {},
+        }
+
+        if (packing.depends) {
+            for (const query in packing.depends) {
+                const ver = semver.valid(packing.depends[query])
+                if (!ver) return new Error('invalid version format: ' + query + ' : ' + packing.depends[query])
+                manifest.depends[query] = ver
+            }
+        }
+
+        manifest.depends.strategy = 'none'
+        if (packing.deploy) {
+            manifest.deploy.strategy = packing.deploy.strategy
+            if (packing.deploy.excludes) manifest.deploy.excludes = packing.deploy.excludes
+            if (packing.deploy.includes) manifest.deploy.includes = packing.deploy.includes
+        }
+
+        return manifest
     }
 
     async prepareWorkspace() {
@@ -108,7 +144,9 @@ export const distPackFeature = new class extends Feature {
 
     async releasePackage(workspace: string, manifest: PackageManifest) {
         const release = selectReleasePath()
-        const path = join(release, `${manifest.packageId.fname}`)
+        const packageId = PackageId.FromString(manifest.packageId)
+        if (packageId instanceof Error) throw packageId
+        const path = join(release, `${packageId.fileName}`)
 
         await mkdir(release, { recursive: true })
         await promisify(exec)(`tar -cf ${path} *`, { cwd: workspace })

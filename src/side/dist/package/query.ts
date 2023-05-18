@@ -1,5 +1,5 @@
 import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
-import { QueryPackage } from './common'
+import { QueryPackage } from 'disting'
 import { parse } from 'semver'
 
 class DistQueryFeature extends Feature {

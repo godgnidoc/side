@@ -1,5 +1,5 @@
 import { Feature } from '@godgnidoc/decli'
-import { api } from '../api'
+import { api } from 'dist/api'
 import inquirer from 'inquirer'
 import { IsValidName } from 'format'
 

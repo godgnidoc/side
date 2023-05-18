@@ -1,5 +1,5 @@
 import { access, readFile, readdir } from 'fs/promises'
-import { done, fail, invalid_argument } from '../utils'
+import { done, fail, invalidArgument } from 'server/utils'
 import { join } from 'path'
 import { IsValidName } from 'format'
 import { SidePlatform } from 'platform'
@@ -7,7 +7,7 @@ import { SidePlatform } from 'platform'
 // 检查用户是否存在
 export async function getExist(name: string) {
     // 检查用户名格式
-    if (!name || !IsValidName(name)) return invalid_argument('Invalid name')
+    if (!name || !IsValidName(name)) return invalidArgument('Invalid name')
 
     try {
         // 用户路径存在即表示用户存在

@@ -1,19 +1,19 @@
 import { PackageId } from 'format'
-import { done, invalid_argument } from '../utils'
+import { done, invalidArgument } from 'server/utils'
 import { stat } from 'fs/promises'
 
 export async function getStat(id: string) {
-    const package_id = PackageId.Parse(id)
-    if (package_id instanceof Error) return invalid_argument(package_id.message)
+    const packageId = PackageId.FromString(id)
+    if (packageId instanceof Error) return invalidArgument(packageId.message)
 
     try {
-        const st = await stat(package_id.path)
+        const st = await stat(packageId.path)
         return done({
-            id: package_id.toString(),
+            id: packageId.toString(),
             size: st.size,
             mtime: st.mtimeMs
         })
     } catch (e) {
-        return invalid_argument('Package ' + id + ' not found')
+        return invalidArgument('Package ' + id + ' not found')
     }
 }

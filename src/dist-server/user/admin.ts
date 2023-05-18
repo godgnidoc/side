@@ -1,6 +1,6 @@
 import * as crypto from 'crypto'
 import { join } from 'path'
-import { md5 } from '../utils'
+import { md5 } from 'server/utils'
 import base32 from 'base32'
 import { mkdir, writeFile } from 'fs/promises'
 import { SidePlatform } from 'platform'
@@ -21,14 +21,14 @@ export async function createAdmin() {
     console.info('Password: %s', password)
     console.info('Notion \x1b[1;31m!!! Please remember the password since it will not be shown again !!!\x1b[0m')
 
-    const path_user_home = join(SidePlatform.server.contributors, name)
+    const pathUserHome = join(SidePlatform.server.contributors, name)
 
     // 创建用户目录
-    await mkdir(path_user_home)
+    await mkdir(pathUserHome)
 
     // 写入用户信息
-    await writeFile(join(path_user_home, 'info'), JSON.stringify({ name, email }))
+    await writeFile(join(pathUserHome, 'info'), JSON.stringify({ name, email }))
 
     // 写入用户密码
-    await writeFile(join(path_user_home, 'phrase'), md5(`${name}:${password}`))
+    await writeFile(join(pathUserHome, 'phrase'), md5(`${name}:${password}`))
 }

@@ -9,6 +9,7 @@ import { Feature } from '@godgnidoc/decli'
 import { Web } from 'jetweb'
 import { chmod, mkdir, readdir } from 'fs/promises'
 import { SidePlatform } from 'platform'
+import { fail } from './utils'
 
 export const distServeFeature = new class extends Feature {
     async entry() {
@@ -29,7 +30,12 @@ export const distServeFeature = new class extends Feature {
         }
 
         const api = { Repo, Scope, Package, User, postTasks }
-        const web = new Web({ api }, { static: true })
+        const web = new Web({ api }, {
+            static: true,
+            catch: (err) => {
+                return fail(500, err.message)
+            }
+        })
         console.info('dist server supported by side - %s - %s', SidePlatform.version, SidePlatform.revision)
         web.listen(5000)
 

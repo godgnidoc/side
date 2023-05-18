@@ -12,9 +12,12 @@
         "sourceMap": true,
         "outDir": "build/out",
         "target": "ES2015",
-        "baseUrl": "src/public",
+        "baseUrl": "src",
         "paths": {
-            "*": ["*"]
+            "server/*": ["dist-server/*"],
+            "side/*": ["side/*"],
+            "dist/*": ["side/dist/*"],
+            "*": ["public/*"]
         }
     },
 }

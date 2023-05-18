@@ -10,20 +10,16 @@ if [[ "${PROMPT_COMMAND}" != *_side_prompt_command* ]]; then
     PROMPT_COMMAND="_side_prompt_command;${PROMPT_COMMAND}"
 fi
 
+function dist() {
+    side dist $@
+}
+
 function _side_complete() {
     export COMP_CWORD
     export COMP_LINE
     export COMP_POINT
     export COMP_WORDBREAKS
     eval "COMPREPLY=($(side complete))"
-}
-
-function _dist_complete() {
-    export COMP_CWORD
-    export COMP_LINE
-    export COMP_POINT
-    export COMP_WORDBREAKS
-    eval "COMPREPLY=($(dist complete))"
 }
 
 function _dist_server_complete() {
@@ -37,5 +33,5 @@ function _dist_server_complete() {
 eval "function _side_prompt_command() { ${HERE}/__status; }"
 
 complete -F _side_complete side
-complete -F _dist_complete dist
+complete -F _side_complete dist
 complete -F _dist_server_complete dist-server

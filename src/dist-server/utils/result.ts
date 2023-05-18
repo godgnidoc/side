@@ -13,28 +13,28 @@ export function fail(status: number, message: string) {
 }
 
 // 500 internal failure
-export function internal_failure(message?: string) {
+export function internalFailure(message?: string) {
     return {
         status: 500, message: message || 'Internal Server Error'
     }
 }
 
 // 501 invalid argument
-export function invalid_argument(message?: string) {
+export function invalidArgument(message?: string) {
     return {
         status: 501, message: message || 'Invalid Argument'
     }
 }
 
 // 502 authorization failed
-export function authorization_failed(message?: string) {
+export function authorizationFailed(message?: string) {
     return {
         status: 502, message: message || 'Authorization Failed'
     }
 }
 
 // 503 permission denied
-export function permission_denied(message?: string) {
+export function permissionDenied(message?: string) {
     return {
         status: 503, message: message || 'Permission Denied'
     }

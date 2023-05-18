@@ -1,13 +1,13 @@
 import { RequestContext } from 'jetweb'
-import { IsContributor, IsDir, IsFile, authorization_failed, authorize, done, fail, internal_failure, invalid_argument, permission_denied } from '../utils'
+import { IsContributor, IsDir, IsFile, authorizationFailed, authorize, done, fail, internalFailure, invalidArgument, permissionDenied } from 'server/utils'
 import { QueryPackages, busyPackages } from './common'
 import { join } from 'path'
 import { promisify } from 'util'
 import { exec } from 'child_process'
-import { mkdir, readFile, rename, rm, writeFile } from 'fs/promises'
+import { mkdir, rename, rm, writeFile } from 'fs/promises'
 import { createWriteStream } from 'fs'
-import { CreateTask } from '../task'
-import { LatestPackageId, PackageId, PackageManifest } from 'format'
+import { CreateTask } from 'server/task'
+import { LatestPackageId, PackageId, PackageManifest, getLastValidateErrorText, loadJson, validateSync } from 'format'
 
 /**
  * 获取资源包文件，校验资源包文件的完整性并发布到正确位置
@@ -39,9 +39,7 @@ async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
             return fail(2, 'Invalid package structure: root content duplicated')
 
         // 校验包清单
-        const raw_manifest = await readFile(join(tmpDir, 'meta', 'manifest'), 'utf-8')
-        const manifest = PackageManifest.Parse(JSON.parse(raw_manifest.toString()))
-        if (manifest instanceof Error) return fail(2, 'Invalid package manifest: ' + manifest.message)
+        const manifest = await loadJson<PackageManifest>(join(tmpDir, 'meta', 'manifest'), 'PackageManifest')
 
         // 清理并覆盖目标包
         await rm(packageId.path, { recursive: true, force: true })
@@ -49,12 +47,12 @@ async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
         await promisify(exec)('rm -rf ' + tmpDir)
 
         // 更新包清单
-        await writeFile(packageId.mpath, raw_manifest)
+        await writeFile(packageId.manifestPath, JSON.stringify(manifest))
 
         return done()
     } catch (e) {
         console.error(e)
-        return internal_failure()
+        return internalFailure()
     } finally {
         busyPackages.delete(packageId.toString())
     }
@@ -65,12 +63,10 @@ async function validateDependencies(arg0: PackageId | PackageManifest, dependenc
         const packageId = arg0
         const id = packageId.toString()
         try {
-            const raw = await readFile(packageId.mpath, 'utf-8')
-            const manifest = PackageManifest.Parse(JSON.parse(raw.toString()))
-            if (manifest instanceof Error) return `invalid: ${id}`
+            const manifest = await loadJson<PackageManifest>(packageId.manifestPath, 'PackageManifest')
             return await validateDependencies(manifest, dependencies)
-        } catch {
-            return `missing: ${id}`
+        } catch (e) {
+            return `invalid ${id}: ${e}`
         }
     }
 
@@ -94,45 +90,47 @@ async function validateDependencies(arg0: PackageId | PackageManifest, dependenc
 export async function postPublish(this: RequestContext, manifest: any, allowOverwrite: boolean, allowDowngrade: boolean) {
     // 检查用户是否登录
     const user = await authorize(this)
-    if (!user) return authorization_failed()
+    if (!user) return authorizationFailed()
 
-    const pack = PackageManifest.Parse(manifest)
-    if (pack instanceof Error) return invalid_argument('Invalid package manifest: ' + pack.message)
+    if (!validateSync<PackageManifest>(manifest, 'PackageManifest'))
+        return invalidArgument('Invalid package manifest: ' + getLastValidateErrorText('PackageManifest'))
+    const packageId = PackageId.FromString(manifest.packageId)
+    if (packageId instanceof Error) return invalidArgument('Invalid packageId: ' + packageId.message)
 
     // 检查仓库是否存在
-    if (!await IsDir(pack.packageId.repo_path)) return fail(1, 'Repository not exists: ' + pack.packageId.repo_path)
+    if (!await IsDir(packageId.repoPath)) return fail(1, 'Repository not exists: ' + packageId.repoPath)
 
     // 检查用户是否有权限发布包
-    if (!await IsContributor(user.name, pack.packageId.repo_path))
-        return permission_denied('You are not a contributor of this repository: ' + pack.packageId.repo_id)
+    if (!await IsContributor(user.name, packageId.repoPath))
+        return permissionDenied('You are not a contributor of this repository: ' + packageId.repoId)
 
-    const id_objs = await QueryPackages(pack.packageId.query)
-    const id_strs = id_objs.map(id => id.toString())
+    const idObjs = await QueryPackages(packageId.query)
+    const idStrs = idObjs.map(id => id.toString())
 
     // 检查包是否已存在，如果已存在则检查是否允许覆盖
-    if (id_strs.includes(pack.packageId.toString())) {
-        if (!allowOverwrite) return fail(1, 'Package already exists: ' + pack.packageId.toString())
+    if (idStrs.includes(packageId.toString())) {
+        if (!allowOverwrite) return fail(1, 'Package already exists: ' + packageId.toString())
     }
 
     // 检查包版本是否低于最新版本，如果低于则检查是否允许降级
-    const latest = LatestPackageId(id_objs)
-    if (latest && latest.version.compare(pack.packageId.version) > 0) {
-        if (!allowDowngrade) return fail(1, 'Package version is lower than latest version: ' + pack.packageId.toString())
+    const latest = LatestPackageId(idObjs)
+    if (latest && latest.version.compare(packageId.version) > 0) {
+        if (!allowDowngrade) return fail(1, 'Package version is lower than latest version: ' + packageId.toString())
     }
 
     // 检查包依赖是否存在循环依赖
-    const cycle = await validateDependencies(pack)
+    const cycle = await validateDependencies(manifest)
     if (cycle) {
         return fail(1, 'Package dependencies issuse: ' + cycle)
     }
 
     // 检查包是否正在发布，如果正在发布则返回错误
-    if (busyPackages.has(pack.packageId.toString())) return fail(6, 'Package is busy: ' + pack.packageId.toString())
-    busyPackages.add(pack.packageId.toString())
+    if (busyPackages.has(packageId.toString())) return fail(6, 'Package is busy: ' + packageId.toString())
+    busyPackages.add(packageId.toString())
 
     // 创建任务，用于发布包
-    const token = CreateTask(TaskCallbackPublish, [pack.packageId], () => {
-        busyPackages.delete(pack.packageId.toString())
+    const token = CreateTask(TaskCallbackPublish, [packageId], () => {
+        busyPackages.delete(packageId.toString())
     })
 
     return done(token)

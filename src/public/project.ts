@@ -1,4 +1,4 @@
-import { FileDB, LocalSettings, PackageId, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYaml } from 'format'
+import { FileDB, LocalSettings, PackageId, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync } from 'format'
 import { access, mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
 import { basename, dirname, join, relative, resolve } from 'path'
 import { promisify } from 'util'
@@ -7,9 +7,9 @@ import { readFileSync, statSync } from 'fs'
 import { dump } from 'js-yaml'
 import { SidePlatform } from 'platform'
 import { vmerge } from 'notion'
-import { getRevision, invokeHook } from '../side/common'
+import { getRevision, invokeHook } from 'side/common'
 import * as yaml from 'js-yaml'
-import { ActivatePackage, DeactivatePackage } from '../dist/package/common'
+import { ActivatePackage, DeactivatePackage } from './disting'
 import { PROJECT } from 'project.path'
 
 /** 导出静态定义 */
@@ -275,7 +275,7 @@ export class Project {
 
         let requires: string[]
         if (target.requires) requires = Object.entries(target.requires)
-            .map(([name, version]) => PackageId.Parse(name, version).toString())
+            .map(([query, version]) => PackageId.FromQuery(query, version).toString())
 
         let modules: { [repo: string]: string }
         if (target.modules) for (const [name, module] of Object.entries(target.modules)) {
@@ -427,7 +427,7 @@ export class Project {
         // 逐一激活依赖
         for (const name in target.requires) {
             const version = target.requires[name]
-            const id = PackageId.Parse(name, version)
+            const id = PackageId.FromQuery(name, version)
             if (id instanceof Error) throw id
             await ActivatePackage(id)
         }
@@ -441,7 +441,7 @@ export class Project {
 
             // 逐一灭活依赖
             for (const id of activation) {
-                const pkg = PackageId.Parse(id)
+                const pkg = PackageId.FromString(id)
                 if (pkg instanceof Error) {
                     console.warn('setup: invalid activation record found: %s', id)
                     continue
@@ -491,7 +491,7 @@ export class Project {
         const targets: (ProjectTarget | ProjectAspect)[] = []
 
         if (fmt == 'target') {
-            const manifest = loadYaml<ProjectTarget>(file, 'ProjectTarget')
+            const manifest = loadYamlSync<ProjectTarget>(file, 'ProjectTarget')
 
             // 追加继承的目标
             if (typeof manifest.inherit === 'string') {
@@ -510,7 +510,7 @@ export class Project {
             // 追加自身
             targets.push(manifest)
         } else {
-            const manifest = loadYaml<ProjectAspect>(file, 'ProjectAspect')
+            const manifest = loadYamlSync<ProjectAspect>(file, 'ProjectAspect')
             targets.push(manifest)
             // 切面文件不支持继承也不支持聚合
         }

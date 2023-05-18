@@ -1,6 +1,6 @@
 import { Feature } from '@godgnidoc/decli'
 import { PackageId } from 'format'
-import { UninstallPackage } from './common'
+import { UninstallPackage } from 'disting'
 
 export const distUninstallFeature = new class extends Feature {
     args = '<package>'
@@ -8,7 +8,7 @@ export const distUninstallFeature = new class extends Feature {
     description = 'Uninstall package\n'
 
     async entry(id: string) {
-        const packageId = PackageId.Parse(id)
+        const packageId = PackageId.FromString(id)
         if (packageId instanceof Error) {
             console.error(packageId.message)
             return 1

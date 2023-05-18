@@ -13,7 +13,7 @@ export const distRmFeature = new class extends Feature {
     description = 'Remove cached package\n'
 
     async entry(id: string) {
-        const packageId = PackageId.Parse(id)
+        const packageId = PackageId.FromString(id)
 
         if (packageId instanceof Error) {
             console.error(packageId.message)
@@ -30,7 +30,7 @@ export const distRmFeature = new class extends Feature {
             // ignore
         }
 
-        await promisify(exec)('rm -rf ' + packageId.lpath)
+        await promisify(exec)('rm -rf ' + packageId.localPath)
 
         return 0
     }
