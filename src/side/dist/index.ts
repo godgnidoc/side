@@ -12,6 +12,8 @@ import { distQueryFeature } from './package/query'
 import { distGetFeature } from './package/get'
 import { distRmFeature } from './package/rm'
 import { distInstallFeature } from './package/install'
+import { scopeGrantFeature } from './scope/grant'
+import { repoGrantFeature } from './repo/grant'
 
 export const distModule = {
     login: distLoginFeature,
@@ -21,6 +23,11 @@ export const distModule = {
         user: userCreateFeature,
         scope: scopeCreateFeature,
         repo: repoCreateFeature
+    },
+
+    grant: {
+        scope: scopeGrantFeature,
+        repo: repoGrantFeature
     },
     pack: distPackFeature,
     publish: distPublishFeature,

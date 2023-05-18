@@ -40,6 +40,14 @@ export class PackageId {
     }
 
     /**
+     * 获取包仓库域位置的绝对路径
+     */
+    get scopePath(): string {
+        
+        return resolve(join(SidePlatform.server.repositories, this.scope))
+    }
+
+    /**
      * 设置包名
      * @param value 包名
      * @returns 设置成功返回true，否则返回false
@@ -109,7 +117,7 @@ export class PackageId {
      * 获取包仓库位置的绝对路径
      */
     get repoPath(): string {
-        return resolve(join(SidePlatform.server.repositories, this.repoId))
+        return join(this.scopePath, this.name)
     }
 
     /**

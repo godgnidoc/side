@@ -14,7 +14,7 @@
         "target": "ES2015",
         "baseUrl": "src",
         "paths": {
-            "server/*": ["dist-server/*"],
+            "server/*": ["server/*"],
             "side/*": ["side/*"],
             "dist/*": ["side/dist/*"],
             "*": ["public/*"]

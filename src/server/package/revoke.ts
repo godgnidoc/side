@@ -17,7 +17,7 @@ export async function postRevoke(this: RequestContext, id: string) {
     if (!await IsDir(packageId.repoPath)) return fail(1, 'Repository not exists: ' + packageId.repoPath)
 
     // 检查用户是否有权限发布包
-    if (!await IsContributor(user.name, packageId.repoPath))
+    if (!await IsContributor(packageId.repoPath, user.name))
         return permissionDenied('You are not a contributor of this repository: ' + packageId.repoId)
 
     // 检查包是否已存在

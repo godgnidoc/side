@@ -81,6 +81,9 @@ export const api = new class {
         async search(pattern: string) {
             return await API.get<string[]>('/scope/search', { pattern })
         }
+        async grant(scope: string, user: string) {
+            return await API.apost('/scope/grant', { scope, user })
+        }
     }
     readonly repo = new class {
         async create(id: string) {
@@ -88,6 +91,9 @@ export const api = new class {
         }
         async search(pattern: string) {
             return await API.get<string[]>('/repo/search', { pattern })
+        }
+        async grant(repoId: string, user: string) {
+            return await API.apost('/repo/grant', { repoId, user })
         }
     }
 

@@ -1,8 +1,8 @@
 /**
  * 用户信息
- * @schema UserInfo
+ * @schema UserManifest
  */
-export interface UserInfo {
+export interface UserManifest {
     name: string
     email: string
     blocked?: boolean

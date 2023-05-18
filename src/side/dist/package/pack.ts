@@ -73,7 +73,7 @@ export const distPackFeature = new class extends Feature {
             }
         }
 
-        manifest.depends.strategy = 'none'
+        manifest.deploy.strategy = 'none'
         if (packing.deploy) {
             manifest.deploy.strategy = packing.deploy.strategy
             if (packing.deploy.excludes) manifest.deploy.excludes = packing.deploy.excludes

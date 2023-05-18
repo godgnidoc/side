@@ -2,28 +2,28 @@ import { RequestContext } from 'jetweb'
 import { join } from 'path'
 import { SidePlatform } from 'platform'
 import { readFile } from 'fs/promises'
-import { RepoManifest, UserInfo, loadJson } from 'format'
+import { RepoManifest, UserManifest, loadJson } from 'format'
 
 export async function IsContributor(repoPath: string, user: string): Promise<boolean> {
     try {
         const manifest: RepoManifest = await loadJson(join(repoPath, 'manifest'), 'RepoManifest')
         return manifest.contributors.includes(user)
-    } catch {
+    } catch(e) {
+        console.error(e)
         return false
     }
 }
 
-export async function IsOwner(repo: string, user: string): Promise<boolean> {
-    const pathRepo = join(SidePlatform.server.contributors, repo)
+export async function IsOwner(repoPath: string, user: string): Promise<boolean> {
     try {
-        const manifest: RepoManifest = await loadJson(join(pathRepo, 'manifest'), 'RepoManifest')
+        const manifest: RepoManifest = await loadJson(join(repoPath, 'manifest'), 'RepoManifest')
         return manifest.contributors[0] === user
     } catch {
         return false
     }
 }
 
-export async function authorize(requestContext: RequestContext): Promise<UserInfo | null> {
+export async function authorize(requestContext: RequestContext): Promise<UserManifest | null> {
     const rawAuthToken = requestContext.request.incomingMessage.headers['login-token']?.toString()
     if (!rawAuthToken) return null
 
@@ -36,7 +36,7 @@ export async function authorize(requestContext: RequestContext): Promise<UserInf
         const rawToken = await readFile(join(pathUserHome, 'token'), 'utf-8')
 
         if (rawToken.toString() === token) {
-            return await loadJson<UserInfo>(join(pathUserHome, 'info'), 'UserInfo')
+            return await loadJson<UserManifest>(join(pathUserHome, 'info'), 'UserManifest')
         }
     } catch {
         return null

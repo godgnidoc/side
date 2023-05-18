@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'fs/promises'
 import { done, fail, invalidArgument, md5 } from 'server/utils'
 import { join } from 'path'
 import { SidePlatform } from 'platform'
-import { IsValidName, UserInfo, loadJson } from 'format'
+import { IsValidName, UserManifest, loadJson } from 'format'
 
 export async function postLogin(name: string, password: string) {
     // 检查用户名格式
@@ -17,7 +17,7 @@ export async function postLogin(name: string, password: string) {
         const pathUserHome = join(SidePlatform.server.contributors, name)
 
         // 读取用户信息
-        const info = await loadJson<UserInfo>(join(pathUserHome, 'info'), 'UserInfo')
+        const info = await loadJson<UserManifest>(join(pathUserHome, 'info'), 'UserManifest')
 
         // 检查用户是否被封禁
         if (info.blocked) return fail(3, 'User is blocked')
@@ -32,7 +32,8 @@ export async function postLogin(name: string, password: string) {
         } else {
             return fail(2, 'Wrong password')
         }
-    } catch {
+    } catch(e) {
+        console.error(e)
         return fail(1, 'User not found')
     }
 }

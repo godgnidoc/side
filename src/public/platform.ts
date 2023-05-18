@@ -9,7 +9,7 @@ class GlobalOptions {
     @LongOpt('--logging')
     @Brief('The logging level (default: info)')
     @Args(['debug', 'info', 'warn', 'error'])
-        logging: 'debug' | 'info' | 'warn' | 'error' = 'info'
+    logging: 'debug' | 'info' | 'warn' | 'error' = 'info'
 }
 
 export const SidePlatform = new class {
@@ -63,13 +63,13 @@ export const SidePlatform = new class {
             }
         }
         try {
-            return FileDB.Open<GlobalSettings>(this.paths.settings, {
+            return FileDB.OpenOrCreate<GlobalSettings>(this.paths.settings, {}, {
                 format: 'yaml',
                 schema: 'GlobalSettings',
                 placeholder: ph
             })
         } catch (e) {
-            console.verbose('failed to load root settings: %s', e.message)
+            console.verbose('failed to load or create root settings: %s', e.message)
             return ph
         }
     }

@@ -15,6 +15,10 @@ class DistGetFeature extends Feature {
         + '  If the package is not in cache, it will be downloaded from remote repository.\n'
 
     async entry(pack: string, folder?: string) {
+        if (!pack) {
+            console.error('Package id required')
+            return 1
+        }
 
         const packageId = PackageId.FromString(pack)
         if (packageId instanceof Error) {
