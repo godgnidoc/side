@@ -9,7 +9,7 @@ API_DL="http://${HOST}/api/dl"
 API_TASK="http://${HOST}/api/tasks"
 
 echo "Query the latest version of Side"
-PACKAGE_ID=$(curl -s ${API_QUERY}?query=@platform/side\&version=latest | sed -e 's|.*\["\(.*\)".*|\1|')
+PACKAGE_ID=$(curl -s ${API_QUERY}?query=@platform/side | sed -n -e 's/.*"data":\["\([^"]*\)".*/\1/p')
 echo "Package ID: ${PACKAGE_ID}"
 
 echo "Request to download the package"
