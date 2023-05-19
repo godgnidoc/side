@@ -8,9 +8,12 @@ import { getDl } from './download'
 import { userInfo } from 'os'
 import { Feature } from '@godgnidoc/decli'
 import { Web } from 'jetweb'
-import { chmod, mkdir, readdir } from 'fs/promises'
+import { chmod, copyFile, mkdir, readdir } from 'fs/promises'
 import { SidePlatform } from 'platform'
 import { fail } from './utils'
+import { dirname, join } from 'path'
+import { promisify } from 'util'
+import { exec } from 'child_process'
 
 export const distServeFeature = new class extends Feature {
     async entry() {
@@ -24,6 +27,16 @@ export const distServeFeature = new class extends Feature {
         await mkdir(SidePlatform.server.contributors, { recursive: true })
         await mkdir(SidePlatform.server.downloadable, { recursive: true })
         await chmod(SidePlatform.server.contributors, 0o700)
+
+        // 初始化下载资源
+        await copyFile(
+            join(dirname(new URL(import.meta.url).pathname), 'install.sh'),
+            join(SidePlatform.server.downloadable, 'install.sh')
+        )
+        await copyFile(
+            (await promisify(exec)('which node')).stdout.trim(),
+            join(SidePlatform.server.downloadable, 'node')
+        )
 
         // 检查是否有用户，没有则创建 admin 用户
         if ((await readdir(SidePlatform.server.contributors)).length === 0) {
