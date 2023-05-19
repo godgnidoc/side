@@ -10,10 +10,6 @@ if [[ "${PROMPT_COMMAND}" != *_side_prompt_command* ]]; then
     PROMPT_COMMAND="_side_prompt_command;${PROMPT_COMMAND}"
 fi
 
-function dist() {
-    side dist $@
-}
-
 function _side_complete() {
     export COMP_CWORD
     export COMP_LINE

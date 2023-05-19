@@ -1,6 +1,0 @@
-project: side
-engine: 0.0.1
-packing:
-  repo: '@godgnidoc/side'
-  root:
-    compress: true

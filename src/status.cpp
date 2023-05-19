@@ -8,7 +8,7 @@ namespace fs = std::experimental::filesystem;
 std::string findManifest(const std::string& currentPath) {
     fs::path currentDir = currentPath;
     while (!currentDir.empty()) {
-        fs::path manifestPath = currentDir / ".project" / "manifest";
+        fs::path manifestPath = currentDir / ".side" / "manifest";
         if (fs::exists(manifestPath))
             return currentDir.string();
         currentDir = currentDir.parent_path();
@@ -33,11 +33,11 @@ int main() {
     if (projectPath.empty())
         return 0;
 
-    std::string projectName = readValueFromFile(projectPath + "/.project/manifest", "project");
+    std::string projectName = readValueFromFile(projectPath + "/.side/manifest", "project");
     if (projectName.empty())
         return 0;
 
-    std::string targetPath = projectPath + "/.project/.target";
+    std::string targetPath = projectPath + "/.side/.target";
     std::string targetFilePath = targetPath;
     std::string targetName = readValueFromFile(targetFilePath, "target");
     std::string stageName = readValueFromFile(targetFilePath, "stage");

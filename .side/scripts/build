@@ -7,7 +7,7 @@ if [[ $# == 0 || $1 == "schema" ]]; then
   mkdir -p build/schema
   env -C src grep -rn "@schema" \
     | sed -e "s%\(.*\)\.ts.*@schema \(.*\)%\2%" \
-    | xargs node .project/scripts/schema-gen.js
+    | xargs node .side/scripts/schema-gen.js
 fi
 
 if [[ $# == 0 || $1 == "status" ]]; then

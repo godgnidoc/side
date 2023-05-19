@@ -1,5 +1,6 @@
+import { watch } from 'chokidar'
 import { loadJsonSync, loadYamlSync } from './validate'
-import { accessSync, mkdirSync, statSync, watchFile, writeFileSync } from 'fs'
+import { accessSync, mkdirSync, statSync, writeFileSync } from 'fs'
 import { dump } from 'js-yaml'
 import { dirname } from 'path'
 
@@ -18,6 +19,7 @@ export class FileDB {
 
     /** 加载文件内容到缓冲 */
     load(): void {
+        console.verbose('FileDB: reading %s', this.path)
         const stat = statSync(this.path)
         if (stat.mtimeMs <= this.timestamp) return
         if (this.format == 'json') this.cache = loadJsonSync(this.path, this.schema)
@@ -26,6 +28,7 @@ export class FileDB {
 
     /** 保存缓冲内容到文件 */
     save(): void {
+        console.verbose('FileDB: writing %s', this.path)
         this.timestamp = Date.now()
         if (this.format == 'json') writeFileSync(this.path, JSON.stringify(this.cache))
         else if (this.format == 'yaml') writeFileSync(this.path, dump(this.cache))
@@ -66,7 +69,11 @@ export class FileDB {
      */
     private constructor(readonly path: string, readonly format: 'json' | 'yaml', readonly schema: string, private placeholder?: any) {
         this.load()
-        watchFile(path, this.load.bind(this))
+        watch(path).on('change', this.load.bind(this))
+    }
+
+    static Update(path: string): void {
+        if (path in dbpool) dbpool[path].load()
     }
 
     static Open<T>(path: string, config: FileDB.OpenConfig<T>): T {

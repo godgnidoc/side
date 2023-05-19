@@ -3,7 +3,7 @@ import { join } from 'path'
 export namespace PROJECT {
     export const RPATH = new class {
         /** 相对于项目路径的元信息路径 */
-        readonly META = '.project'
+        readonly META = '.side'
 
         /** 相对于项目路径的项目清单路径 */
         readonly MANIFEST = join(this.META, 'manifest')

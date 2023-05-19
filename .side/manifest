@@ -1,0 +1,9 @@
+project: side
+engine: 0.0.1
+packing:
+  root:
+    compress: true
+resources:
+  build:
+    using:
+      - main

@@ -13,13 +13,22 @@ interface DistSettings {
     token?: string
 }
 
-interface BasicGlobalSettings {
+
+/** 
+ * Side 全局设置文件的结构定义
+ * @schema GlobalSettings
+ */
+export interface GlobalSettings {
 
     /** dist 平台相关设置 */
     dist?: DistSettings
 }
 
-interface BasicLocalSettings {
+/** 
+ * 项目局部设置文件结构
+ * @schema LocalSettings
+ */
+export interface LocalSettings {
     /**
      * 显式指定各子模块的本地配置
      */
@@ -33,15 +42,3 @@ interface BasicLocalSettings {
         }
     }
 }
-
-/** 
- * Side 全局设置文件的结构定义
- * @schema GlobalSettings
- */
-export type GlobalSettings = BasicGlobalSettings
-
-/** 
- * 项目局部设置文件结构
- * @schema LocalSettings
- */
-export type LocalSettings = BasicLocalSettings

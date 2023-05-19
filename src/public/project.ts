@@ -131,8 +131,8 @@ export class Project {
         }
 
         /** 尝试加载项目根清单 */
-        console.verbose('draft: load project manifest %o', FileDB.Dump(this.manifest))
-        const manifest = { ...this.manifest }
+        const manifest = FileDB.Dump(this.manifest)
+        console.verbose('draft: load project manifest %o', manifest)
         delete manifest['project']
         delete manifest['target']
         delete manifest['engine']
@@ -186,6 +186,7 @@ export class Project {
 
         /** 写入最终目标清单 */
         await writeFile(join(this.path, PROJECT.RPATH.TARGET), dump(final))
+        FileDB.Update(join(this.path, PROJECT.RPATH.TARGET))
         console.verbose('draft: final target written')
     }
 
@@ -444,13 +445,13 @@ export class Project {
             for (const id of activation) {
                 const pkg = PackageId.FromString(id)
                 if (pkg instanceof Error) {
-                    console.warn('setup: invalid activation record found: %s', id)
+                    console.warn('clean: invalid activation record found: %s', id)
                     continue
                 }
                 await DeactivatePackage(pkg)
             }
         } catch (e) {
-            console.verbose('setup: no activation record found, skipping dependency deactivation')
+            console.verbose('clean: no activation record found, skipping dependency deactivation')
         }
 
         // 删除模拟系统根
