@@ -3,7 +3,7 @@
 HERE=$(realpath $(dirname ${BASH_SOURCE[0]}))
 
 if ! which side > /dev/null; then
-    export PATH=$PATH:${HERE}
+    export PATH=${HERE}:$PATH
 fi
 
 if [[ "${PROMPT_COMMAND}" != *_side_prompt_command* ]]; then

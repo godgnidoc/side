@@ -1,4 +1,3 @@
 #!/bin/bash -e
 
-cp $(which node) build/node
 side dist pack $(side vget package.json version)

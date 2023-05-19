@@ -37,6 +37,7 @@ export const SidePlatform = new class {
         get path() { return homedir() }
         get contributors() { return join(this.path, 'contributors') }
         get repositories() { return join(this.path, 'repositories') }
+        get downloadable() { return join(this.path, 'downloadable') }
     }
 
 
