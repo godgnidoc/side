@@ -80,6 +80,7 @@ export const SidePlatform = new class {
             LANG: 'C.UTF-8',
             LANGUAGE: 'C.UTF-8',
             SIDE_HOME: this.paths.home,
+            SIDE_SYSROOT: this.paths.sysroot,
             SIDE_VERSION: this.version,
             SIDE_REVISION: this.revision,
             NODE_PATH: [
