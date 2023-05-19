@@ -65,6 +65,7 @@ export class Project {
             SIDE_PROJECT_TARGET: this.target?.target,
             SIDE_PROJECT_NAME: this.name,
             SIDE_PROJECT_META: join(this.path, PROJECT.RPATH.META),
+            SIDE_PROJECT_SYSROOT: join(this.path, PROJECT.RPATH.SYSROOT),
             SIDE_DIR_MODULE: this.manifest.dirs.MODULE,
             SIDE_DIR_BUILD: this.manifest.dirs.BUILD,
             SIDE_DIR_DOCUMENT: this.manifest.dirs.DOCUMENT,
