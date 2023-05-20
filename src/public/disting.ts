@@ -54,29 +54,40 @@ export async function IsPackageExists(packageId: PackageId) {
         console.verbose('Package %s already exists', packageId.toString())
         return true
     } catch {
+        console.verbose('Package %s does not exist', packageId.toString())
         return false
     }
 }
 
 export async function IsPackageUpToDate(packageId: PackageId) {
     const id = packageId.toString()
-    console.verbose('stat package : %s', id)
+    console.verbose('check: stat package : %s', id)
     const lstat = await stat(packageId.localPath)
-    console.verbose('Local stat: size=%s mtime=%s', lstat.size, lstat.mtimeMs)
+    console.verbose('check: Local stat: size=%s mtime=%s', lstat.size, lstat.mtimeMs)
 
     const index: Cache = JSON.parse(await readFile(join(SidePlatform.paths.caches, 'index.json'), 'utf-8'))
     const cached = index[id]
-    if (!cached) return false
-    console.verbose('Cached: %o', cached)
-    if (lstat.size !== cached.lsize || lstat.mtimeMs !== cached.lmtime) return false
+    if (!cached) {
+        console.verbose('check: Package %s is not cached', id)
+        return false
+    }
+    console.verbose('check: Cached: size=%s mtime=%s', cached.lsize, cached.lmtime)
+    if (lstat.size !== cached.lsize || lstat.mtimeMs !== cached.lmtime) {
+        console.verbose('check: Local stat mismatch, package %s is not up to date', id)
+        return false
+    }
 
     const rstat = await api.package.stat(id)
     if (rstat.status !== 0) {
-        console.verbose('Failed to get package stat: %s', rstat.message)
+        console.verbose('check: Failed to get package stat: %s', rstat.message)
         return false
     }
-    console.verbose('Remote stat: %o', rstat.data)
-    return rstat.data.mtime === cached.mtime && rstat.data.size === cached.size
+    console.verbose('check: Remote stat: size=%s mtime=%s', rstat.data.size, rstat.data.mtime)
+
+    const upToDate = rstat.data.mtime === cached.mtime && rstat.data.size === cached.size
+    if (upToDate) console.verbose('check: Package %s is up to date', id)
+    else console.verbose('check: Package %s is not up to date', id)
+    return upToDate
 }
 
 export async function IsPackageUnpacked(packageId: PackageId) {
@@ -87,10 +98,14 @@ export async function IsPackageUnpacked(packageId: PackageId) {
     try {
         const stp = await stat(packageId.localPath)
         const stm = await stat(mark)
-        if( stm.mtimeMs < stp.mtimeMs ) return false
-        console.verbose('Package %s is already fully unpacked', id)
+        if (stm.mtimeMs < stp.mtimeMs) {
+            console.verbose('check: New package %s is fetched after last unpack', id)
+            return false
+        }
+        console.verbose('check: Package %s is already fully unpacked', id)
         return true
     } catch {
+        console.verbose('check: Package %s is not unpacked', id)
         return false
     }
 }
@@ -102,6 +117,7 @@ export async function IsPackageInstalled(packageId: PackageId) {
         console.verbose('Package %s is already installed', id)
         return true
     } else {
+        console.verbose('Package %s is not installed', id)
         return false
     }
 }
@@ -111,12 +127,12 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
 
     // 检查缓冲，判断是否需要下载
     if (!options?.ignoreCache && await IsPackageExists(packageId) && await IsPackageUpToDate(packageId)) {
-        console.verbose('Package %s is up to date', id)
+        console.verbose('fetch: Package %s is up to date', id)
         return packageId.localPath
     }
 
     // 获取远端文件流
-    console.verbose('Package %s is not up to date, downloading', id)
+    console.verbose('fetch: Package %s is not up to date, downloading', id)
     const download = await api.package.download(id)
     if (download.status !== 0) return new Error(download.message)
 
@@ -125,7 +141,7 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
     const ws = createWriteStream(packageId.localPath)
     download.data.stream.pipe(ws, { end: true })
     await new Promise(resolve => { download.data.stream.on('end', resolve) })
-    console.verbose('Package %s downloaded', id)
+    console.verbose('fetch: Package %s downloaded', id)
 
     // 更新缓冲
     const lstat = await stat(packageId.localPath)
@@ -133,7 +149,7 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
     try {
         index = JSON.parse(await readFile(join(SidePlatform.paths.caches, 'index.json'), 'utf-8'))
     } catch {
-        console.verbose('Failed to read cache index, creating new one')
+        console.verbose('fetch: Failed to read cache index, creating new one')
     }
     index[id] = {
         mtime: download.data.mtime,
@@ -161,9 +177,11 @@ export async function UnpackPackage(packageId: PackageId, options?: PackageOpOpt
 
     // 检查解压标志
     if (!options?.forceUnpack && await IsPackageUnpacked(packageId)) {
+        console.verbose('unpack: Package %s is already fully unpacked', packageId.toString())
         return
     }
 
+    console.verbose('unpack: Package %s is not fully unpacked, unpacking', packageId.toString())
     await mkdir(dist.SIDE_DIST_PATH, { recursive: true })
     await promisify(exec)(`chmod -R 777 ${dist.SIDE_DIST_PATH}`)
     await promisify(exec)(`rm -rf ${dist.SIDE_DIST_PATH}`)
@@ -177,6 +195,7 @@ export async function UnpackPackage(packageId: PackageId, options?: PackageOpOpt
         console.verbose('Failed to unpack root.tar.xz: %s', e.message)
     }
     await writeFile(mark, 'unpacked: ' + new Date().toLocaleString())
+    console.verbose('unpack: Package %s unpacked', packageId.toString())
 }
 
 
@@ -191,8 +210,10 @@ export async function InstallPackage(packageId: PackageId, options?: PackageOpOp
 
     // 检查安装状态
     if (!options?.forceInstall && await IsPackageInstalled(packageId)) {
+        console.verbose('install: Package %s is already installed', packageId.toString())
         return
     }
+    console.verbose('install: Package %s is not installed, installing', packageId.toString())
 
     // 加载包清单
     const manifest = await loadJson<PackageManifest>(join(packageId.dist.SIDE_DIST_PATH, 'meta', 'manifest'), 'PackageManifest')
@@ -213,6 +234,8 @@ export async function InstallPackage(packageId: PackageId, options?: PackageOpOp
     if (0 !== await invokePackageHook(packageId, 'install')) {
         throw new Error('Failed to invoke install script')
     }
+
+    console.verbose('install: Package %s installed', packageId.toString())
 }
 
 export async function ActivatePackage(packageId: PackageId, options?: PackageOpOptions) {
