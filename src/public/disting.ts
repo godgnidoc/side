@@ -39,7 +39,7 @@ export function selectReleasePath() {
 }
 
 export async function QueryPackage(query: string, version?: SemVer) {
-    const result = await api.package.query(query, version.format())
+    const result = await api.package.query(query, version?.format())
     if (result.status !== 0) {
         console.error('Failed to search scopes: %s', result.message)
         return undefined
@@ -85,7 +85,9 @@ export async function IsPackageUnpacked(packageId: PackageId) {
     const mark = join(dist.SIDE_DIST_PATH, 'meta', 'fully-unpacked.mark')
 
     try {
-        await access(mark)
+        const stp = await stat(packageId.localPath)
+        const stm = await stat(mark)
+        if( stm.mtimeMs < stp.mtimeMs ) return false
         console.verbose('Package %s is already fully unpacked', id)
         return true
     } catch {

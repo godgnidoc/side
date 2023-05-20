@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mkdir -p ${SIDE_HOME}/side/root
+cp -r ${SIDE_DIST_ROOT}/* ${SIDE_HOME}/side/root/.

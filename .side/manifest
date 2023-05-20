@@ -1,6 +1,8 @@
 project: side
 engine: 0.0.1
 packing:
+  hooks:
+    install: doc/install
   root:
     compress: true
 resources:
