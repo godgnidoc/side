@@ -11,6 +11,7 @@ import { exec, spawn } from 'child_process'
 import { inflate } from 'inflate'
 import { vmerge } from 'notion'
 import { SemVer } from 'semver'
+import { Find } from 'filesystem'
 
 interface PackageOpOptions {
     // 放弃自动满足前置条件
@@ -267,46 +268,27 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
 
     // 自动部署
     const project = Project.This()
+    const files = await Find(dist.SIDE_DIST_ROOT, manifest.deploy)
     switch (manifest.deploy?.strategy) {
         case 'none': break
         case 'slink': {
             // 定位源路径下所有的文件
-            const files = (await promisify(exec)(`find ${dist.SIDE_DIST_ROOT} -type f -printf "%P\\n"`))
-                .stdout.split('\n')
-                .filter(file => {
-                    if (manifest.deploy.excludes) return !manifest.deploy.excludes.some(exclude => file.startsWith(exclude))
-                    if (manifest.deploy.includes) return manifest.deploy.includes.some(include => file.startsWith(include))
-                    return true
-                })
             for (const file of files) {
+                console.verbose('activate: soft linking %s', file)
                 await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
                 await promisify(exec)(`ln -rsf ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
             }
         } break
         case 'hlink': {
-            // 定位源路径下所有的文件
-            const files = (await promisify(exec)(`find ${dist.SIDE_DIST_ROOT} -type f -printf "%P\\n"`))
-                .stdout.split('\n')
-                .filter(file => {
-                    if (manifest.deploy.excludes) return !manifest.deploy.excludes.some(exclude => file.startsWith(exclude))
-                    if (manifest.deploy.includes) return manifest.deploy.includes.some(include => file.startsWith(include))
-                    return true
-                })
             for (const file of files) {
+                console.verbose('activate: hard linking %s', file)
                 await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
                 await promisify(exec)(`ln -f ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
             }
         } break
         case 'copy': {
-            // 定位源路径下所有的文件
-            const files = (await promisify(exec)(`find ${dist.SIDE_DIST_ROOT} -type f -printf "%P\\n"`))
-                .stdout.split('\n')
-                .filter(file => {
-                    if (manifest.deploy.excludes) return !manifest.deploy.excludes.some(exclude => file.startsWith(exclude))
-                    if (manifest.deploy.includes) return manifest.deploy.includes.some(include => file.startsWith(include))
-                    return true
-                })
             for (const file of files) {
+                console.verbose('activate: copying %s', file)
                 await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
                 await promisify(exec)(`cp ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
             }

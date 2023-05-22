@@ -1,10 +1,11 @@
 import { IsValidName, IsValidScope, PackageId } from 'format'
-import { invalidArgument, done, MatchPattern } from 'server/utils'
+import { invalidArgument, done } from 'server/utils'
 
 import { QueryPackages } from './common'
 import { readdir } from 'fs/promises'
 import { join } from 'path'
 import { SidePlatform } from 'platform'
+import { MatchPattern } from 'filesystem'
 
 export const Search = {
     async getByName(scope: string, repo: string, tags: string[], version?: string) {

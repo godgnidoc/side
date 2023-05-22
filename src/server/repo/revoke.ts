@@ -1,9 +1,10 @@
 import { join } from 'path'
-import { IsDir, IsOwner, authorizationFailed, authorize, done, fail, internalFailure, invalidArgument, permissionDenied } from 'server/utils'
+import { IsOwner, authorizationFailed, authorize, done, fail, internalFailure, invalidArgument, permissionDenied } from 'server/utils'
 import { chmod, } from 'fs/promises'
 import { RequestContext } from 'jetweb'
 import { IsValidName, IsValidScope } from 'format'
 import { SidePlatform } from 'platform'
+import { IsDir } from 'filesystem'
 
 /**
  * 删除仓库，实际仅将仓库权限设置为000，不真正执行删除操作

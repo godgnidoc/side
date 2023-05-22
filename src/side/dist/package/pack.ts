@@ -8,6 +8,7 @@ import { PackageId, PackageManifest, PackingManifest, loadYamlSync } from 'forma
 import { selectPackingManifest, selectReleasePath } from 'disting'
 import { Project } from 'project'
 import { SidePlatform } from 'platform'
+import { Find } from 'filesystem'
 
 export const distPackFeature = new class extends Feature {
     args = '<version> [manifest]'
@@ -96,27 +97,16 @@ export const distPackFeature = new class extends Feature {
     async collectRootContent(workspace: string, packing: PackingManifest['packing']) {
         const root = join(Project.This().path, Project.This().manifest.dirs.BUILD)
 
-        const files: string[] = []
-        if (packing.root?.includes) {
-            for (const include of packing.root.includes) {
-                const cmd = await promisify(exec)(`find . -not -type d -path ${include}`, { cwd: root })
-                files.push(...cmd.stdout.trim().split('\n'))
-            }
-        } else if (packing.root?.excludes) {
-            const c = 'find . -not -type d -not -path ' + packing.root.excludes.map(e => `-path ${e}`).join(' -not -path ')
-
-            const cmd = await promisify(exec)(c, { cwd: root })
-            files.push(...cmd.stdout.trim().split('\n'))
-        } else {
-            const cmd = await promisify(exec)('find . -not -type d', { cwd: root })
-            files.push(...cmd.stdout.trim().split('\n'))
-        }
+        // 定位源路径下所有的文件
+        const files = await Find(root, packing.root)
 
         if (packing.root?.compress === true) {
+            console.verbose('pack: compressing files:\n%s', files.map(f => '  ' + f).join('\n'))
             await promisify(exec)(`tar -Jcf ${join(workspace, 'root.tar.xz')} ${files.join(' ')}`, { cwd: root })
             await rm(join(workspace, 'root'), { recursive: true, force: true })
         } else {
             const all = files.map(async file => {
+                console.verbose('pack: copying %s', file)
                 await mkdir(join(workspace, 'root', dirname(file)), { recursive: true })
                 return promisify(exec)(`cp --no-dereference ${file} ${join(workspace, 'root', file)}`, { cwd: root })
             })

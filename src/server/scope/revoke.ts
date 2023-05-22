@@ -1,8 +1,9 @@
 import { join } from 'path'
-import { IsDir, IsOwner, authorizationFailed, authorize, done, fail, internalFailure, invalidArgument, permissionDenied } from 'server/utils'
+import { IsOwner, authorizationFailed, authorize, done, fail, internalFailure, invalidArgument, permissionDenied } from 'server/utils'
 import { chmod } from 'fs/promises'
 import { IsValidScope } from 'format'
 import { SidePlatform } from 'platform'
+import { IsDir } from 'filesystem'
 
 /**
  * 删除作用域，实际仅将作用域权限设置为000，不真正执行删除操作

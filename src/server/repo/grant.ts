@@ -1,9 +1,10 @@
 import { join } from 'path'
-import { IsDir, IsOwner, authorizationFailed, authorize, done, fail, permissionDenied } from 'server/utils'
+import { IsOwner, authorizationFailed, authorize, done, fail, permissionDenied } from 'server/utils'
 import { writeFile } from 'fs/promises'
 import { RequestContext } from 'jetweb'
 import { PackageId, RepoManifest, loadJson } from 'format'
 import { SidePlatform } from 'platform'
+import { IsDir } from 'filesystem'
 
 export async function postGrant(this: RequestContext, repoId: string, user: string) {
     const packageId = PackageId.FromRepoId(repoId)

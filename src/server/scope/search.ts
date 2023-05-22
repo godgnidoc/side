@@ -1,7 +1,8 @@
-import { MatchPattern, done } from 'server/utils'
+import { done } from 'server/utils'
 import { readdir } from 'fs/promises'
 import { IsValidScope } from 'format'
 import { SidePlatform } from 'platform'
+import { MatchPattern } from 'filesystem'
 
 /**
  * 列举作用域

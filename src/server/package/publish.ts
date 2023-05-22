@@ -1,5 +1,5 @@
 import { RequestContext } from 'jetweb'
-import { IsContributor, IsDir, IsFile, authorizationFailed, authorize, done, fail, internalFailure, invalidArgument, permissionDenied } from 'server/utils'
+import { IsContributor, authorizationFailed, authorize, done, fail, internalFailure, invalidArgument, permissionDenied } from 'server/utils'
 import { QueryPackages, busyPackages } from './common'
 import { join } from 'path'
 import { promisify } from 'util'
@@ -8,6 +8,7 @@ import { mkdir, rename, rm, writeFile } from 'fs/promises'
 import { createWriteStream } from 'fs'
 import { CreateTask } from 'server/task'
 import { LatestPackageId, PackageId, PackageManifest, getLastValidateErrorText, loadJson, validateSync } from 'format'
+import { IsDir, IsFile } from 'filesystem'
 
 /**
  * 获取资源包文件，校验资源包文件的完整性并发布到正确位置

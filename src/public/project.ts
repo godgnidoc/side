@@ -11,6 +11,7 @@ import { getRevision, invokeHook } from 'side/common'
 import * as yaml from 'js-yaml'
 import { ActivatePackage, DeactivatePackage } from './disting'
 import { PROJECT } from 'project.path'
+import { Find } from 'filesystem'
 
 /** 导出静态定义 */
 export { PROJECT } from './project.path'
@@ -402,8 +403,7 @@ export class Project {
                     } break
                     case 'slink': {
                         // 定位源路径下所有的文件
-                        const files = (await promisify(exec)(`find ${join(src, using)} -type f -printf "%P\n"`))
-                            .stdout.split('\n')
+                        const files = await Find(join(src, using))
                         for (const file of files) {
                             console.verbose('CRM: creating symlink %s to %s', join(dst, file), join(src, using, file))
                             await mkdir(dirname(join(dst, file)), { recursive: true })

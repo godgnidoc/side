@@ -1,8 +1,9 @@
 import { join } from 'path'
-import { MatchPattern, done, invalidArgument } from 'server/utils'
+import { done, invalidArgument } from 'server/utils'
 import { readdir } from 'fs/promises'
 import { IsValidName, IsValidScope } from 'format'
 import { SidePlatform } from 'platform'
+import { MatchPattern } from 'filesystem'
 
 export async function getSearch(pattern?: string, scope?: string) {
     const scopes: string[] = []

@@ -1,9 +1,10 @@
 import { join } from 'path'
-import { IsContributor, IsDir, authorize, done, fail, internalFailure, invalidArgument, permissionDenied } from 'server/utils'
+import { IsContributor, authorize, done, fail, internalFailure, invalidArgument, permissionDenied } from 'server/utils'
 import { mkdir, writeFile } from 'fs/promises'
 import { RequestContext } from 'jetweb'
 import { IsValidName, IsValidScope } from 'format'
 import { SidePlatform } from 'platform'
+import { IsDir } from 'filesystem'
 
 async function CreateRepo(this: RequestContext, name: string, scope: string) {
     // 鉴权并获取用户信息

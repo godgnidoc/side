@@ -1,8 +1,9 @@
 import { join } from 'path'
-import { IsDir, IsOwner, authorizationFailed, authorize, done, fail, invalidArgument, permissionDenied } from 'server/utils'
+import { IsOwner, authorizationFailed, authorize, done, fail, invalidArgument, permissionDenied } from 'server/utils'
 import { writeFile } from 'fs/promises'
 import { IsValidScope, PackageId, RepoManifest, loadJson } from 'format'
 import { SidePlatform } from 'platform'
+import { IsDir } from 'filesystem'
 
 export async function postGrant(scope: string, user: string) {
     const packageId = PackageId.FromScopeAndName(scope, 'useless')

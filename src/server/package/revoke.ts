@@ -1,8 +1,9 @@
-import { authorizationFailed, authorize, fail, invalidArgument, IsContributor, permissionDenied, IsDir, IsFile, done } from 'server/utils'
+import { authorizationFailed, authorize, fail, invalidArgument, IsContributor, permissionDenied, done } from 'server/utils'
 import { chmod } from 'fs/promises'
 import { RequestContext } from 'jetweb'
 import { busyPackages } from './common'
 import { PackageId } from 'format'
+import { IsDir, IsFile } from 'filesystem'
 
 export async function postRevoke(this: RequestContext, id: string) {
     // 检查用户是否登录

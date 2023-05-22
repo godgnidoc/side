@@ -1,8 +1,9 @@
 import { join } from 'path'
-import { IsDir, authorizationFailed, authorize, done, fail, internalFailure, invalidArgument } from 'server/utils'
+import { authorizationFailed, authorize, done, fail, internalFailure, invalidArgument } from 'server/utils'
 import { mkdir, writeFile } from 'fs/promises'
 import { IsValidScope } from 'format'
 import { SidePlatform } from 'platform'
+import { IsDir } from 'filesystem'
 
 export async function postCreate(name: string) {
     // 鉴权并获取用户信息
