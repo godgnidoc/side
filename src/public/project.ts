@@ -303,6 +303,7 @@ export class Project {
             exports: target.exports
         }
 
+        await mkdir(join(this.path, this.manifest.dirs.BUILD), { recursive: true })
         await writeFile(join(this.path, this.manifest.dirs.BUILD, 'build-info.json'), JSON.stringify(info, null, 4))
     }
 

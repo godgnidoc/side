@@ -5,6 +5,7 @@ echo "Building..."
 if [[ $# == 0 || $1 == "schema" ]]; then
   echo "Generating schema..."
   mkdir -p build/schema
+  mkdir -p build/doc
   env -C src grep -rn "@schema" \
     | sed -e "s%\(.*\)\.ts.*@schema \(.*\)%\2%" \
     | xargs node .side/scripts/schema-gen.js

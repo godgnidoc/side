@@ -1,5 +1,6 @@
 import { writeFileSync } from "fs"
 import { resolve } from "path";
+import parse from 'json-schema-to-markdown'
 
 import * as TJS from "typescript-json-schema";
 
@@ -21,4 +22,5 @@ process.argv.shift(); // remove path to script
 for(const type of process.argv) {
     const schema = generator?.getSchemaForSymbol(type)
     writeFileSync(resolve(`build/schema/${type}.json`), JSON.stringify(schema, null, 2))
+    writeFileSync(resolve(`build/doc/${type}.md`), parse(schema));
 }
