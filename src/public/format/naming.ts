@@ -257,7 +257,7 @@ export class PackageId {
      * @returns 包唯一标识对象
      */
     static FromString(id: string): PackageId | Error {
-        const match = id.match(/^(@[a-zA-Z]+(?:-[a-zA-Z0-9_]+)*)\/([a-zA-Z]+(?:-[a-zA-Z0-9_]+)*)(?:--([a-zA-Z][a-zA-Z0-9_]*(?:-[a-zA-Z][a-zA-Z0-9_]*)*))?-((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?(?:\+[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?)$/)
+        const match = id.match(/^(@[a-zA-Z0-9][a-zA-Z0-9_]*(?:-[a-zA-Z0-9][a-zA-Z0-9_]*)*)\/([a-zA-Z0-9][a-zA-Z0-9_]*(?:-[a-zA-Z0-9][a-zA-Z0-9_]*)*)(?:--([a-zA-Z0-9][a-zA-Z0-9_]*(?:-[a-zA-Z0-9][a-zA-Z0-9_]*)*))?-((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?(?:\+[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)?)$/)
 
         if (!match) return new Error('Invalid package id: ' + id)
 
@@ -307,14 +307,14 @@ export class PackageId {
  * 检查域是否满足基本命名规范
  */
 export function IsValidScope(scope: string): boolean {
-    return /^@[a-zA-Z]+(?:-[a-zA-Z0-9_]+)*$/.test(scope)
+    return /^@[a-zA-Z0-9][a-zA-Z0-9_]*(?:-[a-zA-Z0-9][a-zA-Z0-9_]*)*$/.test(scope)
 }
 
 /**
  * 检查名称是否满足基本命名规范
  */
 export function IsValidName(name: string): boolean {
-    return /^[a-zA-Z]+(?:-[a-zA-Z0-9_]+)*$/.test(name)
+    return /^[a-zA-Z0-9][a-zA-Z0-9_]*(?:-[a-zA-Z0-9][a-zA-Z0-9_]*)*$/.test(name)
 }
 
 /**
@@ -323,7 +323,7 @@ export function IsValidName(name: string): boolean {
  * @returns 是否满足基本命名规范
  */
 export function IsValidTag(tag: string): boolean {
-    return /^[a-zA-Z][a-zA-Z0-9_]*$/.test(tag)
+    return /^[a-zA-Z0-9][a-zA-Z0-9_]*$/.test(tag)
 }
 
 /**
