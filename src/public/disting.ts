@@ -51,10 +51,10 @@ export async function QueryPackage(query: string, version?: SemVer) {
 export async function IsPackageExists(packageId: PackageId) {
     try {
         await stat(packageId.localPath)
-        console.verbose('Package %s already exists', packageId.toString())
+        console.verbose('check: Package %s already exists', packageId.toString())
         return true
     } catch {
-        console.verbose('Package %s does not exist', packageId.toString())
+        console.verbose('check: Package %s does not exist', packageId.toString())
         return false
     }
 }
@@ -114,10 +114,10 @@ export async function IsPackageInstalled(packageId: PackageId) {
     const id = packageId.toString()
 
     if (0 === await invokePackageHook(packageId, 'test', true)) {
-        console.verbose('Package %s is already installed', id)
+        console.verbose('check: Package %s is already installed', id)
         return true
     } else {
-        console.verbose('Package %s is not installed', id)
+        console.verbose('check: Package %s is not installed', id)
         return false
     }
 }
@@ -345,7 +345,7 @@ export async function DeactivatePackage(packageId: PackageId) {
 
 export async function UninstallPackage(packageId: PackageId) {
     if (!await IsPackageInstalled(packageId)) {
-        console.verbose('package %s not installed, skiped', packageId.toString())
+        console.verbose('uninstall: package %s not installed, skiped', packageId.toString())
         return
     }
 
@@ -353,8 +353,6 @@ export async function UninstallPackage(packageId: PackageId) {
     if (0 !== await invokePackageHook(packageId, 'uninstall')) {
         throw new Error('Failed to invoke uninstall script')
     }
-
-    await promisify(exec)('rm -rf ' + packageId.dist.SIDE_DIST_PATH)
 }
 
 export async function invokePackageHook(packageId: PackageId, hook: string, failOnMissing = false) {
@@ -369,7 +367,10 @@ export async function invokePackageHook(packageId: PackageId, hook: string, fail
     }
 
     await promisify(exec)(`chmod +x ${script}`)
-    const env = inflate(vmerge(Project.This().exports, dist))
+    const env = inflate(vmerge(
+        Project.This() ? Project.This().exports : SidePlatform.exports,
+        dist
+    ))
     console.verbose('invoke hook %s', script)
     const child = spawn(script, {
         env,

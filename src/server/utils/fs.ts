@@ -1,4 +1,4 @@
-import {  stat } from 'fs/promises'
+import { stat } from 'fs/promises'
 
 export async function IsDir(path: string) {
     try {
@@ -25,7 +25,7 @@ export function MatchPattern(fname: string, pattern: string) {
     let i = 0, j = 0
     while (i < fname.length && j < pattern.length) {
         if (pattern[j] === '*') {
-            j++
+            while (pattern[j] === '*') j++
             while (i < fname.length && fname[i] !== pattern[j]) i++
         } else if (pattern[j] === '?') {
             i++
@@ -36,5 +36,6 @@ export function MatchPattern(fname: string, pattern: string) {
             j++
         }
     }
+    while (pattern[j] === '*' || pattern[j] === '?') j++
     return i === fname.length && j === pattern.length
 }

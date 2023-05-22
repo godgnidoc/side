@@ -1,6 +1,7 @@
 import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
 import { InstallPackage } from 'disting'
 import { PackageId } from 'format'
+import { api } from '../api'
 
 class DistInstallFeature extends Feature {
     args = '<package>'
@@ -9,19 +10,24 @@ class DistInstallFeature extends Feature {
 
     @Brief('Disable auto fetching or auto unpacking')
     @LongOpt('--disable-autos') @ShortOpt('-A')
-        disableAutos = false
+    disableAutos = false
 
     @Brief('Ignore local caches to fetch')
     @LongOpt('--ignore-cache') @ShortOpt('-C')
-        ignoreCache = false
+    ignoreCache = false
 
     @Brief('Force unpack')
     @LongOpt('--force-unpack') @ShortOpt('-u')
-        forceUnpack = false
+    forceUnpack = false
 
     @Brief('Force install')
     @LongOpt('--force-install') @ShortOpt('-i')
-        forceInstall = false
+    forceInstall = false
+
+    complete = async (editing: boolean, args: string[]) => {
+        if (args.length === 0) return (await api.package.search('*')).data
+        else if (args.length === 1 && editing) return (await api.package.search(args[0] + '*')).data
+    }
 
     async entry(id: string) {
         const packageId = PackageId.FromString(id)

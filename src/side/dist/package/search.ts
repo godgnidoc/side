@@ -6,6 +6,11 @@ export const distSearchFeature = new class extends Feature {
     brief = 'Search packages'
     description = 'Search packages against specified pattern'
 
+    complete = async (editing: boolean, args: string[]) => {
+        if (args.length === 0) return (await api.package.search('*')).data
+        else if (args.length === 1 && editing) return (await api.package.search(args[0] + '*')).data
+    }
+
     async entry(pattern?: string) {
         const result = await api.package.search(pattern)
         if (result.status !== 0) {

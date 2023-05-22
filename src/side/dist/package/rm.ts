@@ -4,8 +4,8 @@ import { Cache, PackageId } from 'format'
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { promisify } from 'util'
-import { distUninstallFeature } from './uninstall'
 import { SidePlatform } from 'platform'
+import { UninstallPackage } from 'disting'
 
 export const distRmFeature = new class extends Feature {
     args = '<package>'
@@ -20,17 +20,28 @@ export const distRmFeature = new class extends Feature {
             return 1
         }
 
-        await distUninstallFeature.entry(id)
+        await UninstallPackage(packageId)
 
         try {
             const index: Cache = JSON.parse(await readFile(join(SidePlatform.paths.caches, 'index.json'), 'utf-8'))
             delete index[packageId.toString()]
             await writeFile(join(SidePlatform.paths.caches, 'index.json'), JSON.stringify(index))
-        } catch {
-            // ignore
+        } catch (e) {
+            console.verbose(e)
         }
 
-        await promisify(exec)('rm -rf ' + packageId.localPath)
+        try {
+            await promisify(exec)('rm -rf ' + packageId.localPath)
+
+        } catch (e) {
+            console.verbose(e)
+        }
+
+        try {
+            await promisify(exec)('rm -rf ' + packageId.dist.SIDE_DIST_PATH)
+        } catch (e) {
+            console.verbose(e)
+        }
 
         return 0
     }
