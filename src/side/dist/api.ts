@@ -1,7 +1,7 @@
 import { Axios, AxiosRequestConfig } from 'axios'
 import { PackageManifest } from 'format'
-import { createReadStream } from 'fs'
 import { SidePlatform } from 'platform'
+import { Stream } from 'stream'
 
 export interface Response<T = undefined> {
     status: number // 0 表示成功
@@ -98,13 +98,13 @@ export const api = new class {
     }
 
     readonly package = new class {
-        async publish(manifest: PackageManifest, path: string, allowOverwrite: boolean, allowDowngrade: boolean) {
+        async publish(manifest: PackageManifest, readStream: Stream, allowOverwrite: boolean, allowDowngrade: boolean) {
             const res = await API.apost<string>('/package/publish', {
                 manifest: manifest, allowOverwrite, allowDowngrade
             })
             if (res.status != 0) return res
             const token = res.data
-            const result = await API.task(token, createReadStream(path))
+            const result = await API.task(token, readStream)
             console.verbose('api: publish %s => %o', token, result.data)
             return JSON.parse(result.data) as Response
         }

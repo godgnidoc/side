@@ -26,7 +26,8 @@ async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
         const file = createWriteStream(tmpPack, { autoClose: true })
         this.request.incomingMessage.pipe(file)
         this.response.writeContinue()
-        await new Promise((resolve) => { this.request.incomingMessage.on('end', resolve) })
+        await new Promise((resolve) => { file.on('close', resolve) })
+        console.verbose('package %s saved', packageId.toString())
 
         // 解压包文件
         await promisify(exec)('tar -xf ' + tmpPack, { cwd: tmpDir })

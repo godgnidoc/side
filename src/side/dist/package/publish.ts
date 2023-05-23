@@ -3,6 +3,10 @@ import { api } from 'dist/api'
 import { promisify } from 'util'
 import { exec } from 'child_process'
 import { PackageManifest, getLastValidateErrorText, validateSync } from 'format'
+import { stat } from 'fs/promises'
+import { createReadStream } from 'fs'
+import * as pstream from 'progress-stream'
+import * as progress from 'progress'
 
 class DistPublishFeature extends Feature {
     args = '<path/to/package>'
@@ -35,7 +39,18 @@ class DistPublishFeature extends Feature {
             if (!validateSync<PackageManifest>(manifest, 'PackageManifest'))
                 throw new Error(getLastValidateErrorText('PackageManifest'))
             if (manifest instanceof Error) throw manifest
-            const res = await api.package.publish(manifest, path, this.allowOverwrite, this.allowDowngrade)
+
+            const { size } = await stat(path)
+            const rs = createReadStream(path)
+            const str = pstream({ length: size, time: 100 })
+            const bar = new progress(`publish:    uploading ${manifest.packageId} [:bar] :percent :etas`, {
+                complete: '>',
+                incomplete: ' ',
+                width: 20,
+                total: size,
+            })
+            str.on('progress', p => bar.tick(p.delta))
+            const res = await api.package.publish(manifest, rs.pipe(str), this.allowOverwrite, this.allowDowngrade)
             if (res.status !== 0) {
                 console.error('Publish failed: %s', res.message)
                 return 1

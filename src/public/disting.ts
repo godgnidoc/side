@@ -1,5 +1,7 @@
 import { readFile, mkdir, stat, writeFile, access } from 'fs/promises'
 import { createWriteStream } from 'fs'
+import * as pstream from 'progress-stream'
+import * as progress from 'progress'
 import { dirname, join } from 'path'
 
 import { Cache, PackageId, PackageManifest, loadJson } from 'format'
@@ -140,8 +142,16 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
     // 下载文件
     await mkdir(packageId.localRepoPath, { recursive: true })
     const ws = createWriteStream(packageId.localPath)
-    download.data.stream.pipe(ws, { end: true })
-    await new Promise(resolve => { download.data.stream.on('end', resolve) })
+    const str = pstream({ length: download.data.size, time: 100 })
+    const bar = new progress(`fetch:    downloading ${id} [:bar] :percent :etas`, {
+        complete: '>',
+        incomplete: ' ',
+        width: 20,
+        total: download.data.size
+    })
+    str.on('progress', p => bar.tick(p.delta))
+    download.data.stream.pipe(str).pipe(ws, { end: true })
+    await new Promise(resolve => { ws.on('close', resolve) })
     console.verbose('fetch: Package %s downloaded', id)
 
     // 更新缓冲
