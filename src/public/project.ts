@@ -598,7 +598,7 @@ export class Project {
     static This() {
         if (thisProject === undefined) {
             try {
-                thisProject = Project.Open()
+                thisProject = Project.Open(process.env.SIDE_PROJECT || process.cwd())
             } catch (e) {
                 console.debug('Failed to open project: %s', e.message)
                 thisProject = null
