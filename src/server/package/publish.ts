@@ -4,11 +4,11 @@ import { QueryPackages, busyPackages } from './common'
 import { join } from 'path'
 import { promisify } from 'util'
 import { exec } from 'child_process'
-import { mkdir, rename, rm, writeFile } from 'fs/promises'
+import { mkdir, writeFile } from 'fs/promises'
 import { createWriteStream } from 'fs'
 import { CreateTask } from 'server/task'
 import { LatestPackageId, PackageId, PackageManifest, getLastValidateErrorText, loadJson, validateSync } from 'format'
-import { IsDir, IsFile } from 'filesystem'
+import { IsDir } from 'filesystem'
 
 /**
  * 获取资源包文件，校验资源包文件的完整性并发布到正确位置
@@ -29,23 +29,24 @@ async function TaskCallbackPublish(this: RequestContext, packageId: PackageId) {
         await new Promise((resolve) => { file.on('close', resolve) })
         console.verbose('package %s saved', packageId.toString())
 
-        // 解压包文件
-        await promisify(exec)('tar -xf ' + tmpPack, { cwd: tmpDir })
+        // 列举包内容
+        const list = (await promisify(exec)('tar -tf ' + tmpPack, { cwd: tmpDir })).stdout.split('\n')
 
         // 校验包结构
-        if (!await IsDir(join(tmpDir, 'meta')))
-            return fail(2, 'Invalid package structure: meta directory missing')
-        if (!await IsDir(join(tmpDir, 'root')) && !await IsFile(join(tmpDir, 'root.tar.xz')))
+        if (!list.includes('meta/manifest'))
+            return fail(2, 'Invalid package structure: manifest missing')
+        if (!list.includes('root/') && !list.includes('root.tar.xz'))
             return fail(2, 'Invalid package structure: root content missing')
-        if (await IsDir(join(tmpDir, 'root')) && await IsFile(join(tmpDir, 'root.tar.xz')))
+        if (list.includes('root/') && list.includes('root.tar.xz'))
             return fail(2, 'Invalid package structure: root content duplicated')
 
         // 校验包清单
+        await promisify(exec)('tar -xf ' + tmpPack + ' meta/manifest', { cwd: tmpDir })
         const manifest = await loadJson<PackageManifest>(join(tmpDir, 'meta', 'manifest'), 'PackageManifest')
 
         // 清理并覆盖目标包
-        await rm(packageId.path, { recursive: true, force: true })
-        await rename(tmpPack, packageId.path)
+        await promisify(exec)('rm -rf ' + packageId.path)
+        await promisify(exec)(`mv ${tmpPack} ${packageId.path}`)
         await promisify(exec)('rm -rf ' + tmpDir)
 
         // 更新包清单
