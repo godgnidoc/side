@@ -75,7 +75,7 @@ export async function Find(
         }
 
         if (await IsFile(target)) {
-            console.verbose('find: found %s', target)
+            // console.verbose('find: found %s', target)
             files.push(task)
             continue
         }

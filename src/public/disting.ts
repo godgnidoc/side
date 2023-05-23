@@ -116,7 +116,7 @@ export async function IsPackageUnpacked(packageId: PackageId) {
 export async function IsPackageInstalled(packageId: PackageId) {
     const id = packageId.toString()
 
-    if (0 === await invokePackageHook(packageId, 'test', true)) {
+    if (0 === await invokePackageHook(packageId, 'test', { failOnMissing: true })) {
         console.verbose('check: Package %s is already installed', id)
         return true
     } else {
@@ -340,7 +340,7 @@ export async function DeactivatePackage(packageId: PackageId) {
 }
 
 export async function UninstallPackage(packageId: PackageId) {
-    if (!await IsPackageInstalled(packageId)) {
+    if (!await IsPackageUnpacked(packageId)) {
         console.verbose('uninstall: package %s not installed, skiped', packageId.toString())
         return
     }
@@ -349,9 +349,16 @@ export async function UninstallPackage(packageId: PackageId) {
     if (0 !== await invokePackageHook(packageId, 'uninstall')) {
         throw new Error('Failed to invoke uninstall script')
     }
+
+    // 删除包目录
+    try {
+        await promisify(exec)('rm -rf ' + packageId.dist.SIDE_DIST_PATH)
+    } catch (e) {
+        console.verbose(e)
+    }
 }
 
-export async function invokePackageHook(packageId: PackageId, hook: string, failOnMissing = false) {
+export async function invokePackageHook(packageId: PackageId, hook: string, options?: { failOnMissing?: boolean, ignoreError?: boolean }) {
     const dist = packageId.dist
     const script = join(dist.SIDE_DIST_PATH, 'hook', hook)
 
@@ -359,7 +366,7 @@ export async function invokePackageHook(packageId: PackageId, hook: string, fail
         await access(script)
     } catch {
         console.verbose('package hook %s not found, skiped', hook)
-        return failOnMissing ? 1 : 0
+        return options?.failOnMissing ? 1 : 0
     }
 
     await promisify(exec)(`chmod +x ${script}`)
@@ -377,8 +384,13 @@ export async function invokePackageHook(packageId: PackageId, hook: string, fail
 
     return new Promise<number>((resolve) => {
         child.on('exit', code => {
-            if (code !== 0)
-                console.error('package hook %s exited with code %d', script, code)
+            if (code !== 0) {
+                if (options?.ignoreError) {
+                    console.verbose('package hook %s exited with code %d', script, code)
+                } else {
+                    console.error('package hook %s exited with code %d', script, code)
+                }
+            }
             resolve(code)
         })
     })
