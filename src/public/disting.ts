@@ -12,7 +12,6 @@ import { promisify } from 'util'
 import { exec, spawn } from 'child_process'
 import { inflate } from 'inflate'
 import { vmerge } from 'notion'
-import { SemVer } from 'semver'
 import { Find } from 'filesystem'
 
 interface PackageOpOptions {
@@ -41,8 +40,8 @@ export function selectReleasePath() {
     return join(Project.This().path, Project.This().manifest.dirs.RELEASE)
 }
 
-export async function QueryPackage(query: string, version?: SemVer) {
-    const result = await api.package.query(query, version?.format())
+export async function QueryPackage(query: string, version?: string) {
+    const result = await api.package.query(query, version)
     if (result.status !== 0) {
         console.error('Failed to search scopes: %s', result.message)
         return undefined
@@ -116,7 +115,7 @@ export async function IsPackageUnpacked(packageId: PackageId) {
 export async function IsPackageInstalled(packageId: PackageId) {
     const id = packageId.toString()
 
-    if (0 === await invokePackageHook(packageId, 'test', { failOnMissing: true })) {
+    if (0 === await invokePackageHook(packageId, 'test', { failOnMissing: true, ignoreError: true })) {
         console.verbose('check: Package %s is already installed', id)
         return true
     } else {
@@ -232,7 +231,7 @@ export async function InstallPackage(packageId: PackageId, options?: PackageOpOp
     // 逐个安装依赖
     if (!options?.disableRecursive && manifest.depends) {
         for (const dep in manifest.depends) {
-            const pids = await QueryPackage(dep, new SemVer(manifest.depends[dep]))
+            const pids = await QueryPackage(dep, manifest.depends[dep])
             if (pids.length === 0) {
                 throw new Error('Package ' + dep + ':' + manifest.depends[dep] + ' not found')
             }
@@ -266,7 +265,7 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
     // 逐个激活依赖
     if (!options?.disableRecursive && manifest.depends) {
         for (const dep in manifest.depends) {
-            const pids = await QueryPackage(dep, new SemVer(manifest.depends[dep]))
+            const pids = await QueryPackage(dep, manifest.depends[dep])
             if (pids.length === 0) {
                 throw new Error('Package ' + dep + ':' + manifest.depends[dep] + ' not found')
             }
@@ -323,7 +322,7 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
         }
         await writeFile(apath, activation.join('\n'))
     } catch {
-        await writeFile(apath, JSON.stringify(packageId.toString()))
+        await writeFile(apath, packageId.toString())
     }
 }
 

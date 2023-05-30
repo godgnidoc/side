@@ -2,6 +2,7 @@ import { Axios, AxiosRequestConfig } from 'axios'
 import { PackageManifest } from 'format'
 import { SidePlatform } from 'platform'
 import { Stream } from 'stream'
+import * as qs from 'qs'
 
 export interface Response<T = undefined> {
     status: number // 0 表示成功
@@ -44,7 +45,7 @@ const API = new class {
 
     async get<T>(url: string, params: any) {
         const axios = this.axios
-        console.verbose('api: get %s: %o', url, params)
+        console.verbose('api: get %s: %o', url, qs.stringify(params))
         const result = await axios.get(url, { params })
         console.verbose('api: get %s => %o', url, result.data)
         return JSON.parse(result.data) as Response<T>

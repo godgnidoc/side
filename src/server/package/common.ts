@@ -13,8 +13,8 @@ export const busyPackages = new Set<string>()
  * @param version 版本号，符合语义化版本规范，支持范围版本号
  * @return 匹配的包唯一标识列表，按版本号降序排列
  */
-export async function QueryPackages(query: string, version?: string) {
-    const range = version ? validRange(version) : undefined
+export async function QueryPackages(query: string, version = '') {
+    const range = version ? validRange(version) : ''
 
     const qid = PackageId.FromQuery(query)
     if (qid instanceof Error) return []
@@ -26,8 +26,8 @@ export async function QueryPackages(query: string, version?: string) {
 
         const id = PackageId.FromPath(join(repo, entry.name))
         if (!(id instanceof PackageId)) continue
-        if (!id.matchQuery(query)) continue
-        if (range && !satisfies(id.version, range)) continue
+        if (qid.query !== id.query) continue
+        if (!satisfies(id.version, range)) continue
 
         packages.push(id)
     }

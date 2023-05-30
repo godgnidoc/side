@@ -190,20 +190,6 @@ export class PackageId {
     }
 
     /**
-     * 判断包标识是否匹配请求
-     * @param query 请求
-     * @returns 匹配返回true，否则返回false
-     */
-    matchQuery(query: string) {
-        const part = PackageId.FromQuery(query)
-        if (part instanceof Error) return false
-
-        if (!part) return false
-
-        return this.name == part.name && this.tags.join('-') == part.tags.join('-') && this.scope == part.scope
-    }
-
-    /**
      * 包符号，格式为：<name>[--<tag>{-<tag>}]-<version>，不携带域名
      */
     get symbol(): string {

@@ -8,6 +8,7 @@ export async function main() {
 
     const app = new Side()
     const args = process.argv.slice(2)
+    // console.verbose('side: %o', args)
     try {
         if( process.env['SIDE_DEBUG'] == 'TRUE') {
             SetLogLevel('debug')

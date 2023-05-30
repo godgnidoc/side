@@ -1,6 +1,5 @@
 import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
 import { QueryPackage } from 'disting'
-import { parse } from 'semver'
 
 class DistQueryFeature extends Feature {
     args = '<query> [version|range]'
@@ -16,10 +15,9 @@ class DistQueryFeature extends Feature {
             console.error('Query is required')
             return 1
         }
+        console.verbose('dist: query %s %s', query, version)
 
-        const semv = parse(version)
-
-        const result = await QueryPackage(query, semv)
+        const result = await QueryPackage(query, version)
         if (this.all) result.forEach(i => console.log(i))
         else if (result[0]) console.log(result[0])
         return 0
