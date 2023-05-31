@@ -1,5 +1,5 @@
-import { FileDB, LocalSettings, PackageId, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync } from 'format'
-import { access, mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
+import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync } from 'format'
+import { mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
 import { basename, dirname, join, relative, resolve } from 'path'
 import { promisify } from 'util'
 import { exec } from 'child_process'
@@ -9,9 +9,9 @@ import { SidePlatform } from 'platform'
 import { vmerge } from 'notion'
 import { getRevision, invokeHook } from 'side/common'
 import * as yaml from 'js-yaml'
-import { ActivatePackage, DeactivatePackage } from './disting'
+import { ActivatePackage, DeactivatePackage, QueryPackage } from './disting'
 import { PROJECT } from 'project.path'
-import { Find } from 'filesystem'
+import { Find, IsExist } from 'filesystem'
 
 /** 导出静态定义 */
 export { PROJECT } from './project.path'
@@ -277,8 +277,18 @@ export class Project {
         const target = this.target
 
         let requires: string[]
-        if (target.requires) requires = Object.entries(target.requires)
-            .map(([query, version]) => PackageId.FromQuery(query, version).toString())
+        const lockPath = join(this.path, PROJECT.RPATH.DEPLOCK)
+        if (await IsExist(lockPath)) {
+            const lock = FileDB.Open<DepLock>(lockPath, { schema: 'DepLock', format: 'yaml' })
+            const tlock = lock[target.target]
+            if (tlock) {
+                for (const query in tlock) {
+                    const id = PackageId.FromQuery(query, tlock[query].version).toString()
+                    if (!requires) requires = [id]
+                    else if (!requires.includes(id)) requires.push(id)
+                }
+            }
+        }
 
         let modules: { [repo: string]: string }
         if (target.modules) for (const [name, module] of Object.entries(target.modules)) {
@@ -430,7 +440,9 @@ export class Project {
         // 逐一激活依赖
         for (const name in target.requires) {
             const version = target.requires[name]
-            const id = PackageId.FromQuery(name, version)
+            const ids = await QueryPackage(name, version)
+            if (ids.length == 0) throw new Error(`No package found for ${name} ${version}`)
+            const id = PackageId.FromString(ids[0])
             if (id instanceof Error) throw id
             await ActivatePackage(id)
         }
@@ -472,9 +484,7 @@ export class Project {
             const mpath = join(this.path, this.manifest.dirs.MODULE, name) // 子模块路径
 
             // 获取子模块仓库
-            try {
-                await access(mpath)
-            } catch {
+            if (!await IsExist(mpath)) {
                 await promisify(exec)(`git clone ${module.repo} ${mpath}`)
             }
 
@@ -574,6 +584,7 @@ export class Project {
             + `!/${relative(PROJECT.RPATH.META, PROJECT.RPATH.SCRIPTS)}/\n`
             + `!/${relative(PROJECT.RPATH.META, PROJECT.RPATH.TARGETS)}/\n`
             + `!/${relative(PROJECT.RPATH.META, PROJECT.RPATH.MANIFEST)}\n`
+            + `!/${relative(PROJECT.RPATH.META, PROJECT.RPATH.DEPLOCK)}\n`
             + '!/.gitignore\n'
         )
 

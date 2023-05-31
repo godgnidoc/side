@@ -9,6 +9,9 @@ export interface Dirs {
     /** 存放构建内容物的默认相对路径 */
     BUILD?: string
 
+    /** 打包时搜集分发内容的路径 */
+    DIST?: string
+
     /** 存放文档的默认相对路径 */
     DOCUMENT?: string
 

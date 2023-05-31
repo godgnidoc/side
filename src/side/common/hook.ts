@@ -1,9 +1,10 @@
 import { join } from 'path'
-import { stat, access } from 'fs/promises'
+import { stat } from 'fs/promises'
 import { exec, spawn } from 'child_process'
 import { promisify } from 'util'
 import { PROJECT, Project } from 'project'
 import { inflate } from 'inflate'
+import { IsExist } from 'filesystem'
 
 /**
  * 调用钩子脚本，如果钩子不存在则返回 0  
@@ -30,7 +31,7 @@ export async function invokeHook(hook: string, args: string[] = []) {
     }
 
     /** 若文件不存在则视为无动作 */
-    try { await access(script) } catch (e) { return 0 }
+    if (!await IsExist(script)) return 0
     console.verbose('invoke hook %s', script)
 
     await promisify(exec)(`chmod +x ${script}`)

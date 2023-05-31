@@ -1,10 +1,11 @@
 import { join } from 'path'
-import { access, readdir } from 'fs/promises'
+import { readdir } from 'fs/promises'
 import { exec, spawn } from 'child_process'
 import { promisify } from 'util'
 import { Feature } from '@godgnidoc/decli'
 import { PROJECT, Project } from 'project'
 import { inflate } from 'inflate'
+import { IsExist } from 'filesystem'
 
 export const invokeHookFeature = new class extends Feature {
     args = '<hook> [args...]'
@@ -28,9 +29,8 @@ export const invokeHookFeature = new class extends Feature {
 
         const name = args.shift()
         const script = join(Project.This().path, PROJECT.RPATH.SCRIPTS, name)
-        try {
-            await access(script)
-        } catch {
+
+        if (!await IsExist(script)) {
             return console.error('hook script %s not found', script), 1
         }
 

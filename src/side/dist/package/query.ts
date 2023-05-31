@@ -8,7 +8,7 @@ class DistQueryFeature extends Feature {
 
     @Brief('Print all matched packages')
     @LongOpt('--all') @ShortOpt('-a')
-        all = false
+    all = false
 
     async entry(query: string, version?: string) {
         if (!query) {
@@ -17,7 +17,10 @@ class DistQueryFeature extends Feature {
         }
         console.verbose('dist: query %s %s', query, version)
 
-        const result = await QueryPackage(query, version)
+        const result = await QueryPackage(query, version, {
+            ignoreLock: true,
+            skipSave: true
+        })
         if (this.all) result.forEach(i => console.log(i))
         else if (result[0]) console.log(result[0])
         return 0

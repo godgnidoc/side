@@ -1,4 +1,4 @@
-import { readdir, stat } from 'fs/promises'
+import { access, readdir, stat } from 'fs/promises'
 import { join, relative, resolve } from 'path'
 
 export async function IsDir(path: string) {
@@ -12,6 +12,15 @@ export async function IsDir(path: string) {
 export async function IsFile(path: string) {
     try {
         return (await stat(path)).isFile()
+    } catch {
+        return false
+    }
+}
+
+export async function IsExist(path: string) {
+    try {
+        await access(path)
+        return true
     } catch {
         return false
     }

@@ -1,10 +1,10 @@
-import { readFile, mkdir, stat, writeFile, access } from 'fs/promises'
+import { readFile, mkdir, stat, writeFile } from 'fs/promises'
 import { createWriteStream } from 'fs'
 import * as pstream from 'progress-stream'
 import * as progress from 'progress'
 import { dirname, join } from 'path'
 
-import { Cache, PackageId, PackageManifest, loadJson } from 'format'
+import { Cache, FileDB, PackageId, DepLock, PackageManifest, loadJson } from 'format'
 import { api } from 'dist/api'
 import { PROJECT, Project } from 'project'
 import { SidePlatform } from 'platform'
@@ -12,9 +12,18 @@ import { promisify } from 'util'
 import { exec, spawn } from 'child_process'
 import { inflate } from 'inflate'
 import { vmerge } from 'notion'
-import { Find } from 'filesystem'
+import { Find, IsExist } from 'filesystem'
+import { satisfies } from 'semver'
 
-interface PackageOpOptions {
+interface QueryOptions {
+    // 忽略版本锁定，强制查询最新版本
+    ignoreLock?: boolean
+
+    // 不保存查询结果到 package.lock.json
+    skipSave?: boolean
+}
+
+interface PackageOpOptions extends QueryOptions {
     // 放弃自动满足前置条件
     disableAutos?: boolean
 
@@ -40,11 +49,45 @@ export function selectReleasePath() {
     return join(Project.This().path, Project.This().manifest.dirs.RELEASE)
 }
 
-export async function QueryPackage(query: string, version?: string) {
+export async function QueryPackage(query: string, version?: string, options?: QueryOptions) {
+    const project = Project.This()
+    const target = project?.target?.target
+    const cache = project
+        ? FileDB.OpenOrCreate<DepLock>(join(project.path, PROJECT.RPATH.DEPLOCK), {}, {
+            format: 'yaml',
+            schema: 'DepLock'
+        })
+        : undefined
+    while (true) {
+        if (!options?.ignoreLock) break
+        if (!cache) break
+        if (!(target in cache)) break
+
+        const tcache = cache[target]
+        if (!(query in tcache)) break
+        if (version && !satisfies(tcache[query].version, version)) {
+            console.warn('query: Package query hit lock for %s, but version mismatch: %s', query, tcache[query].version)
+            break
+        } else {
+            console.verbose('query: Package query hit lock for %s: %o', query, FileDB.Dump(cache[query]))
+            const id = PackageId.FromQuery(query, tcache[query].version)
+            if (id instanceof Error) throw id
+            return [id.toString()]
+        }
+    }
+
     const result = await api.package.query(query, version)
     if (result.status !== 0) {
         console.error('Failed to search scopes: %s', result.message)
         return undefined
+    }
+
+    if (options?.skipSave !== true && cache && result.data[0]) {
+        const id = PackageId.FromString(result.data[0])
+        if (id instanceof Error) throw id
+        if (target in cache) cache[target][query] = { version: id.version.format() }
+        else cache[target] = { [query]: { version: id.version.format() } }
+        console.verbose('query: Package query save lock for %s: %o', query, FileDB.Dump(cache[target][query]))
     }
 
     return result.data
@@ -197,12 +240,9 @@ export async function UnpackPackage(packageId: PackageId, options?: PackageOpOpt
     await promisify(exec)(`rm -rf ${dist.SIDE_DIST_PATH}`)
     await mkdir(dist.SIDE_DIST_PATH, { recursive: true })
     await promisify(exec)(`tar -xf ${packageId.localPath} -C ${dist.SIDE_DIST_PATH}`)
-    try {
-        await access(join(dist.SIDE_DIST_PATH, 'root.tar.xz'))
+    if (await IsExist(join(dist.SIDE_DIST_PATH, 'root.tar.xz'))) {
         await mkdir(dist.SIDE_DIST_ROOT)
         await promisify(exec)(`tar -xf ${join(dist.SIDE_DIST_PATH, 'root.tar.xz')} -C ${dist.SIDE_DIST_ROOT}`)
-    } catch (e) {
-        console.verbose('Failed to unpack root.tar.xz: %s', e.message)
     }
     await writeFile(mark, 'unpacked: ' + new Date().toLocaleString())
     console.verbose('unpack: Package %s unpacked', packageId.toString())
@@ -231,7 +271,7 @@ export async function InstallPackage(packageId: PackageId, options?: PackageOpOp
     // 逐个安装依赖
     if (!options?.disableRecursive && manifest.depends) {
         for (const dep in manifest.depends) {
-            const pids = await QueryPackage(dep, manifest.depends[dep])
+            const pids = await QueryPackage(dep, manifest.depends[dep], options)
             if (pids.length === 0) {
                 throw new Error('Package ' + dep + ':' + manifest.depends[dep] + ' not found')
             }
@@ -265,7 +305,7 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
     // 逐个激活依赖
     if (!options?.disableRecursive && manifest.depends) {
         for (const dep in manifest.depends) {
-            const pids = await QueryPackage(dep, manifest.depends[dep])
+            const pids = await QueryPackage(dep, manifest.depends[dep], options)
             if (pids.length === 0) {
                 throw new Error('Package ' + dep + ':' + manifest.depends[dep] + ' not found')
             }
@@ -361,9 +401,7 @@ export async function invokePackageHook(packageId: PackageId, hook: string, opti
     const dist = packageId.dist
     const script = join(dist.SIDE_DIST_PATH, 'hook', hook)
 
-    try {
-        await access(script)
-    } catch {
+    if (!await IsExist(script)) {
         console.verbose('package hook %s not found, skiped', hook)
         return options?.failOnMissing ? 1 : 0
     }

@@ -13,3 +13,14 @@ export interface Cache {
         lsize: number
     }
 }
+
+/**
+ * @schema DepLock
+ */
+export interface DepLock {
+    [target: string]: {
+        [packageQuery: string]: {
+            version: string
+        }
+    }
+}

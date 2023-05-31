@@ -40,7 +40,9 @@ class DistInstallFeature extends Feature {
             disableAutos: this.disableAutos,
             ignoreCache: this.ignoreCache,
             forceUnpack: this.forceUnpack,
-            forceInstall: this.forceInstall
+            forceInstall: this.forceInstall,
+            ignoreLock: true,
+            skipSave: true,
         })
 
         return 0

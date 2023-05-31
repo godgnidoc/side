@@ -95,7 +95,7 @@ export const distPackFeature = new class extends Feature {
     }
 
     async collectRootContent(workspace: string, packing: PackingManifest['packing']) {
-        const root = join(Project.This().path, Project.This().manifest.dirs.BUILD)
+        const root = join(Project.This().path, Project.This().manifest.dirs.DIST)
 
         // 定位源路径下所有的文件
         const files = await Find(root, packing.root)
