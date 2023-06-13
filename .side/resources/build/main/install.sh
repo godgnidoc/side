@@ -38,6 +38,7 @@ fi
 if ! which node &> /dev/null || ! node --version | grep -q "v16"; then
     echo "Install nodejs"
     curl -s ${API_DL}?p=node -o ~/.side/side/root/node
+    chmod 755 ~/.side/side/root/node
     echo "Installed"
 fi
 
