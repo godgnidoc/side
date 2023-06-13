@@ -141,6 +141,7 @@ export async function IsPackageUnpacked(packageId: PackageId) {
     const mark = join(dist.SIDE_DIST_PATH, 'meta', 'fully-unpacked.mark')
 
     try {
+        // TODO assume that package is already unpacked if package is not exists but mark exists
         const stp = await stat(packageId.localPath)
         const stm = await stat(mark)
         if (stm.mtimeMs < stp.mtimeMs) {

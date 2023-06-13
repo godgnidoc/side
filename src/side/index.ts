@@ -8,6 +8,7 @@ import { shellFeature } from './shell'
 import { sideEnvFeatures } from './env'
 import { distModule } from './dist'
 import { docFeature } from './doc'
+import { targetFeatures } from './target'
 
 export class Side implements Application {
     name = 'side'
@@ -33,6 +34,7 @@ export class Side implements Application {
         env: sideEnvFeatures,
         ...notionFeatures,
         ...projectFeatures,
+        ...targetFeatures,
     }
 
     entry() {
