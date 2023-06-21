@@ -155,7 +155,7 @@ const projectDictateFeature = new class extends Feature {
         }
 
         const dictate = await Project.This().dictate(targets)
-        console.dir(dictate, { depth: null })
+        console.log(JSON.stringify(dictate, null, 2))
         return 0
     }
 }

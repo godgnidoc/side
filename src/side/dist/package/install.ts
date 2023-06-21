@@ -1,7 +1,7 @@
 import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
 import { InstallPackage } from 'disting'
 import { PackageId } from 'format'
-import { api } from '../api'
+import { api } from 'dist/api'
 
 class DistInstallFeature extends Feature {
     args = '<package>'

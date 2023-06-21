@@ -14,6 +14,7 @@ import { distRmFeature } from './package/rm'
 import { distInstallFeature } from './package/install'
 import { scopeGrantFeature } from './scope/grant'
 import { repoGrantFeature } from './repo/grant'
+import { distGrabFeature } from './package/grab'
 
 export const distModule = {
     login: distLoginFeature,
@@ -39,6 +40,7 @@ export const distModule = {
     scopes: distScopesFeature,
 
     get: distGetFeature,
+    grab: distGrabFeature,
     install: distInstallFeature,
     rm: distRmFeature
 }

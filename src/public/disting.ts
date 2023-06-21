@@ -161,7 +161,8 @@ export async function IsPackageUpToDate(packageId: PackageId) {
     const lstat = await stat(packageId.localPath)
     console.verbose('check: Local stat: size=%s mtime=%s', lstat.size, lstat.mtimeMs)
 
-    const index: Cache = JSON.parse(await readFile(join(SidePlatform.paths.caches, 'index.json'), 'utf-8'))
+    const index = await loadJson<Cache>(join(SidePlatform.paths.caches, 'index.json'), 'Cache')
+
     const cached = index[id]
     if (!cached) {
         console.verbose('check: Package %s is not cached', id)
@@ -213,21 +214,19 @@ export async function IsPackageUnpacked(packageId: PackageId) {
 }
 
 export async function StatPackage(packageId: PackageId, options?: PackageOpOptions) {
-    if (!options?.ignoreCache) {
+    if (!options?.ignoreCache && IsPackageExists(packageId) && IsPackageUpToDate(packageId)) {
         if (IsPackageUnpacked(packageId)) {
             console.verbose('stat: Package %s is already unpacked, reading manifest directly', packageId.toString())
             return await loadJson<PackageManifest>(join(packageId.dist.SIDE_DIST_PATH, 'meta', 'manifest'), 'PackageManifest')
         }
 
-        if (IsPackageExists(packageId)) {
-            console.verbose('stat: Package %s is already exists, reading manifest from tarball', packageId.toString())
-            const raw = await promisify(exec)('tar -xOf ' + packageId.localPath + ' meta/manifest')
-            const manifest = JSON.parse(raw.stdout)
-            if (!validateSync<PackageManifest>(manifest, 'PackageManifest'))
-                throw new Error(getLastValidateErrorText('PackageManifest'))
-            if (manifest instanceof Error) throw manifest
-            return manifest
-        }
+        console.verbose('stat: Package %s is already exists, reading manifest from tarball', packageId.toString())
+        const raw = await promisify(exec)('tar -xOf ' + packageId.localPath + ' meta/manifest')
+        const manifest = JSON.parse(raw.stdout)
+        if (!validateSync<PackageManifest>(manifest, 'PackageManifest'))
+            throw new Error(getLastValidateErrorText('PackageManifest'))
+        if (manifest instanceof Error) throw manifest
+        return manifest
     }
 
     console.verbose('stat: Package %s is not cached, fetching from remote', packageId.toString())
