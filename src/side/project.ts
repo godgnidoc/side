@@ -142,6 +142,24 @@ const projectCleanFeature = new class extends Feature {
     }
 }
 
+const projectDictateFeature = new class extends Feature {
+    args = '[targets...]'
+
+    brief = 'Dictate target dependencies'
+    description = 'Dictate project dependencies into a file, which could be used to grab dependencies later'
+
+    async entry(...targets: string[]): Promise<number> {
+        if (!Project.This()) {
+            console.error('This feature requires a project')
+            return 1
+        }
+
+        const dictate = await Project.This().dictate(targets)
+        console.dir(dictate, { depth: null })
+        return 0
+    }
+}
+
 export const projectFeatures = {
     init: projectInitFeature,
     draft: projectDraftFeature,
@@ -149,4 +167,5 @@ export const projectFeatures = {
     build: projectBuildFeature,
     package: projectPackageFeature,
     clean: projectCleanFeature,
+    dictate: projectDictateFeature,
 }

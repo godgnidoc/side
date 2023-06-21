@@ -11,13 +11,18 @@ export interface Response<T = undefined> {
 }
 
 const API = new class {
-    get axios() {
+    private get axios() {
         return new Axios({
             baseURL: SidePlatform.settings.dist.apiBaseUrl
         })
     }
 
     async post<T>(url: string, data: any, headers?: any) {
+        if (SidePlatform.settings.offline === true) {
+            console.error('api: Request rejected due to offline mode(url=%s)', url)
+            throw new Error('Unrecorverable error')
+        }
+
         const axios = this.axios
         const json = JSON.stringify(data)
         console.verbose('api: post %s %s', url, json)
@@ -31,6 +36,11 @@ const API = new class {
         return JSON.parse(result.data) as Response<T>
     }
     async apost<T>(url: string, data: any, headers?: any) {
+        if (SidePlatform.settings.offline === true) {
+            console.error('api: Request rejected due to offline mode(url=%s)', url)
+            throw new Error('Unrecorverable error')
+        }
+
         const settings = SidePlatform.settings
         const name = settings?.dist?.user
         const token = settings?.dist?.token
@@ -44,6 +54,11 @@ const API = new class {
     }
 
     async get<T>(url: string, params: any) {
+        if (SidePlatform.settings.offline === true) {
+            console.error('api: Request rejected due to offline mode(url=%s)', url)
+            throw new Error('Unrecorverable error')
+        }
+
         const axios = this.axios
         console.verbose('api: get %s: %o', url, qs.stringify(params))
         const result = await axios.get(url, { params })
@@ -52,6 +67,11 @@ const API = new class {
     }
 
     async task(token: string, payload: any, options?: AxiosRequestConfig<any>) {
+        if (SidePlatform.settings.offline === true) {
+            console.error('api: Task rejected due to offline mode(token=%s)', token)
+            throw new Error('Unrecorverable error')
+        }
+
         const axios = this.axios
         return await axios.post('/tasks', payload, {
             headers: {
@@ -120,6 +140,7 @@ export const api = new class {
                 id: string,
                 size: number,
                 mtime: number
+                manifest: PackageManifest,
             }>('/package/stat', { id })
         }
         async download(id: string) {

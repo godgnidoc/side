@@ -1,4 +1,4 @@
-import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync } from 'format'
+import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync, Dictate, loadJson, Cache } from 'format'
 import { mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
 import { basename, dirname, join, relative, resolve } from 'path'
 import { promisify } from 'util'
@@ -9,7 +9,7 @@ import { SidePlatform } from 'platform'
 import { vmerge } from 'notion'
 import { getRevision, invokeHook } from 'side/common'
 import * as yaml from 'js-yaml'
-import { ActivatePackage, DeactivatePackage, QueryPackage } from './disting'
+import { ActivatePackage, ClosurePackage, DeactivatePackage, QueryPackage } from './disting'
 import { PROJECT } from 'project.path'
 import { Find, IsExist } from 'filesystem'
 
@@ -116,6 +116,56 @@ export class Project {
             console.verbose('Failed to list target', e)
             return []
         }
+    }
+
+    async dictate(targets: string[]) {
+        if (targets.length === 0) targets = await this.listTargets()
+
+        /** 计算全部依赖 */
+        let dependencies: string[] = []
+        if (this.manifest.requires) {
+            for (const query in this.manifest.requires) {
+                const packageId = (await QueryPackage(query, this.manifest.requires[query]))[0]
+                for (const dep of await ClosurePackage(packageId)) {
+                    if (!dependencies.includes(dep)) dependencies.push(dep)
+                }
+            }
+        }
+
+        for (const targetName of targets) {
+            const targets = await this.collectTargets(targetName)
+            if (!targets) {
+                console.error("Failed to calculate target: %s", targetName)
+                throw new Error("Unrecoverable error")
+            }
+
+            for (const target of targets) {
+                if (!target.requires) continue
+
+                for (const query in target.requires) {
+                    const packageId = (await QueryPackage(query, target.requires[query]))[0]
+                    for (const dep of await ClosurePackage(packageId)) {
+                        if (!dependencies.includes(dep)) dependencies.push(dep)
+                    }
+                }
+            }
+
+        }
+        let dictate: Dictate = {}
+        const cache = await loadJson<Cache>(join(SidePlatform.paths.caches, 'index.json'), 'Cache')
+
+        for (const dep of dependencies) {
+            if (dep in cache) {
+                dictate[dep] = {
+                    lmtime: cache[dep].lmtime,
+                    lsize: cache[dep].lsize,
+                }
+            } else {
+                dictate[dep] = null
+            }
+        }
+
+        return dictate
     }
 
     /** 起草一个目标 */
@@ -441,7 +491,6 @@ export class Project {
         for (const name in target.requires) {
             const version = target.requires[name]
             const ids = await QueryPackage(name, version)
-            if (ids.length == 0) throw new Error(`No package found for ${name} ${version}`)
             const id = PackageId.FromString(ids[0])
             if (id instanceof Error) throw id
             await ActivatePackage(id)
@@ -475,6 +524,11 @@ export class Project {
         const target = this.target
         const modules = target.modules
         if (!modules) return
+
+        if (SidePlatform.settings.offline === true) {
+            console.warn('Skipping submodule fetching due to offline mode')
+            return
+        }
 
         for (const name in modules) {
             const module = modules[name]

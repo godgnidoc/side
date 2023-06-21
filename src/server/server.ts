@@ -8,12 +8,13 @@ import { getDl } from './download'
 import { userInfo } from 'os'
 import { Feature } from '@godgnidoc/decli'
 import { Web } from 'jetweb'
-import { chmod, copyFile, mkdir, readdir } from 'fs/promises'
+import { chmod, copyFile, mkdir } from 'fs/promises'
 import { SidePlatform } from 'platform'
 import { fail } from './utils'
 import { dirname, join } from 'path'
 import { promisify } from 'util'
 import { exec } from 'child_process'
+import { IsDir } from 'filesystem'
 
 export const distServeFeature = new class extends Feature {
     async entry() {
@@ -39,7 +40,7 @@ export const distServeFeature = new class extends Feature {
         )
 
         // 检查是否有用户，没有则创建 admin 用户
-        if ((await readdir(SidePlatform.server.contributors)).length === 0) {
+        if (!await IsDir(join(SidePlatform.server.contributors, 'admin'))) {
             console.info('No user found, creating admin user')
             await createAdmin()
         }

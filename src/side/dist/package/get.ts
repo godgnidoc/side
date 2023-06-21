@@ -27,10 +27,6 @@ class DistGetFeature extends Feature {
         }
 
         const raw = await FetchPackage(packageId)
-        if (raw instanceof Error) {
-            console.error('Failed to get package %s: %s', pack, raw.message)
-            return 1
-        }
 
         if (folder) {
             await mkdir(folder, { recursive: true })

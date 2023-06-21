@@ -56,6 +56,7 @@ export const SidePlatform = new class {
     /** Side 全局设置 */
     get settings() {
         const ph = {
+            offline: false,
             dist: {
                 apiBaseUrl: 'http://localhost:5000/api',
                 ftpBaseUrl: 'ftp://localhost/dist',
@@ -81,6 +82,7 @@ export const SidePlatform = new class {
             LANG: 'C.UTF-8',
             LANGUAGE: 'C.UTF-8',
             SIDE_HOME: this.paths.home,
+            SIDE_OFFLINE: this.settings.offline === true ? 'TRUE' : undefined,
             SIDE_SYSROOT: this.paths.sysroot,
             SIDE_VERSION: this.version,
             SIDE_REVISION: this.revision,

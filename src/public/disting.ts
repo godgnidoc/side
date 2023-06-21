@@ -4,7 +4,7 @@ import * as pstream from 'progress-stream'
 import * as progress from 'progress'
 import { dirname, join } from 'path'
 
-import { Cache, FileDB, PackageId, DepLock, PackageManifest, loadJson } from 'format'
+import { Cache, FileDB, PackageId, DepLock, PackageManifest, loadJson, validateSync, getLastValidateErrorText } from 'format'
 import { api } from 'dist/api'
 import { PROJECT, Project } from 'project'
 import { SidePlatform } from 'platform'
@@ -58,28 +58,47 @@ export async function QueryPackage(query: string, version?: string, options?: Qu
             schema: 'DepLock'
         })
         : undefined
+
+    console.verbose('query: Query package %s', query)
     while (true) {
-        if (!options?.ignoreLock) break
-        if (!cache) break
-        if (!(target in cache)) break
+        if (options?.ignoreLock === true) {
+            console.verbose('query: Lock file is ignored')
+            break
+        }
+        if (!cache) {
+            console.verbose('query: Lock file is not available')
+            break
+        }
+        if (!(target in cache)) {
+            console.verbose('query: target %s not found in lock file', target)
+            break
+        }
 
         const tcache = cache[target]
-        if (!(query in tcache)) break
+        if (!(query in tcache)) {
+            console.verbose('query: Package query not found in lock file: %s', query)
+            break
+        }
         if (version && !satisfies(tcache[query].version, version)) {
             console.warn('query: Package query hit lock for %s, but version mismatch: %s', query, tcache[query].version)
             break
         } else {
-            console.verbose('query: Package query hit lock for %s: %o', query, FileDB.Dump(cache[query]))
+            console.verbose('query: Package query hit lock for %s: %o', query, FileDB.Dump(tcache[query]))
             const id = PackageId.FromQuery(query, tcache[query].version)
             if (id instanceof Error) throw id
             return [id.toString()]
         }
     }
 
+    if (SidePlatform.settings.offline === true) {
+        console.error('Cannot determine package version in offline mode without lock file')
+        throw new Error('Unrecorverable error')
+    }
+
     const result = await api.package.query(query, version)
     if (result.status !== 0) {
         console.error('Failed to search scopes: %s', result.message)
-        return undefined
+        throw new Error('Unrecorverable error')
     }
 
     if (options?.skipSave !== true && cache && result.data[0]) {
@@ -90,7 +109,39 @@ export async function QueryPackage(query: string, version?: string, options?: Qu
         console.verbose('query: Package query save lock for %s: %o', query, FileDB.Dump(cache[target][query]))
     }
 
+    if (result.data.length === 0) {
+        console.error('Failed to query package %s', query)
+        throw new Error('Unrecorverable error')
+    }
+
     return result.data
+}
+
+export async function ClosurePackage(packageId: string, options?: PackageOpOptions) {
+    const task: string[] = [packageId]
+    const result: string[] = []
+
+    while (task.length > 0) {
+        const id = task.pop()
+        const packageId = PackageId.FromString(id)
+        if (packageId instanceof Error) throw packageId
+        if (result.includes(id)) continue
+        result.push(id)
+
+        console.verbose('closure: Query package %s', packageId.toString())
+        const manifest = await StatPackage(packageId, options)
+        if (!manifest.depends) continue
+
+        for (const query in manifest.depends) {
+            const version = manifest.depends[query]
+            console.verbose('closure: Query dependency %s against version %s', query, version)
+            const dep = (await QueryPackage(query, version, options))[0]
+
+            task.push(dep)
+        }
+    }
+
+    return result
 }
 
 export async function IsPackageExists(packageId: PackageId) {
@@ -120,6 +171,11 @@ export async function IsPackageUpToDate(packageId: PackageId) {
     if (lstat.size !== cached.lsize || lstat.mtimeMs !== cached.lmtime) {
         console.verbose('check: Local stat mismatch, package %s is not up to date', id)
         return false
+    }
+
+    if (SidePlatform.settings.offline === true) {
+        console.warn('Assuming package %s is up to date in offline mode', id)
+        return true
     }
 
     const rstat = await api.package.stat(id)
@@ -156,6 +212,33 @@ export async function IsPackageUnpacked(packageId: PackageId) {
     }
 }
 
+export async function StatPackage(packageId: PackageId, options?: PackageOpOptions) {
+    if (!options?.ignoreCache) {
+        if (IsPackageUnpacked(packageId)) {
+            console.verbose('stat: Package %s is already unpacked, reading manifest directly', packageId.toString())
+            return await loadJson<PackageManifest>(join(packageId.dist.SIDE_DIST_PATH, 'meta', 'manifest'), 'PackageManifest')
+        }
+
+        if (IsPackageExists(packageId)) {
+            console.verbose('stat: Package %s is already exists, reading manifest from tarball', packageId.toString())
+            const raw = await promisify(exec)('tar -xOf ' + packageId.localPath + ' meta/manifest')
+            const manifest = JSON.parse(raw.stdout)
+            if (!validateSync<PackageManifest>(manifest, 'PackageManifest'))
+                throw new Error(getLastValidateErrorText('PackageManifest'))
+            if (manifest instanceof Error) throw manifest
+            return manifest
+        }
+    }
+
+    console.verbose('stat: Package %s is not cached, fetching from remote', packageId.toString())
+    const result = await api.package.stat(packageId.toString())
+    if (result.status !== 0) {
+        throw new Error(result.message)
+    }
+
+    return result.data.manifest
+}
+
 export async function IsPackageInstalled(packageId: PackageId) {
     const id = packageId.toString()
 
@@ -177,10 +260,15 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
         return packageId.localPath
     }
 
+    if (SidePlatform.settings.offline === true) {
+        console.error('Cannot fetch package %s in offline mode', id)
+        throw new Error('Unrecoverable error')
+    }
+
     // 获取远端文件流
     console.verbose('fetch: Package %s is not up to date, downloading', id)
     const download = await api.package.download(id)
-    if (download.status !== 0) return new Error(download.message)
+    if (download.status !== 0) throw new Error(download.message)
 
     // 下载文件
     await mkdir(packageId.localRepoPath, { recursive: true })
@@ -273,9 +361,6 @@ export async function InstallPackage(packageId: PackageId, options?: PackageOpOp
     if (!options?.disableRecursive && manifest.depends) {
         for (const dep in manifest.depends) {
             const pids = await QueryPackage(dep, manifest.depends[dep], options)
-            if (pids.length === 0) {
-                throw new Error('Package ' + dep + ':' + manifest.depends[dep] + ' not found')
-            }
             const pid = PackageId.FromString(pids[0])
             if (pid instanceof Error) throw pid
             await InstallPackage(pid, options)
@@ -307,9 +392,6 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
     if (!options?.disableRecursive && manifest.depends) {
         for (const dep in manifest.depends) {
             const pids = await QueryPackage(dep, manifest.depends[dep], options)
-            if (pids.length === 0) {
-                throw new Error('Package ' + dep + ':' + manifest.depends[dep] + ' not found')
-            }
             const pid = PackageId.FromString(pids[0])
             if (pid instanceof Error) throw pid
             await ActivatePackage(pid, options)

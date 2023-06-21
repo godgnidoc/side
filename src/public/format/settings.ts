@@ -19,6 +19,8 @@ interface DistSettings {
  * @schema GlobalSettings
  */
 export interface GlobalSettings {
+    /** 离线模式，默认为 false */
+    offline?: boolean
 
     /** dist 平台相关设置 */
     dist?: DistSettings
