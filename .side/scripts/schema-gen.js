@@ -22,5 +22,5 @@ process.argv.shift(); // remove path to script
 for(const type of process.argv) {
     const schema = generator?.getSchemaForSymbol(type)
     writeFileSync(resolve(`build/schema/${type}.json`), JSON.stringify(schema, null, 2))
-    writeFileSync(resolve(`build/doc/${type}.md`), parse(schema));
+    // writeFileSync(resolve(`build/doc/${type}.md`), parse(schema));
 }
