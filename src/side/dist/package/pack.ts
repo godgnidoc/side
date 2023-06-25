@@ -98,7 +98,7 @@ export const distPackFeature = new class extends Feature {
         const root = join(Project.This().path, Project.This().manifest.dirs.DIST)
 
         // 定位源路径下所有的文件
-        const files = await Find(root, packing.root)
+        const files = await Find(root, { ...packing.root, collapse: true })
 
         if (packing.root?.compress === true) {
             console.verbose('pack: compressing files:\n%s', files.map(f => '  ' + f).join('\n'))
@@ -108,7 +108,7 @@ export const distPackFeature = new class extends Feature {
             const all = files.map(async file => {
                 console.verbose('pack: copying %s', file)
                 await mkdir(join(workspace, 'root', dirname(file)), { recursive: true })
-                return promisify(exec)(`cp --no-dereference ${file} ${join(workspace, 'root', file)}`, { cwd: root })
+                return promisify(exec)(`cp -r --no-dereference ${file} ${join(workspace, 'root', file)}`, { cwd: root })
             })
             await Promise.all(all)
         }

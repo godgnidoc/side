@@ -56,42 +56,89 @@ export function MatchPattern(fname: string, pattern: string) {
  * @param options 选项
  * @param options.includes 仅包含以此为路径前缀的文件
  * @param options.excludes 排除以此为路径前缀的文件
+ * @param options.collapse 是否折叠包含全部文件的目录
  * @returns 返回所有被找到的文件相对于dir的路径
  */
 export async function Find(
     dir: string,
-    options?: { includes?: string[] }
-        | { excludes?: string[] }) {
+    options?: { collapse?: boolean } & (
+        { includes?: string[] }
+        | { excludes?: string[] })) {
     const tasks = ['.']
     const files: string[] = []
 
     console.verbose('find: base dir=%s', dir)
-    while (tasks.length) {
+    NEXT: while (tasks.length) {
         const task = tasks.pop()!
         const target = resolve(join(dir, task))
 
+        if (await IsFile(target)) {
+            if (typeof options == 'object' && 'includes' in options) {
+                if (options.includes.every(include => relative(join(dir, include), target).startsWith('..'))) {
+                    console.verbose('find: excluded %s', target)
+                    continue NEXT
+                }
+            } else if (typeof options == 'object' && 'excludes' in options) {
+                if (options.excludes.some(exclude => !relative(join(dir, exclude), target).startsWith('..'))) {
+                    console.verbose('find: excluded %s', target)
+                    continue NEXT
+                }
+            }
+
+            files.push(task)
+            continue NEXT
+        }
+
         // 判断此路径是否应当被过滤
         if (typeof options == 'object' && 'includes' in options) {
-            if (options.includes.every(include => relative(join(dir, include), target).startsWith('../'))) {
-                console.verbose('find: excluded %s', target)
-                continue
+            for (const inc of options.includes) {
+                const include = join(dir, inc)
+                const rel = relative(include, target)
+                if (rel.startsWith('..') && relative(target, include).startsWith('..')) continue
+
+                if (rel === '' && options.collapse === true) {
+                    console.verbose('find: collapsed(full included) %s', target)
+                    files.push(task)
+                    continue NEXT
+                }
+
+                const entries = await readdir(target)
+                tasks.push(...entries.map(entry => join(task, entry)))
+                continue NEXT
             }
+            console.verbose('find: excluded %s', target)
         } else if (typeof options == 'object' && 'excludes' in options) {
-            if (options.excludes.some(exclude => !relative(target, join(dir, exclude)).startsWith('../'))) {
-                console.verbose('find: exclude %s', target)
-                continue
+            let inner = false
+            for (const exc of options.excludes) {
+                const exclude = join(dir, exc)
+                const rel = relative(exclude, target)
+                if (rel.startsWith('..') && relative(target, exclude).startsWith('..')) continue
+
+                if (!rel.startsWith('..')) {
+                    console.verbose('find: excluded %s', target)
+                    continue NEXT
+                }
+
+                inner = true
             }
-        }
 
-        if (await IsFile(target)) {
-            // console.verbose('find: found %s', target)
-            files.push(task)
-            continue
-        }
+            if (inner === false && options.collapse === true) {
+                console.verbose('find: collapsed(not at all excluded) %s', target)
+                files.push(task)
+                continue NEXT
+            }
 
-        const entries = await readdir(target, { withFileTypes: true })
-        for (const entry of entries) {
-            tasks.push(join(task, entry.name))
+            const entries = await readdir(target)
+            tasks.push(...entries.map(entry => join(task, entry)))
+        } else {
+            if (options?.collapse === true) {
+                console.verbose('find: collapsed(no condition) %s', target)
+                files.push(task)
+                continue NEXT
+            }
+
+            const entries = await readdir(target)
+            tasks.push(...entries.map(entry => join(task, entry)))
         }
     }
 
