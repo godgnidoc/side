@@ -39,7 +39,6 @@ class DistPublishFeature extends Feature {
                 const manifest = JSON.parse(raw.stdout)
                 if (!validateSync<PackageManifest>(manifest, 'PackageManifest'))
                     throw new Error(getLastValidateErrorText('PackageManifest'))
-                if (manifest instanceof Error) throw manifest
 
                 const { size } = await stat(path)
                 const rs = createReadStream(path)

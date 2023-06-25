@@ -7,6 +7,7 @@ import { SidePlatform } from "platform"
 import { api } from "dist/api"
 import { promisify } from "util"
 import { exec } from "child_process"
+import { writeFile } from "fs/promises"
 
 class DistGrabFeature extends Feature {
     args = '<dictate-file> [output-file-name]'
@@ -25,7 +26,7 @@ class DistGrabFeature extends Feature {
             : undefined
 
         const dictate = await loadJson<Dictate>(dictateFile, 'Dictate')
-        const needed = new Set<string>()
+        const needed: Cache = {}
         for (const id in dictate) {
             const packageId = PackageId.FromString(id)
             if (packageId instanceof Error) throw packageId
@@ -42,23 +43,24 @@ class DistGrabFeature extends Feature {
                 return 1
             }
 
-            if (!baseStat || baseStat.lsize !== size || baseStat.lmtime !== mtime) {
-                needed.add(id)
+            if (!baseStat || baseStat.size !== size || baseStat.mtime !== mtime) {
+                needed[id] = { size, mtime }
             }
         }
 
-        if (needed.size === 0) {
+
+        if (Object.keys(needed).length === 0) {
             console.log('Grab: no needed package')
             return 0
         }
 
-        console.log('Grab: needed package: ')
-        for (const id of needed) {
-            console.log(`    ${id}`)
+        console.log('Grab packages: ')
+        for (const id in needed) {
+            console.log('    %s size=%d mtime=%d', id, needed[id].size, needed[id].mtime)
         }
 
         const packages: string[] = []
-        for (const id of needed) {
+        for (const id in needed) {
             const packageId = PackageId.FromString(id)
             if (packageId instanceof Error) throw packageId
 
@@ -72,6 +74,10 @@ class DistGrabFeature extends Feature {
         await promisify(exec)(cmd, {
             cwd: SidePlatform.paths.caches
         })
+
+        await writeFile('grab-index.json', JSON.stringify(needed, undefined, 4))
+        const rcmd = `tar -rf ${outputFileName} grab-index.json`
+        await promisify(exec)(rcmd)
 
         return 0
     }

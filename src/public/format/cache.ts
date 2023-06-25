@@ -8,12 +8,6 @@ export interface Cache {
 
         /** 服务端保存的文件大小 */
         size: number
-
-        /** 本地保存的最后修改时间 */
-        lmtime: number
-
-        /** 本地保存的文件大小 */
-        lsize: number
     }
 }
 
@@ -38,10 +32,10 @@ export interface Dictate {
      * 若值为对象，表示本地有该包的缓存，且对象中的字段为缓存信息
      */
     [packageId: string]: null | {
-        /** 本地保存的最后修改时间 */
-        lmtime: number
+        /** 服务端保存的最后修改时间 */
+        mtime: number
 
-        /** 本地保存的文件大小 */
-        lsize: number
+        /** 服务端保存的文件大小 */
+        size: number
     }
 }

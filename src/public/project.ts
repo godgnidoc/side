@@ -157,8 +157,8 @@ export class Project {
         for (const dep of dependencies) {
             if (dep in cache) {
                 dictate[dep] = {
-                    lmtime: cache[dep].lmtime,
-                    lsize: cache[dep].lsize,
+                    mtime: cache[dep].mtime,
+                    size: cache[dep].size,
                 }
             } else {
                 dictate[dep] = null

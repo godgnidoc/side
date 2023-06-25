@@ -163,20 +163,15 @@ export async function IsPackageUpToDate(packageId: PackageId) {
 
     const index = await loadJson<Cache>(join(SidePlatform.paths.caches, 'index.json'), 'Cache')
 
+    if (SidePlatform.settings.offline === true) {
+        console.warn('Assuming package %s is up to date in offline mode', id)
+        return true
+    }
+
     const cached = index[id]
     if (!cached) {
         console.verbose('check: Package %s is not cached', id)
         return false
-    }
-    console.verbose('check: Cached: size=%s mtime=%s', cached.lsize, cached.lmtime)
-    if (lstat.size !== cached.lsize || lstat.mtimeMs !== cached.lmtime) {
-        console.verbose('check: Local stat mismatch, package %s is not up to date', id)
-        return false
-    }
-
-    if (SidePlatform.settings.offline === true) {
-        console.warn('Assuming package %s is up to date in offline mode', id)
-        return true
     }
 
     const rstat = await api.package.stat(id)
@@ -285,7 +280,6 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
     console.verbose('fetch: Package %s downloaded', id)
 
     // 更新缓冲
-    const lstat = await stat(packageId.localPath)
     let index: Cache = {}
     try {
         index = JSON.parse(await readFile(join(SidePlatform.paths.caches, 'index.json'), 'utf-8'))
@@ -295,8 +289,6 @@ export async function FetchPackage(packageId: PackageId, options?: PackageOpOpti
     index[id] = {
         mtime: download.data.mtime,
         size: download.data.size,
-        lmtime: lstat.mtimeMs,
-        lsize: lstat.size
     }
     await mkdir(join(SidePlatform.paths.caches), { recursive: true })
     await writeFile(join(SidePlatform.paths.caches, 'index.json'), JSON.stringify(index))
@@ -461,18 +453,16 @@ export async function DeactivatePackage(packageId: PackageId) {
 }
 
 export async function UninstallPackage(packageId: PackageId) {
-    if (!await IsPackageUnpacked(packageId)) {
-        console.verbose('uninstall: package %s not installed, skiped', packageId.toString())
-        return
-    }
-
-    // 尝试调用卸载脚本
-    if (0 !== await invokePackageHook(packageId, 'uninstall')) {
-        throw new Error('Failed to invoke uninstall script')
+    if (await IsPackageUnpacked(packageId)) {
+        // 尝试调用卸载脚本
+        if (0 !== await invokePackageHook(packageId, 'uninstall')) {
+            throw new Error('Failed to invoke uninstall script')
+        }
     }
 
     // 删除包目录
     try {
+        console.verbose('rm -rf ' + packageId.dist.SIDE_DIST_PATH)
         await promisify(exec)('rm -rf ' + packageId.dist.SIDE_DIST_PATH)
     } catch (e) {
         console.verbose(e)

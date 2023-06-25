@@ -31,6 +31,7 @@ export const distRmFeature = new class extends Feature {
         }
 
         try {
+            console.verbose('rm -rf ' + packageId.localPath)
             await promisify(exec)('rm -rf ' + packageId.localPath)
         } catch (e) {
             console.verbose(e)
