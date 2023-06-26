@@ -1,6 +1,5 @@
 #!/bin/bash -e
 
 rm -rf build/doc
-mkdir build/doc
-cp -r doc/*.md build/doc/.
+cp -r doc build/.
 side dist pack $(side vget package.json version)

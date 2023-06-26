@@ -159,7 +159,7 @@ export class PackageId {
         return {
             SIDE_DIST_PATH: resolve(join(this.localRepoPath, this.symbol)),
             SIDE_DIST_ROOT: resolve(join(this.localRepoPath, this.symbol, 'root')),
-            SIDE_DIS_NAME: this.name,
+            SIDE_DIST_NAME: this.name,
             SIDE_DIST_TAGS: this.tags.join('-'),
             SIDE_DIST_VERSION: this.version.format(),
             SIDE_DIST_MAJOR: this.version.major,
