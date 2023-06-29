@@ -536,7 +536,7 @@ export class Project {
 
         const run = process.env['SIDE_VERBOSE'] === 'TRUE'
             ? (cmd: string, opts?: SpawnOptionsWithoutStdio) => {
-                console.verbose('CRM: running %s', cmd)
+                console.verbose('setup: running %s', cmd)
                 const sp = spawn(cmd, { ...opts, stdio: 'inherit' })
                 return new Promise<void>((resolve, reject) => {
                     sp.on('close', code => {

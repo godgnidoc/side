@@ -31,7 +31,7 @@ export const distServeFeature = new class extends Feature {
 
         // 初始化下载资源
         await copyFile(
-            join(dirname(new URL(import.meta.url).pathname), 'install.sh'),
+            join(dirname(new URL(import.meta.url).pathname), 'setup', 'install.sh'),
             join(SidePlatform.server.downloadable, 'install.sh')
         )
         await copyFile(

@@ -3,7 +3,7 @@
 HERE=$(realpath $(dirname ${BASH_SOURCE[0]}))
 
 if ! which side > /dev/null; then
-    export PATH=${HERE}:$PATH
+    export PATH=$(realpath ${HERE}/..):$PATH
 fi
 
 if [[ "${PROMPT_COMMAND}" != *_side_prompt_command* ]]; then
@@ -26,7 +26,7 @@ function _dist_server_complete() {
     eval "COMPREPLY=($(dist-server complete))"
 }
 
-eval "function _side_prompt_command() { ${HERE}/__status; }"
+eval "function _side_prompt_command() { $(realpath ${HERE}/..)/__status; }"
 
 complete -F _side_complete side
 complete -F _side_complete dist
