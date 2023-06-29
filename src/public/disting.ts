@@ -40,10 +40,6 @@ interface PackageOpOptions extends QueryOptions {
     forceInstall?: boolean
 }
 
-export function selectReleasePath() {
-    return join(Project.This().path, Project.This().manifest.dirs.RELEASE)
-}
-
 export async function QueryPackage(query: string, version?: string, options?: QueryOptions) {
     const project = Project.This()
     const target = project?.target?.target

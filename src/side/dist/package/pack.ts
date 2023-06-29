@@ -5,7 +5,6 @@ import { copyFile, mkdir, rm, writeFile } from 'fs/promises'
 import { promisify } from 'util'
 import { exec } from 'child_process'
 import { PackageId, PackageManifest, PackingManifest, loadYamlSync } from 'format'
-import { selectReleasePath } from 'disting'
 import { PROJECT } from 'project'
 import { SidePlatform } from 'platform'
 import { Find } from 'filesystem'
@@ -142,17 +141,16 @@ class DistPackFeature extends Feature {
     }
 
     async releasePackage(manifest: PackageManifest) {
-        const release = selectReleasePath()
         const packageId = PackageId.FromString(manifest.packageId)
         if (packageId instanceof Error) throw packageId
-        const path = join(release, `${packageId.fileName}`)
+        const path = join(this.workspace, this.release, `${packageId.fileName}`)
 
-        await mkdir(release, { recursive: true })
-        await promisify(exec)(`tar -cf ${path} *`, { cwd: this.packing })
+        await mkdir(join(this.workspace, this.release), { recursive: true })
+        await promisify(exec)(`tar -cf ${path} *`, { cwd: join(this.workspace, this.packing) })
     }
 
     async cleanWorkspace() {
-        await rm(this.packing, { recursive: true, force: true })
+        await rm(join(this.workspace, this.packing), { recursive: true, force: true })
     }
 }
 
