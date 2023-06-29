@@ -187,7 +187,7 @@ export class Project {
         delete manifest['project']
         delete manifest['target']
         delete manifest['engine']
-        delete manifest['dirs']
+        // delete manifest['dirs']
         delete manifest['stage']
         final = vmerge(final, manifest)
 
@@ -197,7 +197,7 @@ export class Project {
             delete target['project']
             delete target['target']
             delete target['engine']
-            delete target['dirs']
+            // delete target['dirs']
             delete target['inherit']
             delete target['composites']
             delete target['stage']
