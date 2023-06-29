@@ -5,17 +5,23 @@ import { copyFile, mkdir, rm, writeFile } from 'fs/promises'
 import { promisify } from 'util'
 import { exec } from 'child_process'
 import { PackageId, PackageManifest, PackingManifest, loadYamlSync } from 'format'
-import { selectPackingManifest, selectReleasePath } from 'disting'
-import { Project } from 'project'
+import { selectReleasePath } from 'disting'
+import { PROJECT } from 'project'
 import { SidePlatform } from 'platform'
 import { Find } from 'filesystem'
 
-export const distPackFeature = new class extends Feature {
+class DistPackFeature extends Feature {
     args = '<version> [manifest]'
     brief = 'Pack current project to a package'
     description = 'Pack current project to a package\n'
         + '  version: version of the package\n'
         + '  manifest: path to the manifest file, default to final target of the project'
+
+    workspace = process.cwd()
+    release: string = PROJECT.DEFAULT_DIRS.RELEASE
+    dist: string = PROJECT.DEFAULT_DIRS.DIST
+    packing: string = PROJECT.DEFAULT_DIRS.PACKAGE
+    doc: string = PROJECT.DEFAULT_DIRS.DOCUMENT
 
     async entry(...args: string[]): Promise<number> {
         if (args.length < 1) {
@@ -28,24 +34,30 @@ export const distPackFeature = new class extends Feature {
             return 1
         }
 
-        const workspace = await this.prepareWorkspace()
+        const packing = args[1]
+            ? loadYamlSync<PackingManifest>(args[1], 'PackingManifest')
+            : loadYamlSync<PackingManifest>(PROJECT.RPATH.TARGET, 'PackingManifest')
 
-        const packing = loadYamlSync<PackingManifest>(selectPackingManifest(args[1]), 'PackingManifest')
+        if (typeof packing.dirs?.RELEASE === 'string') this.release = packing.dirs.RELEASE
+        if (typeof packing.dirs?.DIST === 'string') this.dist = packing.dirs.DIST
+        if (typeof packing.dirs?.PACKAGE === 'string') this.packing = packing.dirs.PACKAGE
+        if (typeof packing.dirs?.DOCUMENT === 'string') this.doc = packing.dirs.DOCUMENT
 
+        await this.prepareWorkspace()
         const manifest = this.makeManifest(packing.packing, version)
         if (manifest instanceof Error) {
             console.error('Failed to make package manifest: %s', manifest.message)
             return 1
         }
-        await writeFile(join(workspace, 'meta', 'manifest'), JSON.stringify(manifest))
+        await writeFile(join(this.workspace, this.packing, 'meta', 'manifest'), JSON.stringify(manifest))
 
         /**@TODO collect doc content */
         // await this.collectDocContent(workspace, packing, manifest)
 
-        await this.collectRootContent(workspace, packing.packing)
-        await this.collectHookContent(workspace, packing.packing)
-        await this.releasePackage(workspace, manifest)
-        await this.cleanWorkspace(workspace)
+        await this.collectRootContent(packing.packing)
+        await this.collectHookContent(packing.packing)
+        await this.releasePackage(manifest)
+        await this.cleanWorkspace()
         return 0
     }
 
@@ -85,64 +97,63 @@ export const distPackFeature = new class extends Feature {
     }
 
     async prepareWorkspace() {
-        const workspace = join(Project.This().path, Project.This().manifest.dirs.PACKAGE)
-
-        await rm(workspace, { recursive: true, force: true })
-        await mkdir(join(workspace, 'meta'), { recursive: true })
-        await mkdir(join(workspace, 'hook'), { recursive: true })
-        await mkdir(join(workspace, 'root'), { recursive: true })
-        return workspace
+        await rm(join(this.workspace, this.packing), { recursive: true, force: true })
+        await mkdir(join(this.workspace, this.packing, 'meta'), { recursive: true })
+        await mkdir(join(this.workspace, this.packing, 'hook'), { recursive: true })
+        await mkdir(join(this.workspace, this.packing, 'root'), { recursive: true })
     }
 
-    async collectRootContent(workspace: string, packing: PackingManifest['packing']) {
-        const root = join(Project.This().path, Project.This().manifest.dirs.DIST)
+    async collectRootContent(packing: PackingManifest['packing']) {
+        const root = join(this.workspace, this.dist)
 
         // 定位源路径下所有的文件
         const files = await Find(root, { ...packing.root, collapse: true })
 
         if (packing.root?.compress === true) {
             console.verbose('pack: compressing files:\n%s', files.map(f => '  ' + f).join('\n'))
-            await promisify(exec)(`tar -Jcf ${join(workspace, 'root.tar.xz')} ${files.join(' ')}`, { cwd: root })
-            await rm(join(workspace, 'root'), { recursive: true, force: true })
+            await promisify(exec)(`tar -Jcf ${join(this.workspace, this.packing, 'root.tar.xz')} ${files.join(' ')}`, { cwd: root })
+            await rm(join(this.workspace, this.packing, 'root'), { recursive: true, force: true })
         } else {
             const all = files.map(async file => {
                 console.verbose('pack: copying %s', file)
-                await mkdir(join(workspace, 'root', dirname(file)), { recursive: true })
-                return promisify(exec)(`cp -r --no-dereference ${file} ${join(workspace, 'root', file)}`, { cwd: root })
+                await mkdir(join(this.workspace, this.packing, 'root', dirname(file)), { recursive: true })
+                return promisify(exec)(`cp -r --no-dereference ${file} ${join(this.workspace, this.packing, 'root', file)}`, { cwd: root })
             })
             await Promise.all(all)
         }
     }
 
-    async collectHookContent(workspace: string, packing: PackingManifest['packing']) {
+    async collectHookContent(packing: PackingManifest['packing']) {
 
         if (packing.hooks?.install)
-            await copyFile(join(Project.This().path, packing.hooks.install), join(workspace, 'hook', 'install'))
+            await copyFile(join(this.workspace, packing.hooks.install), join(this.workspace, this.packing, 'hook', 'install'))
 
         if (packing.hooks?.uninstall)
-            await copyFile(join(Project.This().path, packing.hooks.uninstall), join(workspace, 'hook', 'uninstall'))
+            await copyFile(join(this.workspace, packing.hooks.uninstall), join(this.workspace, this.packing, 'hook', 'uninstall'))
 
         if (packing.hooks?.activate)
-            await copyFile(join(Project.This().path, packing.hooks.activate), join(workspace, 'hook', 'activate'))
+            await copyFile(join(this.workspace, packing.hooks.activate), join(this.workspace, this.packing, 'hook', 'activate'))
 
         if (packing.hooks?.deactivate)
-            await copyFile(join(Project.This().path, packing.hooks.deactivate), join(workspace, 'hook', 'deactivate'))
+            await copyFile(join(this.workspace, packing.hooks.deactivate), join(this.workspace, this.packing, 'hook', 'deactivate'))
 
         if (packing.hooks?.test)
-            await copyFile(join(Project.This().path, packing.hooks.test), join(workspace, 'hook', 'test'))
+            await copyFile(join(this.workspace, packing.hooks.test), join(this.workspace, this.packing, 'hook', 'test'))
     }
 
-    async releasePackage(workspace: string, manifest: PackageManifest) {
+    async releasePackage(manifest: PackageManifest) {
         const release = selectReleasePath()
         const packageId = PackageId.FromString(manifest.packageId)
         if (packageId instanceof Error) throw packageId
         const path = join(release, `${packageId.fileName}`)
 
         await mkdir(release, { recursive: true })
-        await promisify(exec)(`tar -cf ${path} *`, { cwd: workspace })
+        await promisify(exec)(`tar -cf ${path} *`, { cwd: this.packing })
     }
 
-    async cleanWorkspace(workspace: string) {
-        await rm(workspace, { recursive: true, force: true })
+    async cleanWorkspace() {
+        await rm(this.packing, { recursive: true, force: true })
     }
 }
+
+export const distPackFeature = new DistPackFeature()

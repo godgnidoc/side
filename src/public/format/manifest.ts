@@ -103,6 +103,9 @@ export interface ProjectTarget {
     /** 当前目标所聚合的切面名称 */
     composites?: string[]
 
+    /** 当前项目结构定制 */
+    dirs?: Dirs
+
     /** 当前目标所依赖的包 */
     requires?: Requires
 
@@ -121,6 +124,9 @@ export interface ProjectTarget {
  * @schema ProjectAspect
  */
 export interface ProjectAspect {
+    /** 当前项目结构定制 */
+    dirs?: Dirs
+
     /** 当前目标所依赖的包 */
     requires?: Requires
 
@@ -150,6 +156,9 @@ export interface ProjectFinalTarget {
 
     /** 集成开发环境引擎版本号 */
     engine: string
+
+    /** 当前项目结构定制 */
+    dirs?: Dirs
 
     /** 当前目标依赖的包 */
     requires?: Requires

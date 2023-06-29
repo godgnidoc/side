@@ -1,3 +1,5 @@
+import { Dirs } from "./manifest"
+
 /**
  * 用户信息
  * @schema UserManifest
@@ -21,6 +23,9 @@ export interface RepoManifest {
  * @schema PackingManifest
  */
 export interface PackingManifest {
+    /** 当前项目结构定制 */
+    dirs?: Dirs
+
     packing: {
         /** 发布目的包仓id */
         repo: string

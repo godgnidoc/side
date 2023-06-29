@@ -40,11 +40,6 @@ interface PackageOpOptions extends QueryOptions {
     forceInstall?: boolean
 }
 
-export function selectPackingManifest(path?: string) {
-    if (!path) return join(Project.This().path, PROJECT.RPATH.TARGET)
-    return path
-}
-
 export function selectReleasePath() {
     return join(Project.This().path, Project.This().manifest.dirs.RELEASE)
 }
