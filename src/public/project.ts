@@ -2,7 +2,7 @@ import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildI
 import { mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
 import { basename, dirname, join, relative, resolve } from 'path'
 import { promisify } from 'util'
-import { exec } from 'child_process'
+import { SpawnOptionsWithoutStdio, exec, spawn } from 'child_process'
 import { readFileSync, statSync } from 'fs'
 import { dump } from 'js-yaml'
 import { SidePlatform } from 'platform'
@@ -407,9 +407,13 @@ export class Project {
                     }
 
                     // 删除所有可能需要删除的文件
-                    const cmd = `env -C ${dst} rm -rf ${[...entries].join(' ')}`
-                    console.verbose('CRM: cleaning files in %s: %s', dst, cmd)
-                    await promisify(exec)(cmd, { cwd: dst })
+                    if (await IsExist(dst)) {
+                        const cmd = `env -C ${dst} rm -rf ${[...entries].join(' ')}`
+                        console.verbose('CRM: cleaning files in %s: %s', dst, cmd)
+                        await promisify(exec)(cmd, { cwd: dst })
+                    } else {
+                        console.verbose('CRM: cleaning files in %s: skip non existing folder', dst)
+                    }
                 } break
                 case 'all': {
                     // 删除所有文件
@@ -445,10 +449,10 @@ export class Project {
                 : join(this.path, category)
             console.verbose('CRM: dst = %s', dst)
 
-            const stg = resources.deploy || 'copy'
+            const stg = resources.deploy ?? 'copy'
             console.verbose('CRM: deploy = %s', stg)
 
-            const cln = resources.clean || 'auto'
+            const cln = resources.clean ?? 'auto'
             console.verbose('CRM: clean = %s', cln)
 
             // 按需创建目标路径
@@ -530,6 +534,19 @@ export class Project {
             return
         }
 
+        const run = process.env['SIDE_VERBOSE'] === 'TRUE'
+            ? (cmd: string, opts?: SpawnOptionsWithoutStdio) => {
+                console.verbose('CRM: running %s', cmd)
+                const sp = spawn(cmd, { ...opts, stdio: 'inherit' })
+                return new Promise<void>((resolve, reject) => {
+                    sp.on('close', code => {
+                        if (code === 0) resolve()
+                        else reject(new Error(`Command exited with non-zero code: ${code}`))
+                    })
+                })
+            }
+            : promisify(exec)
+
         for (const name in modules) {
             const module = modules[name]
 
@@ -539,15 +556,15 @@ export class Project {
 
             // 获取子模块仓库
             if (!await IsExist(mpath)) {
-                await promisify(exec)(`git clone ${module.repo} ${mpath}`)
+                await run(`git clone ${module.repo} ${mpath}`, { shell: '/bin/bash' })
             }
 
             // 将子仓库更新到最新
-            await promisify(exec)('git pull', { cwd: mpath })
+            await run('git pull', { cwd: mpath, shell: '/bin/bash' })
 
             // 切换到指定分支
             if (module.checkout) {
-                await promisify(exec)(`git checkout ${module.checkout}`, { cwd: mpath })
+                await run(`git checkout ${module.checkout}`, { cwd: mpath, shell: '/bin/bash' })
             }
         }
     }

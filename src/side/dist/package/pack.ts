@@ -20,7 +20,6 @@ class DistPackFeature extends Feature {
     release: string = PROJECT.DEFAULT_DIRS.RELEASE
     dist: string = PROJECT.DEFAULT_DIRS.DIST
     packing: string = PROJECT.DEFAULT_DIRS.PACKAGE
-    doc: string = PROJECT.DEFAULT_DIRS.DOCUMENT
 
     async entry(...args: string[]): Promise<number> {
         if (args.length < 1) {
@@ -40,7 +39,6 @@ class DistPackFeature extends Feature {
         if (typeof packing.dirs?.RELEASE === 'string') this.release = packing.dirs.RELEASE
         if (typeof packing.dirs?.DIST === 'string') this.dist = packing.dirs.DIST
         if (typeof packing.dirs?.PACKAGE === 'string') this.packing = packing.dirs.PACKAGE
-        if (typeof packing.dirs?.DOCUMENT === 'string') this.doc = packing.dirs.DOCUMENT
 
         await this.prepareWorkspace()
         const manifest = this.makeManifest(packing.packing, version)
@@ -110,13 +108,13 @@ class DistPackFeature extends Feature {
 
         if (packing.root?.compress === true) {
             console.verbose('pack: compressing files:\n%s', files.map(f => '  ' + f).join('\n'))
-            await promisify(exec)(`tar -Jcf ${join(this.workspace, this.packing, 'root.tar.xz')} ${files.join(' ')}`, { cwd: root })
+            await promisify(exec)(`tar -pJcf ${join(this.workspace, this.packing, 'root.tar.xz')} ${files.join(' ')}`, { cwd: root })
             await rm(join(this.workspace, this.packing, 'root'), { recursive: true, force: true })
         } else {
             const all = files.map(async file => {
                 console.verbose('pack: copying %s', file)
                 await mkdir(join(this.workspace, this.packing, 'root', dirname(file)), { recursive: true })
-                return promisify(exec)(`cp -r --no-dereference ${file} ${join(this.workspace, this.packing, 'root', file)}`, { cwd: root })
+                return promisify(exec)(`cp -a -T ${file} ${join(this.workspace, this.packing, 'root', file)}`, { cwd: root })
             })
             await Promise.all(all)
         }

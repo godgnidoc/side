@@ -404,11 +404,11 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
         } break
         case 'copy': {
             // 定位源路径下所有的文件
-            const files = await Find(dist.SIDE_DIST_ROOT, manifest.deploy)
+            const files = await Find(dist.SIDE_DIST_ROOT, { ...manifest.deploy, collapse: true })
             for (const file of files) {
                 console.verbose('activate: copying %s', file)
                 await mkdir(dirname(join(project.path, PROJECT.RPATH.SYSROOT, file)), { recursive: true })
-                await promisify(exec)(`cp ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
+                await promisify(exec)(`cp -a -T ${join(dist.SIDE_DIST_ROOT, file)} ${join(project.path, PROJECT.RPATH.SYSROOT, file)}`)
             }
         } break
     }
