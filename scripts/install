@@ -4,11 +4,4 @@ rm -r ${SIDE_HOME}/side
 mkdir -p ${SIDE_HOME}/side/
 cp -r ${SIDE_DIST_ROOT}/* ${SIDE_HOME}/side/.
 cp $(which node) ${SIDE_HOME}/side/node
-
-sed -i '/# Side/,/# End Side/d' ~/.bashrc
-echo "Modify bashrc"
-echo "# Side" >> ~/.bashrc
-echo "export SIDE_HOME=${SIDE_HOME}" >> ~/.bashrc
-echo "source ${SIDE_HOME}/side/setup/setup.sh" >> ~/.bashrc
-echo "# End Side" >> ~/.bashrc
-echo "Modified"
+${SIDE_HOME}/side/setup/modify-bashrc.sh

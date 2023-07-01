@@ -30,12 +30,7 @@ ${SIDE_HOME}/side/setup/setup.sh
 echo "Extracted"
 
 echo "Modify bashrc"
-sed -i '/# Side/,/# End Side/d' ~/.bashrc
-echo "Modify bashrc"
-echo "# Side" >> ~/.bashrc
-echo "source ${SIDE_HOME}/side/setup/setup.sh" >> ~/.bashrc
-echo "# End Side" >> ~/.bashrc
-echo "Modified"
+${SIDE_HOME}/side/setup/modify-bashrc.sh
 
 if ! which node &> /dev/null || ! node --version | grep -q "v16"; then
     echo "Install nodejs"
