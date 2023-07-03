@@ -2,7 +2,7 @@
 set -e
 
 HOST=${HOST:-'localhost:5000'}
-SIDE_HOME=${SIDE_HOME:-'~/.side'}
+SIDE_HOME=${SIDE_HOME:-$(realpath ~/.side)}
 
 API_QUERY="http://${HOST}/api/package/search/byquery"
 API_DOWNLOAD="http://${HOST}/api/package/download"
@@ -26,7 +26,7 @@ echo "Extract the package"
 tar -xf ${SIDE_HOME}/side.tar -C ${SIDE_HOME}/side/extracting
 tar -xf ${SIDE_HOME}/side/extracting/root.tar.xz -C ${SIDE_HOME}/side
 rm -rf ${SIDE_HOME}/side/extracting ${SIDE_HOME}/side.tar
-${SIDE_HOME}/side/setup/setup.sh
+source ${SIDE_HOME}/side/setup/setup.sh
 echo "Extracted"
 
 echo "Modify bashrc"
