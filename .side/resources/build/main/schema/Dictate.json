@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "additionalProperties": {
+    "type": ["object", "null"],
+    "properties": {
+      "mtime": {
+        "description": "服务端保存的最后修改时间",
+        "type": "number"
+      },
+      "size": {
+        "description": "服务端保存的文件大小",
+        "type": "number"
+      }
+    },
+    "required": [
+      "mtime",
+      "size"
+    ]
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

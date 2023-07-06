@@ -200,8 +200,8 @@ export async function IsPackageUnpacked(packageId: PackageId) {
 }
 
 export async function StatPackage(packageId: PackageId, options?: PackageOpOptions) {
-    if (!options?.ignoreCache && IsPackageExists(packageId) && IsPackageUpToDate(packageId)) {
-        if (IsPackageUnpacked(packageId)) {
+    if (!options?.ignoreCache && await IsPackageExists(packageId) && await IsPackageUpToDate(packageId)) {
+        if (await IsPackageUnpacked(packageId)) {
             console.verbose('stat: Package %s is already unpacked, reading manifest directly', packageId.toString())
             return await loadJson<PackageManifest>(join(packageId.dist.SIDE_DIST_PATH, 'meta', 'manifest'), 'PackageManifest')
         }

@@ -1,5 +1,7 @@
-import { Brief, Feature, LongOpt } from '@godgnidoc/decli'
-import { Project } from 'project'
+import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
+import { DepLock, FileDB } from 'format'
+import { join } from 'path'
+import { PROJECT, Project } from 'project'
 
 class ProjectInitFeature extends Feature {
     args = '[target-path]'
@@ -54,7 +56,7 @@ const projectDraftFeature = new class extends Feature {
     }
 }
 
-const projectSetupFeature = new class extends Feature {
+class ProjectSetupFeature extends Feature {
     args = '[target]'
     brief = 'Setup a project'
     description = 'Setup the project against the current target\n\n'
@@ -64,6 +66,10 @@ const projectSetupFeature = new class extends Feature {
         + '  4. Fetch submodule repositories\n'
         + '  5. Invoke post-setup scripts\n\n'
         + 'Optionally, you can specify a target to setup against, otherwise the current target will be used'
+
+    @ShortOpt('-u') @LongOpt('--update')
+    @Brief('Unlock dependencies')
+    unlock = false
 
     complete = async (editing: boolean, args: string[]) => {
         if (args.length > 1) return []
@@ -85,18 +91,34 @@ const projectSetupFeature = new class extends Feature {
             return 1
         }
 
+        let project = Project.This()
+
         /** 若有必要，尝试切换目标 */
         if (args[0]) {
             console.verbose('setup: switching target to', args[0])
-            await Project.This().draft(args[0])
-            await Project.Open(Project.This().path).setup()
-        } else {
-            await Project.This().setup()
+            await project.draft(args[0])
+            project = Project.Open(project.path)
         }
 
+        /** 若有必要，解锁依赖 */
+        if (this.unlock) {
+            console.verbose('setup: unlocking dependencies')
+            try {
+                const deplock = FileDB.Open<DepLock>(join(project.path, PROJECT.RPATH.DEPLOCK), {
+                    format: 'yaml',
+                    schema: 'DepLock'
+                })
+                delete deplock[project.target.target]
+            } catch {
+                console.verbose('setup: no dependency lock file found')
+            }
+        }
+
+        await project.setup()
         return 0
     }
 }
+const projectSetupFeature = new ProjectSetupFeature
 
 const projectBuildFeature = new class extends Feature {
     args = true

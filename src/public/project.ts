@@ -1,4 +1,4 @@
-import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync, Dictate, loadJson, Cache } from 'format'
+import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync, Dictate, loadJson, Cache, loadYaml } from 'format'
 import { mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
 import { basename, dirname, join, relative, resolve } from 'path'
 import { promisify } from 'util'
@@ -9,7 +9,7 @@ import { SidePlatform } from 'platform'
 import { vmerge } from 'notion'
 import { getRevision, invokeHook } from 'side/common'
 import * as yaml from 'js-yaml'
-import { ActivatePackage, ClosurePackage, DeactivatePackage, QueryPackage } from './disting'
+import { ActivatePackage, DeactivatePackage, QueryPackage } from './disting'
 import { PROJECT } from 'project.path'
 import { Find, IsExist } from 'filesystem'
 
@@ -123,44 +123,40 @@ export class Project {
 
         /** 计算全部依赖 */
         let dependencies: string[] = []
-        if (this.manifest.requires) {
-            for (const query in this.manifest.requires) {
-                const packageId = (await QueryPackage(query, this.manifest.requires[query]))[0]
-                for (const dep of await ClosurePackage(packageId)) {
-                    if (!dependencies.includes(dep)) dependencies.push(dep)
-                }
-            }
-        }
+
+        const deplock = await loadYaml<DepLock>(join(this.path, PROJECT.RPATH.DEPLOCK), 'DepLock')
 
         for (const targetName of targets) {
-            const targets = await this.collectTargets(targetName)
-            if (!targets) {
-                console.error("Failed to calculate target: %s", targetName)
-                throw new Error("Unrecoverable error")
+            if (!(targetName in deplock)) continue
+            const lock = deplock[targetName]
+
+            for (const query in lock) {
+                const packageId = PackageId.FromQuery(query, lock[query].version)
+                if (packageId instanceof Error) throw packageId
+                const dep = packageId.toString()
+
+                if (!dependencies.includes(dep)) dependencies.push(dep)
             }
-
-            for (const target of targets) {
-                if (!target.requires) continue
-
-                for (const query in target.requires) {
-                    const packageId = (await QueryPackage(query, target.requires[query]))[0]
-                    for (const dep of await ClosurePackage(packageId)) {
-                        if (!dependencies.includes(dep)) dependencies.push(dep)
-                    }
-                }
-            }
-
         }
-        let dictate: Dictate = {}
-        const cache = await loadJson<Cache>(join(SidePlatform.paths.caches, 'index.json'), 'Cache')
 
-        for (const dep of dependencies) {
-            if (dep in cache) {
-                dictate[dep] = {
-                    mtime: cache[dep].mtime,
-                    size: cache[dep].size,
+        let dictate: Dictate = {}
+
+        try {
+            const cache = await loadJson<Cache>(join(SidePlatform.paths.caches, 'index.json'), 'Cache')
+
+            for (const dep of dependencies) {
+                if (dep in cache) {
+                    dictate[dep] = {
+                        mtime: cache[dep].mtime,
+                        size: cache[dep].size,
+                    }
+                } else {
+                    dictate[dep] = null
                 }
-            } else {
+            }
+        } catch {
+            console.verbose('Failed to load cache index')
+            for (const dep of dependencies) {
                 dictate[dep] = null
             }
         }

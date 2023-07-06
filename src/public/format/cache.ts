@@ -23,7 +23,7 @@ export interface DepLock {
 }
 
 /**
- * @schema Dictate
+ * @strick-schema Dictate
  */
 export interface Dictate {
     /**
