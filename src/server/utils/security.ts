@@ -7,7 +7,7 @@ import { RepoManifest, UserManifest, loadJson } from 'format'
 export async function IsContributor(repoPath: string, user: string): Promise<boolean> {
     try {
         const manifest: RepoManifest = await loadJson(join(repoPath, 'manifest'), 'RepoManifest')
-        return manifest.contributors.includes(user)
+        return user === 'admin' || manifest.contributors.includes(user)
     } catch(e) {
         console.error(e)
         return false
@@ -17,7 +17,7 @@ export async function IsContributor(repoPath: string, user: string): Promise<boo
 export async function IsOwner(repoPath: string, user: string): Promise<boolean> {
     try {
         const manifest: RepoManifest = await loadJson(join(repoPath, 'manifest'), 'RepoManifest')
-        return manifest.contributors[0] === user
+        return user === 'admin' || manifest.contributors[0] === user
     } catch {
         return false
     }
