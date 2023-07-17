@@ -1,7 +1,11 @@
 #!/bin/bash
 
+mkdir -p ${SIDE_HOME}/sysroot/bin
+if [[ ! -f ${SIDE_HOME}/sysroot/bin/node ]]; then
+    cp $(which node) ${SIDE_HOME}/sysroot/bin/node
+fi
+
 rm -r ${SIDE_HOME}/side
-mkdir -p ${SIDE_HOME}/side/
+mkdir -p ${SIDE_HOME}/side
 cp -r ${SIDE_DIST_ROOT}/* ${SIDE_HOME}/side/.
-cp $(which node) ${SIDE_HOME}/side/node
 ${SIDE_HOME}/side/setup/modify-bashrc.sh

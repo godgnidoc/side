@@ -34,11 +34,11 @@ env SIDE_HOME=${SIDE_HOME} ${SIDE_HOME}/side/setup/modify-bashrc.sh
 
 if ! which node &> /dev/null || ! node --version | grep -q "v16"; then
     echo "Install nodejs"
-    curl -s ${API_DL}?p=node -o ${SIDE_HOME}/side/node
-    chmod 755 ${SIDE_HOME}/side/node
+    curl -s ${API_DL}?p=node -o ${SIDE_HOME}/sysroot/bin/node
+    chmod 755 ${SIDE_HOME}/sysroot/bin/node
     echo "Installed"
 else
-    cp $(which node) ${SIDE_HOME}/side/node
+    cp $(which node) ${SIDE_HOME}/sysroot/bin/node
 fi
 
 echo "Check version"
