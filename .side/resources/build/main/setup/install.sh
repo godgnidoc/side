@@ -26,6 +26,7 @@ echo "Extract the package"
 tar -xf ${SIDE_HOME}/side.tar -C ${SIDE_HOME}/side/extracting
 tar -xf ${SIDE_HOME}/side/extracting/root.tar.xz -C ${SIDE_HOME}/side
 rm -rf ${SIDE_HOME}/side/extracting ${SIDE_HOME}/side.tar
+mkdir -p ${SIDE_HOME}/sysroot/bin
 source ${SIDE_HOME}/side/setup/setup.sh
 echo "Extracted"
 
