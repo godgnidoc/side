@@ -322,7 +322,14 @@ export function IsValidTags(tags: string[]): boolean {
     return tags.every(tag => IsValidTag(tag))
 }
 
-
+/**
+ * 检查请求是否满足基本命名规范
+ * @param version 请求
+ * @returns 是否满足基本命名规范
+ */
+export function IsValidQuery(query: string): boolean {
+    return /^(@[a-zA-Z][a-zA-Z0-9_]*(?:-[a-zA-Z][a-zA-Z0-9_]*)*)\/([a-zA-Z][a-zA-Z0-9_]*(?:-[a-zA-Z][a-zA-Z0-9_]*)*)(?:--([a-zA-Z][a-zA-Z0-9_]*(?:-[a-zA-Z][a-zA-Z0-9_]*)*))?$/.test(query)
+}
 
 /**
  * 获取最新版本的包唯一标识

@@ -1,10 +1,10 @@
 import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
-import { InstallPackage } from 'disting'
-import { PackageId } from 'format'
+import { InstallPackage, QueryPackage } from 'disting'
+import { IsValidQuery, PackageId } from 'format'
 import { api } from 'dist/api'
 
 class DistInstallFeature extends Feature {
-    args = '<package>'
+    args = '<package-id|package-query>'
     brief = 'Install package'
     description = 'Install package\n'
 
@@ -30,7 +30,22 @@ class DistInstallFeature extends Feature {
     }
 
     async entry(id: string) {
-        const packageId = PackageId.FromString(id)
+        const packageId = await (async () => {
+            if (IsValidQuery(id)) {
+                const result = await QueryPackage(id, undefined, {
+                    ignoreLock: true,
+                    skipSave: true
+                })
+                if (result.length === 0) {
+                    return new Error('No package found')
+                }
+                console.info('Selecting %s', result[0])
+                return PackageId.FromString(result[0])
+            } else {
+                return PackageId.FromString(id)
+            }
+        })()
+
         if (packageId instanceof Error) {
             console.error(packageId.message)
             return 1
