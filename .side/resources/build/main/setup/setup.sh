@@ -31,3 +31,6 @@ eval "function _side_prompt_command() { $(realpath ${HERE}/..)/__status; }"
 complete -F _side_complete side
 complete -F _side_complete dist
 complete -F _dist_server_complete dist-server
+
+# 检查side更新
+side update -c

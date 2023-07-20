@@ -9,6 +9,7 @@ import { sideEnvFeatures } from './env'
 import { distModule } from './dist'
 import { docFeature } from './doc'
 import { targetFeatures } from './target'
+import { updateFeature } from './update'
 
 export class Side implements Application {
     name = 'side'
@@ -32,6 +33,7 @@ export class Side implements Application {
         invoke: invokeHookFeature,
         shell: shellFeature,
         env: sideEnvFeatures,
+        update: updateFeature,
         ...notionFeatures,
         ...projectFeatures,
         ...targetFeatures,
