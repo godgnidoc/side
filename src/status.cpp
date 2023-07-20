@@ -46,7 +46,7 @@ int main() {
     std::cout << (targetName.empty() ? "\033[1;33mno target\033[0m" : "\033[1;36m" + targetName + "\033[0m") << " : ";
     std::cout << (stageName.empty() ? "\033[1;33mno stage\033[0m" : "\033[1;36m" + stageName + "\033[0m");
 
-    if (offlineMode == "true") std::cout << " \033[1;43m offline \033[0m";
+    if (offlineMode == "true") std::cout << " \033[1;33m offline \033[0m";
 
     std::cout << std::endl;
 

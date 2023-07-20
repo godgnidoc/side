@@ -1,7 +1,7 @@
 import { Feature } from "@godgnidoc/decli"
 import { exec } from "child_process"
 import { Cache, getLastValidateErrorText, validateSync } from "format"
-import { readFile, writeFile } from "fs/promises"
+import { mkdir, readFile, writeFile } from "fs/promises"
 import { vmerge } from "notion"
 import { join } from "path"
 import { SidePlatform } from "platform"
@@ -17,12 +17,13 @@ class DistDeployFeature extends Feature {
         const grabIndex = JSON.parse(rawGrabIndex.stdout)
         if (!validateSync<Cache>(grabIndex, 'Cache'))
             throw new Error(getLastValidateErrorText('Cache'))
-
-        console.log('Deploy packages: ')
-        for (const id in grabIndex) {
+            
+            console.log('Deploy packages: ')
+            for (const id in grabIndex) {
             console.log('    %s size=%d mtime=%d', id, grabIndex[id].size, grabIndex[id].mtime)
         }
-
+        
+        await mkdir(SidePlatform.paths.caches, { recursive: true })
         const cmd = `tar -xf ${collection} -C ${SidePlatform.paths.caches} --exclude grab-index.json`
         await promisify(exec)(cmd)
 
