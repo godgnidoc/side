@@ -44,20 +44,20 @@ class UpdateFeature extends Feature {
         }
 
         if (this.checkOnly) {
-            const upper = '###############################################'
-            const icon1 =  '#                __ _     _                   #'
-            const icon2 =  '#                / _(_) __| | ___             #'
-            const icon3 =  '#                \\ \\| |/ _` |/ _ \\            #'
-            const icon4 =  '#                _\\ \\ | (_| |  __/            #'
-            const icon5 =  '#                \\__/_|\\__,_|\\___|            #'
-            const icon6 =  '#                                             #'
-            const lower = '###############################################'
- 
-            let line1 = '# An update of side is available: ' + latest.version.format()
-            let line2 = '# You can update side by running: side update'
+            const upper = '┌─────────────────────────────────────────────┐'
+            const icon1 = '│                __ _     _                   │'
+            const icon2 = '│                / _(_) __| | ___             │'
+            const icon3 = '│                \\ \\| |/ _` |/ _ \\            │'
+            const icon4 = '│                _\\ \\ | (_| |  __/            │'
+            const icon5 = '│                \\__/_|\\__,_|\\___|            │'
+            const icon6 = '│                                             │'
+            const lower = '└─────────────────────────────────────────────┘'
 
-            line1 += ' '.repeat(upper.length - line1.length - 1) + '#'
-            line2 += ' '.repeat(upper.length - line2.length - 1) + '#'
+            let line1 = '│ An update of side is available: ' + latest.version.format()
+            let line2 = '│ You can update side by running: side update'
+
+            line1 += ' '.repeat(upper.length - line1.length - 1) + '│'
+            line2 += ' '.repeat(upper.length - line2.length - 1) + '│'
             line1 = line1.replace(latest.version.format(), '\x1b[1;32m' + latest.version.format() + '\x1b[0m')
             line2 = line2.replace('side update', '\x1b[1;32mside update\x1b[0m')
 
