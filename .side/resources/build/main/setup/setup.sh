@@ -33,4 +33,6 @@ complete -F _side_complete dist
 complete -F _dist_server_complete dist-server
 
 # 检查side更新
-side update -c
+if which side > /dev/null && which node > /dev/null; then
+    side update -c
+fi
