@@ -550,18 +550,23 @@ export class Project {
             await mkdir(join(this.path, this.manifest.dirs.MODULE), { recursive: true })
             const mpath = join(this.path, this.manifest.dirs.MODULE, name) // 子模块路径
 
+            console.verbose("setup: fetching submodule '%s'", name)
+
             // 获取子模块仓库
             if (!await IsExist(mpath)) {
                 await run(`git clone ${module.repo} ${mpath}`, { shell: '/bin/bash' })
             }
 
             // 将子仓库更新到最新
-            await run('git pull', { cwd: mpath, shell: '/bin/bash' })
+            await run('git fetch origin', { cwd: mpath, shell: '/bin/bash' })
 
             // 切换到指定分支
             if (module.checkout) {
                 await run(`git checkout ${module.checkout}`, { cwd: mpath, shell: '/bin/bash' })
             }
+
+            // 将子仓库更新到最新
+            await run('git pull', { cwd: mpath, shell: '/bin/bash' })
         }
     }
 
