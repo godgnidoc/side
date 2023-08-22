@@ -339,7 +339,9 @@ export class Project {
         let modules: { [repo: string]: string }
         if (target.modules) for (const [name, module] of Object.entries(target.modules)) {
             if (!modules) modules = {}
-            modules[module.repo] = await getRevision(join(this.path, this.manifest.dirs.MODULE, name), { dirty: true })
+            modules[module.repo] = module.checkout
+                + "=>"
+                + await getRevision(join(this.path, this.manifest.dirs.MODULE, name), { dirty: true })
         }
 
         let resources: { [category: string]: string[] }

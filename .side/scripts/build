@@ -18,7 +18,7 @@ fi
 
 if [[ $# == 0 || $1 == "side" ]]; then
   echo "Compiling side..."
-  ncc build src/side.ts -q -m --v8-cache --no-source-map-register -o build/
+  npx ncc build src/side.ts -q -m --v8-cache --no-source-map-register -o build/
   mv build/index.js build/side.js
   sed -i -e '1s|^|#!/usr/bin/env node\n|' build/side.js
   chmod +x build/side.js
@@ -27,7 +27,7 @@ fi
 
 if [[ $# == 0 || $1 == "server" ]]; then
 echo "Compiling dist-server..."
-ncc build src/dist-server.ts -q --v8-cache --no-source-map-register -o build/
+npx ncc build src/dist-server.ts -q --v8-cache --no-source-map-register -o build/
 mv build/index.js build/dist-server.js
 sed -i -e '1s|^|#!/usr/bin/env node\n|' build/dist-server.js
 fi
