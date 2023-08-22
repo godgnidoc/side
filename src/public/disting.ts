@@ -469,6 +469,9 @@ export async function invokePackageHook(packageId: PackageId, hook: string, opti
         return options?.failOnMissing ? 1 : 0
     }
 
+    await mkdir(join(SidePlatform.paths.sysroot, 'bin'), { recursive: true })
+    await mkdir(join(SidePlatform.paths.sysroot, 'usr', 'bin'), { recursive: true })
+
     await promisify(exec)(`chmod +x ${script}`)
     const env = inflate(vmerge(
         Project.This() ? Project.This().exports : SidePlatform.exports,
