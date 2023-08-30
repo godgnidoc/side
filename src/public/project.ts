@@ -667,12 +667,19 @@ export class Project {
             schema: 'ProjectManifest',
         })
 
+        // 创建主目标
+        console.verbose('initiate main target')
+        FileDB.Create<ProjectTarget>(join(path, PROJECT.RPATH.TARGETS, 'target-main'), {}, {
+            format: 'yaml',
+            schema: 'ProjectTarget',
+        })
+
         // 初始化 Git 相关
         console.verbose('initiate git stuff')
         try {
             const result = await promisify(exec)('git init', { cwd: path })
-            if (result.stderr) console.error(result.stderr.trim())
-            if (result.stdout) console.info(result.stdout.trim())
+            if (result.stderr) console.error(result.stderr)
+            if (result.stdout) console.info(result.stdout)
         } catch (e) {
             // pass
         }
