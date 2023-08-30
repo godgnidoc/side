@@ -1,4 +1,4 @@
-import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync, Dictate, loadJson, Cache, loadYaml } from 'format'
+import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync, Dictate, loadJson, Cache, loadYaml, Requires } from 'format'
 import { mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
 import { basename, dirname, join, relative, resolve } from 'path'
 import { promisify } from 'util'
@@ -226,6 +226,32 @@ export class Project {
                 if (!fetch) filter.push(name)
             }
             for (const name of filter) delete final.modules[name]
+        }
+
+        /** 按条件筛选项目依赖 */
+        if (final.requires) {
+            console.verbose('draft: filter dependencies')
+            const filter: string[] = []
+            for (const query in final.requires) {
+                const version = final.requires[query] as Requires[typeof query]
+                if (typeof version === 'string') continue
+
+                const conds = typeof version.condition === 'string'
+                    ? [version.condition]
+                    : version.condition
+
+                for (const cond of conds) {
+                    const res = await invokeHook('cond', [cond], { failOnMissing: true, ignoreError: true })
+                    if (res === 0) {
+                        final.requires[query] = version.version
+                    } else {
+                        filter.push(query)
+                        console.info('draft: dependency %s filtered out by condition %s', query, cond)
+                    }
+                }
+
+            }
+            for (const name of filter) delete final.requires[name]
         }
 
         // 清理当前环境

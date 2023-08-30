@@ -42,6 +42,20 @@ export interface SubModules {
 /** 项目依赖指定表 */
 export interface Requires {
     /** 键表示依赖query，值若为字符串则表示依赖版本号 */
+    [key: string]: string | {
+        /** 依赖版本号 */
+        version: string
+
+        /** 依赖条件 */
+        condition: string | string[]
+    }
+}
+
+
+
+/** 项目依赖指定表 */
+export interface FinalRequires {
+    /** 键表示依赖query，值若为字符串则表示依赖版本号 */
     [key: string]: string
 }
 
@@ -161,7 +175,7 @@ export interface ProjectFinalTarget {
     dirs?: Dirs
 
     /** 当前目标依赖的包 */
-    requires?: Requires
+    requires?: FinalRequires
 
     /** 当前目标即将获取的子模块 */
     modules?: SubModules

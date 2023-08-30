@@ -14,7 +14,7 @@ import { IsExist } from 'filesystem'
  * @param args 传递给钩子的参数
  * @returns 钩子的返回值
  */
-export async function invokeHook(hook: string, args: string[] = []) {
+export async function invokeHook(hook: string, args: string[] = [], options?: { failOnMissing?: boolean, ignoreError?: boolean }) {
     if (!Project.This()) return 0
 
     let script = join(Project.This().path, PROJECT.RPATH.SCRIPTS, hook)
@@ -31,7 +31,9 @@ export async function invokeHook(hook: string, args: string[] = []) {
     }
 
     /** 若文件不存在则视为无动作 */
-    if (!await IsExist(script)) return 0
+    if (!await IsExist(script))
+        return options?.failOnMissing ? 1 : 0
+
     console.verbose('invoke hook %s', script)
 
     await promisify(exec)(`chmod +x ${script}`)
@@ -45,8 +47,13 @@ export async function invokeHook(hook: string, args: string[] = []) {
 
     return new Promise<number>((resolve) => {
         child.on('exit', code => {
-            if (code !== 0)
-                console.error('hook %s exited with code %d', script, code)
+            if (code !== 0) {
+                if (options?.ignoreError) {
+                    console.verbose('hook %s exited with code %d', script, code)
+                } else {
+                    console.error('hook %s exited with code %d', script, code)
+                }
+            }
             resolve(code)
         })
     })
