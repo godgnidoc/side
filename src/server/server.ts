@@ -6,7 +6,7 @@ import { createAdmin } from './user/admin'
 import { postTasks } from './task'
 import { getDl } from './download'
 import { userInfo } from 'os'
-import { Feature } from '@godgnidoc/decli'
+import { Args, Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
 import { Web } from 'jetweb'
 import { chmod, copyFile, mkdir } from 'fs/promises'
 import { SidePlatform } from 'platform'
@@ -16,7 +16,13 @@ import { promisify } from 'util'
 import { exec } from 'child_process'
 import { IsDir } from 'filesystem'
 
-export const distServeFeature = new class extends Feature {
+class DistServeFeature extends Feature {
+    @ShortOpt('-l')
+    @LongOpt('--listen')
+    @Args((v) => v.match(/^\d+$/) ? true : new Error('Invalid port number'))
+    @Brief('Listen on specified address')
+    listen: string = '5000'
+
     async entry() {
         if (userInfo({ encoding: 'utf-8' }).username !== 'dist') {
             console.error('Dist Server must run as user "dist"')
@@ -53,9 +59,11 @@ export const distServeFeature = new class extends Feature {
             }
         })
         console.info('dist server supported by side - %s - %s', SidePlatform.version, SidePlatform.revision)
-        web.listen(5000)
+        web.listen(parseInt(this.listen))
 
         // 保持运行
         return new Promise<number>(() => { })
     }
 }
+
+export const distServeFeature = new DistServeFeature()
