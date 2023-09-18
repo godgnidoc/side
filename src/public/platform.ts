@@ -35,6 +35,7 @@ export const SidePlatform = new class {
 
     readonly server = new class {
         get path() { return homedir() }
+        get manifest() { return join(this.path, 'manifest') }
         get contributors() { return join(this.path, 'contributors') }
         get repositories() { return join(this.path, 'repositories') }
         get downloadable() { return join(this.path, 'downloadable') }

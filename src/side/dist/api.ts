@@ -116,6 +116,9 @@ export const api = new class {
         async grant(repoId: string, user: string) {
             return await API.apost('/repo/grant', { repoId, user })
         }
+        async which(usage: string) {
+            return await API.get<string>('/repo/which', { usage })
+        }
     }
 
     readonly package = new class {

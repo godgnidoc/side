@@ -131,3 +131,19 @@ export interface PackageManifest {
     }
 
 }
+
+/**
+ * 服务器清单
+ * 
+ * @schema ServerManifest
+ */
+export interface ServerManifest {
+    /**
+     * 指定仓库的用途
+     * 
+     * usage -> repo
+     */
+    usages?: {
+        [name: string]: string
+    }
+}

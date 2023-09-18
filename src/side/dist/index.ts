@@ -16,6 +16,7 @@ import { scopeGrantFeature } from './scope/grant'
 import { repoGrantFeature } from './repo/grant'
 import { distGrabFeature } from './package/grab'
 import { distDeployFeature } from './package/deploy'
+import { repoWhichFeature } from './repo/which'
 
 export const distModule = {
     login: distLoginFeature,
@@ -46,4 +47,6 @@ export const distModule = {
 
     deploy: distDeployFeature,
     grab: distGrabFeature,
+
+    which: repoWhichFeature
 }
