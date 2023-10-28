@@ -259,7 +259,7 @@ modules:
     checkout: branch-3
 ~~~
 
-创建 `${SIDE_PROJECT_META}/settings` 问家，并键入上述内容，`bar@mail.com` 用户即可增加 `modA` 仓库的克隆动作。并覆盖了主清单文件的检出目标。
+创建 `${SIDE_PROJECT_META}/settings` 文件，并键入上述内容，`bar@mail.com` 用户即可增加 `modA` 仓库的克隆动作。并覆盖了主清单文件的检出目标。
 
  
 ## 3.3. 层叠资源

@@ -2,7 +2,7 @@ import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildI
 import { mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
 import { basename, dirname, join, relative, resolve } from 'path'
 import { promisify } from 'util'
-import { SpawnOptionsWithoutStdio, exec, spawn } from 'child_process'
+import { ExecOptions, exec, spawn } from 'child_process'
 import { readFileSync, statSync } from 'fs'
 import { dump } from 'js-yaml'
 import { SidePlatform } from 'platform'
@@ -558,18 +558,34 @@ export class Project {
             return
         }
 
-        const run = process.env['SIDE_VERBOSE'] === 'TRUE'
-            ? (cmd: string, opts?: SpawnOptionsWithoutStdio) => {
-                console.verbose('setup: running %s', cmd)
+        const _run = (cmd: string, opts?: ExecOptions) => {
+            if (process.env['SIDE_VERBOSE'] === 'TRUE') {
                 const sp = spawn(cmd, { ...opts, stdio: 'inherit' })
                 return new Promise<void>((resolve, reject) => {
                     sp.on('close', code => {
                         if (code === 0) resolve()
-                        else reject(new Error(`Command exited with non-zero code: ${code}`))
+                        else reject(new Error(`Command failed: ${code}`))
                     })
                 })
+            } else {
+                return promisify(exec)(cmd, opts)
             }
-            : promisify(exec)
+        }
+
+        const run = (cmd: string, opts?: ExecOptions) => {
+            console.verbose('setup: running %s # cwd: %s', cmd, opts?.cwd ?? process.cwd())
+            return _run(cmd, opts)
+        }
+
+        const test = async (cmd: string, opts?: ExecOptions) => {
+            try {
+                console.verbose('setup: testing %s # cwd: %s', cmd, opts?.cwd ?? process.cwd())
+                await run(cmd, opts)
+                return true
+            } catch (err) {
+                return false
+            }
+        }
 
         for (const name in modules) {
             const module = modules[name]
@@ -577,24 +593,52 @@ export class Project {
             // 按需创建子模块目录
             await mkdir(join(this.path, this.manifest.dirs.MODULE), { recursive: true })
             const mpath = join(this.path, this.manifest.dirs.MODULE, name) // 子模块路径
+            const cmdopt = { cwd: mpath, shell: '/bin/bash' }
 
             console.verbose("setup: fetching submodule '%s'", name)
 
-            // 获取子模块仓库
             if (!await IsExist(mpath)) {
+                // 获取子模块仓库
+                console.info('setup: clone submodule %s from %s', name, module.repo)
                 await run(`git clone ${module.repo} ${mpath}`, { shell: '/bin/bash' })
+            } else {
+                // 将子仓库更新到最新
+                console.info('setup: fetch submodule %s', name)
+                await run('git fetch origin', cmdopt)
             }
 
-            // 将子仓库更新到最新
-            await run('git fetch origin', { cwd: mpath, shell: '/bin/bash' })
-
-            // 切换到指定分支
-            if (module.checkout) {
-                await run(`git checkout ${module.checkout}`, { cwd: mpath, shell: '/bin/bash' })
+            if (!module.checkout) {
+                const HEAD = await readFile(join(mpath, '.git', 'HEAD'), 'utf-8')
+                if (HEAD.toString().startsWith('ref: refs/heads/')) {
+                    // 将子仓库更新到最新
+                    console.info('setup: update submodule %s', name)
+                    await run('git pull', cmdopt)
+                }
+                continue
             }
 
-            // 将子仓库更新到最新
-            await run('git pull', { cwd: mpath, shell: '/bin/bash' })
+            // 获取检出目标的类型
+            let type: 'remote-branch' | 'local-branch' | 'tag' | 'commit'
+            if (await IsExist(join(mpath, '.git', 'objects', module.checkout.slice(0, 2), module.checkout.slice(2)))) type = 'commit'
+            else if (await test(`git show-ref --verify refs/tags/${module.checkout}`, cmdopt)) type = 'tag'
+            else if (await test(`git show-ref --verify refs/heads/${module.checkout}`, cmdopt)) type = 'local-branch'
+            else if (await test(`git show-ref --verify refs/remotes/origin/${module.checkout}`, cmdopt)) type = 'remote-branch'
+            else throw new Error(`Unknown checkout target type: ${module.checkout}`)
+
+            console.info('setup: checkout submodule %s to %s(%s)', name, module.checkout, type)
+            if (type === 'remote-branch') {
+                // 检出的同时创建本地分支
+                await run(`git checkout -b ${module.checkout} origin/${module.checkout}`, cmdopt)
+            } else {
+                // 切换到指定ref
+                await run(`git checkout ${module.checkout}`, cmdopt)
+            }
+
+            if (type == 'remote-branch' || type == 'local-branch') {
+                // 将子仓库更新到最新
+                console.info('setup: update submodule %s', name)
+                await run('git pull', cmdopt)
+            }
         }
     }
 

@@ -474,7 +474,7 @@ export async function invokePackageHook(packageId: PackageId, hook: string, opti
 
     await promisify(exec)(`chmod +x ${script}`)
     const env = inflate(vmerge(
-        Project.This() ? Project.This().exports : SidePlatform.exports,
+        Project.This()?.exports ?? SidePlatform.exports,
         dist
     ))
     console.verbose('invoke hook %s', script)
