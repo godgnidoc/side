@@ -9,7 +9,10 @@ export const shellFeature = new class extends Feature {
     brief = 'Run a shell command in the project environment'
     description = 'Run a shell command in the project environment'
     async entry(...args: string[]) {
-        const cmd = args.join(' ')
+        let cmd = args.join(' ')
+
+        if (!cmd.trim()) cmd = 'bash'
+
         const exports = Project.This()?.exports ?? SidePlatform.exports
         const cp = spawn(cmd, { shell: '/bin/bash', stdio: 'inherit', env: inflate(exports) })
         return new Promise<number>((resolve) => cp.on('exit', (code) => resolve(code)))
