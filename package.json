@@ -6,7 +6,7 @@
     "bringup": "npm i && .project/scripts/build && build/side setup main && build/side build"
   },
   "dependencies": {
-    "@godgnidoc/decli": "^0.0.26",
+    "@godgnidoc/decli": "^0.0.27",
     "chokidar": "3.5.3",
     "progress-stream": "2.0.0",
     "progress": "2.0.3",
