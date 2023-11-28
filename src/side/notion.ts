@@ -1,6 +1,7 @@
 import { Args, Brief, Compgen, Complete, Feature, ShortOpt } from '@godgnidoc/decli'
 import { vdel, vfmt, vget, vhas, vkeys, vload, vmerge, vset } from 'notion'
 import { inputFrom, outputTo } from './common'
+import { runInNewContext } from 'vm'
 
 function completeFile(editing: boolean, args: string[]) {
     const prefix = editing ? args[0] : ''
@@ -60,7 +61,7 @@ class FmtFeature extends Feature {
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
     @Complete(arg => Compgen('file', arg))
-        outputFile = '-'
+    outputFile = '-'
 
     async entry(...args: string[]) {
         const input = await inputFrom(args.shift())
@@ -142,35 +143,65 @@ class VsetFeature extends Feature {
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
     @Complete(arg => Compgen('file', arg))
-        outputFile = '-'
+    outputFile = '-'
+
+    @ShortOpt('-i')
+    @Brief('Modify the input file directly')
+    inplace = false
+
 
     /** 输出格式选项，默认为yaml */
     @ShortOpt('-f')
-    @Brief('Specify the output format, json or yaml, default is yaml')
+    @Brief('Specify the output format, json or yaml, default to the same as input')
     @Args(['json', 'yaml'])
-        format: 'json' | 'yaml' = 'yaml'
+    format: 'json' | 'yaml'
 
     /** 提供命令行补全推荐，为第一个参数推荐文件 */
     complete = completeFile
 
     async entry(...args: string[]) {
-        const input = await inputFrom(args.shift())
+        const source = args.shift()
+        if (this.inplace) {
+            if (source === '-') {
+                console.error('cannot modify stdin')
+                return 1
+            }
+
+            if (this.outputFile !== '-') {
+                console.error('cannot specify output file when modify input file directly')
+                return 1
+            }
+
+            this.outputFile = source
+        }
+
+        const input = await inputFrom(source)
         if (!input) return 1
 
-        const format = this.format
-        if (format !== 'json' && format !== 'yaml')
-            return console.error('invalid format: %s', format), 1
+        if (this.format && !['json', 'yaml'].includes(this.format))
+            return console.error('invalid format: %s', this.format), 1
 
-        const expr = args.join(' ').trim()
+        let expr = args.join(' ').trim()
         if (!expr) return (console.error('missing expression'), 1)
 
-        const origin = vload(input)
+        if (expr.includes('=')) {
+            const [key, value] = expr.split('=')
+            try {
+                runInNewContext(`(${value})`)
+            } catch (e) {
+                expr = `${key} = ${JSON.stringify(value.trim())}`
+            }
+        }
+
+        const feedback = { format: this.format }
+        const origin = vload(input, feedback)
         if (!origin || !expr) return 1
+        if(this.format) feedback.format = this.format
 
         const result = vset(origin, expr)
         if (!result) return 1
 
-        const output = vfmt(result, this.format)
+        const output = vfmt(result, feedback.format)
         await outputTo(output, this.outputFile)
 
         return 0
@@ -189,35 +220,55 @@ class VdelFeature extends Feature {
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
     @Complete(arg => Compgen('file', arg))
-        outputFile = '-'
+    outputFile = '-'
+
+    @ShortOpt('-i')
+    @Brief('Modify the input file directly')
+    inplace = false
 
     /** 输出格式选项，默认为yaml */
     @ShortOpt('-f')
-    @Brief('Specify the output format, json or yaml, default is yaml')
+    @Brief('Specify the output format, json or yaml, default to the same as input')
     @Args(['json', 'yaml'])
-        format: 'json' | 'yaml' = 'yaml'
+    format: 'json' | 'yaml'
 
     /** 提供命令行补全推荐，为第一个参数推荐文件 */
     complete = completeFile
 
     async entry(...args: string[]) {
-        const input = await inputFrom(args.shift())
+        const source = args.shift()
+        if (this.inplace) {
+            if (source === '-') {
+                console.error('cannot modify stdin')
+                return 1
+            }
+
+            if (this.outputFile !== '-') {
+                console.error('cannot specify output file when modify input file directly')
+                return 1
+            }
+
+            this.outputFile = source
+        }
+
+        const input = await inputFrom(source)
         if (!input) return 1
 
-        const format = this.format
-        if (format !== 'json' && format !== 'yaml')
-            return console.error('invalid format: %s', format), 1
+        if (this.format && !['json', 'yaml'].includes(this.format))
+            return console.error('invalid format: %s', this.format), 1
 
         const key = args.shift().trim()
         if (!key) return (console.error('missing key'), 1)
 
-        const origin = vload(input)
+        const feedback = { format: this.format }
+        const origin = vload(input, feedback)
         if (!origin || !key) return 1
+        if(this.format) feedback.format = this.format
 
         const result = vdel(origin, key)
         if (!result) return 1
 
-        const output = vfmt(result, this.format)
+        const output = vfmt(result, feedback.format)
         await outputTo(output, this.outputFile)
 
         return 0
@@ -235,13 +286,13 @@ class VmergeFeature extends Feature {
     @Brief('Specify the output file, if omitted or "-", stdout is used')
     @Args(_arg => true)
     @Complete(arg => Compgen('file', arg))
-        outputFile = '-'
+    outputFile = '-'
 
     /** 输出格式选项，默认为yaml */
     @ShortOpt('-f')
     @Brief('Specify the output format, json or yaml, default is yaml')
     @Args(['json', 'yaml'])
-        format: 'json' | 'yaml' = 'yaml'
+    format: 'json' | 'yaml' = 'yaml'
 
     /** 命令行补全提示，全部参数均为文件 */
     complete = (editing: boolean, args: string[]) => {

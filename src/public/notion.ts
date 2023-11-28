@@ -35,12 +35,12 @@ export function vload(input: string, feedback = { format: '' }) {
 /**
  * 尝试将输入格式化为JSON或YAML
  */
-export function vfmt(input: any, f: 'json' | 'yaml' = 'yaml') {
+export function vfmt(input: any, f: 'js' | 'json' | 'yaml' = 'yaml') {
     switch (f) {
-    case 'json':
-        return JSON.stringify(input, null, 4)
-    case 'yaml':
-        return dump(input)
+        case 'json': case 'js':
+            return JSON.stringify(input, null, 4)
+        case 'yaml':
+            return dump(input)
     }
 }
 
