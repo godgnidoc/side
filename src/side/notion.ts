@@ -196,7 +196,7 @@ class VsetFeature extends Feature {
         const feedback = { format: this.format }
         const origin = vload(input, feedback)
         if (!origin || !expr) return 1
-        if(this.format) feedback.format = this.format
+        if (this.format) feedback.format = this.format
 
         const result = vset(origin, expr)
         if (!result) return 1
@@ -263,7 +263,7 @@ class VdelFeature extends Feature {
         const feedback = { format: this.format }
         const origin = vload(input, feedback)
         if (!origin || !key) return 1
-        if(this.format) feedback.format = this.format
+        if (this.format) feedback.format = this.format
 
         const result = vdel(origin, key)
         if (!result) return 1
@@ -288,11 +288,15 @@ class VmergeFeature extends Feature {
     @Complete(arg => Compgen('file', arg))
     outputFile = '-'
 
+    @ShortOpt('-i')
+    @Brief('Modify the input file directly')
+    inplace = false
+
     /** 输出格式选项，默认为yaml */
     @ShortOpt('-f')
-    @Brief('Specify the output format, json or yaml, default is yaml')
+    @Brief('Specify the output format, json or yaml, default to the same as the first input')
     @Args(['json', 'yaml'])
-    format: 'json' | 'yaml' = 'yaml'
+    format: 'json' | 'yaml'
 
     /** 命令行补全提示，全部参数均为文件 */
     complete = (editing: boolean, args: string[]) => {
@@ -301,11 +305,32 @@ class VmergeFeature extends Feature {
     }
 
     async entry(...args: string[]) {
-        const format = this.format
-        if (format !== 'json' && format !== 'yaml')
-            return console.error('invalid format: %s', format), 1
+        const source = args.shift()
+        if(this.inplace) {
+            if(source === '-') {
+                console.error('cannot modify stdin')
+                return 1
+            }
 
-        let result = undefined
+            if(this.outputFile !== '-') {
+                console.error('cannot specify output file when modify input file directly')
+                return 1
+            }
+
+            this.outputFile = source
+        }
+
+        let input = await inputFrom(source)
+        if(!input) return 1
+
+        if (this.format && !['json', 'yaml'].includes(this.format))
+            return console.error('invalid format: %s', this.format), 1
+
+        const feedback = { format: this.format }
+        let result = vload(input, feedback)
+        if (!result) return 1
+        if (this.format) feedback.format = this.format
+
         for (const arg of args) {
             const input = await inputFrom(arg)
             if (!input) return 1
@@ -314,7 +339,7 @@ class VmergeFeature extends Feature {
             result = vmerge(result, income)
         }
 
-        const output = vfmt(result, this.format)
+        const output = vfmt(result, feedback.format)
         await outputTo(output, this.outputFile)
 
         return 0
