@@ -686,8 +686,7 @@ export class Project {
         console.verbose('Creating project in %s', path)
 
         // 如果项目已存在，且不强制覆盖，则抛出异常
-        const { projectManifest } = await locateProjectManifest(path)
-        if (projectManifest) {
+        if (statSync(join(path, PROJECT.RPATH.MANIFEST), { throwIfNoEntry: false })?.isFile()) {
             if (!force) throw new Error('Project already exists.')
             console.warn('Project already exists. Overwriting...')
             await rmdir(join(path, PROJECT.RPATH.META), { recursive: true })
