@@ -90,7 +90,7 @@ export async function QueryPackage(query: string, version?: string, options?: Qu
         const id = PackageId.FromString(result.data[0])
         if (id instanceof Error) throw id
         cache[query] = { version: id.version.format() }
-        console.verbose('query: Package query save lock for %s: %o', query, FileDB.Dump(cache[target][query]))
+        console.verbose('query: Package query save lock for %s: %o', query, FileDB.Dump(cache[query]))
     }
 
     if (result.data.length === 0) {
