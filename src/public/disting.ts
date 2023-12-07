@@ -43,7 +43,7 @@ interface PackageOpOptions extends QueryOptions {
 export async function QueryPackage(query: string, version?: string, options?: QueryOptions) {
     const project = Project.This()
     const target = project?.target?.target
-    const cache = project
+    const cache = (project && target)
         ? FileDB.OpenOrCreate<TargetDepLock>(join(project.path, PROJECT.RPATH.DEPLOCKS, target), {}, {
             format: 'json',
             schema: 'TargetDepLock'

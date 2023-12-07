@@ -15,7 +15,7 @@ export async function main() {
     const args = process.argv.slice(2)
     // console.verbose('side: %o', args)
     try {
-        if (process.env['SIDE_DEBUG'] == 'TRUE') {
+        if (process.env['SIDE_DEBUG'] == 'TRUE' || process.env['SIDE_VERBOSE'] == 'TRUE') {
             SetLogLevel('debug')
             console.verbose('Debug mode enabled.')
             if (!verifyDefinitions(app)) {

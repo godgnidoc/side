@@ -108,8 +108,8 @@ class ProjectSetupFeature extends Feature {
         }
 
         /** 若有必要，解锁依赖 */
-        const deplockPath = join(project.path, PROJECT.RPATH.DEPLOCKS, project.target.target)
         try {
+            const deplockPath = join(project.path, PROJECT.RPATH.DEPLOCKS, project.target.target)
             await access(deplockPath)
             if (this.unlock) {
                 console.verbose('setup: unlocking dependencies')
