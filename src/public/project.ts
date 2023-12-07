@@ -1,5 +1,5 @@
-import { FileDB, LocalSettings, PackageId, DepLock, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync, Dictate, loadJson, Cache, loadYaml, Requires } from 'format'
-import { mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
+import { FileDB, LocalSettings, PackageId, ProjectAspect, ProjectBuildInfo, ProjectFinalTarget, ProjectManifest, ProjectTarget, Stage, loadYamlSync, Dictate, loadJson, Cache, Requires, TargetDepLock } from 'format'
+import { access, mkdir, readFile, readdir, rmdir, writeFile } from 'fs/promises'
 import { basename, dirname, join, relative, resolve } from 'path'
 import { promisify } from 'util'
 import { ExecOptions, exec, spawn } from 'child_process'
@@ -124,11 +124,13 @@ export class Project {
         /** 计算全部依赖 */
         let dependencies: string[] = []
 
-        const deplock = await loadYaml<DepLock>(join(this.path, PROJECT.RPATH.DEPLOCK), 'DepLock')
 
         for (const targetName of targets) {
-            if (!(targetName in deplock)) continue
-            const lock = deplock[targetName]
+            const deplockPath = join(this.path, PROJECT.RPATH.DEPLOCKS, targetName)
+            try { await access(deplockPath) }
+            catch { continue }
+
+            const lock = await loadJson<TargetDepLock>(deplockPath, 'TargetDepLock')
 
             for (const query in lock) {
                 const packageId = PackageId.FromQuery(query, lock[query].version)
@@ -349,16 +351,13 @@ export class Project {
         const target = this.target
 
         let requires: string[]
-        const lockPath = join(this.path, PROJECT.RPATH.DEPLOCK)
+        const lockPath = join(this.path, PROJECT.RPATH.DEPLOCKS, target.target)
         if (await IsExist(lockPath)) {
-            const lock = FileDB.Open<DepLock>(lockPath, { schema: 'DepLock', format: 'yaml' })
-            const tlock = lock[target.target]
-            if (tlock) {
-                for (const query in tlock) {
-                    const id = PackageId.FromQuery(query, tlock[query].version).toString()
-                    if (!requires) requires = [id]
-                    else if (!requires.includes(id)) requires.push(id)
-                }
+            const lock = FileDB.Open<TargetDepLock>(lockPath, { schema: 'TargetDepLock', format: 'json' })
+            for (const query in lock) {
+                const id = PackageId.FromQuery(query, lock[query].version).toString()
+                if (!requires) requires = [id]
+                else if (!requires.includes(id)) requires.push(id)
             }
         }
 

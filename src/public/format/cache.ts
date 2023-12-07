@@ -23,6 +23,15 @@ export interface DepLock {
 }
 
 /**
+ * @schema TargetDepLock
+ */
+export interface TargetDepLock {
+    [packageQuery: string]: {
+        version: string
+    }
+}
+
+/**
  * @strick-schema Dictate
  */
 export interface Dictate {

@@ -1,7 +1,12 @@
 import { Brief, Feature, LongOpt, ShortOpt } from "@godgnidoc/decli"
 import { InstallPackage, QueryPackage } from "disting"
-import { PackageId } from "format"
+import { DepLock, FileDB, PackageId, TargetDepLock } from "format"
+import { existsSync } from "fs"
+import { mkdir, readFile, rm, writeFile } from "fs/promises"
+import { basename, join } from "path"
 import { SidePlatform } from "platform"
+import { Project } from "project"
+import { PROJECT } from "project.path"
 import { SemVer, lte } from "semver"
 
 class UpdateFeature extends Feature {
@@ -83,3 +88,44 @@ class UpdateFeature extends Feature {
     }
 }
 export const updateFeature = new UpdateFeature
+
+export async function deprecateDeplock() {
+    const project = Project.This()
+    if (!project) {
+        console.verbose('no project, skip deprecating deplock')
+        return
+    }
+
+    const deplockPath = join(project.path, PROJECT.RPATH.DEPLOCK)
+    if (!existsSync(deplockPath)) {
+        console.verbose('no deplock, skip deprecating deplock')
+        return
+    }
+
+    await mkdir(join(project.path, PROJECT.RPATH.DEPLOCKS), { recursive: true })
+
+    console.verbose('deprecating deplock')
+    const deplock = FileDB.Open<DepLock>(deplockPath, {
+        format: 'yaml',
+        schema: 'DepLock'
+    })
+    for (const target in deplock) {
+        console.verbose('updating deplock for target %s', target)
+        const targetDeplock: TargetDepLock = deplock[target]
+        await writeFile(
+            join(project.path, PROJECT.RPATH.DEPLOCKS, target),
+            JSON.stringify(targetDeplock, null, 2)
+        )
+    }
+
+    console.verbose('removing deplock')
+    await rm(deplockPath)
+
+    const gitignore = await readFile(join(project.path, PROJECT.RPATH.META, '.gitignore'), 'utf-8')
+    const lines = gitignore.split('\n')
+    if(!lines.includes(`!/deplocks/`)) {
+        console.verbose('adding deplocks to gitignore')
+        lines.push(`!/${basename(PROJECT.RPATH.DEPLOCKS)}/`)
+        await writeFile(join(project.path, PROJECT.RPATH.META, '.gitignore'), lines.join('\n'))
+    }
+}

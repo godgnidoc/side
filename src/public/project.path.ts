@@ -26,8 +26,11 @@ export namespace PROJECT {
         /** 相对于项目路径的资源包安装根路径 */
         readonly SYSROOT = join(this.META, 'sysroot')
 
-        /** 想对于项目路径的依赖锁定文件路径 */
+        /** 想对于项目路径的依赖锁定文件路径[已弃用] */
         readonly DEPLOCK = join(this.META, 'deplock')
+
+        /** 相对于项目路径的依赖锁定文件路径 */
+        readonly DEPLOCKS = join(this.META, 'deplocks')
 
         /** 相对于项目路径的变量导出文件路径 */
         readonly EXPORTS = join(this.SYSROOT, 'exports')

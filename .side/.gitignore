@@ -6,3 +6,5 @@
 !/targets/
 !/manifest
 !/.gitignore
+
+!/deplocks/

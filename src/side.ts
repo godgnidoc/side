@@ -1,11 +1,16 @@
 import { execute, verifyDefinitions } from '@godgnidoc/decli'
 import { Side } from './side/index'
 import { GetLogLevel, InitiateLogging, SetLogLevel } from 'logging'
+import { deprecateDeplock } from 'side/update'
 
 export async function main() {
     /** 初始化日志支持 */
     InitiateLogging()
 
+    /** 执行升级流程 */
+    await deprecateDeplock()
+
+    /** 执行命令 */
     const app = new Side()
     const args = process.argv.slice(2)
     // console.verbose('side: %o', args)

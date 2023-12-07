@@ -1,5 +1,6 @@
-import { Brief, Feature, LongOpt, ShortOpt } from '@godgnidoc/decli'
-import { DepLock, FileDB } from 'format'
+import { Args, Brief, Feature, LongOpt, Repeat, ShortOpt } from '@godgnidoc/decli'
+import { FileDB, TargetDepLock } from 'format'
+import { access, rm } from 'fs/promises'
 import { join } from 'path'
 import { PROJECT, Project } from 'project'
 
@@ -67,9 +68,15 @@ class ProjectSetupFeature extends Feature {
         + '  5. Invoke post-setup scripts\n\n'
         + 'Optionally, you can specify a target to setup against, otherwise the current target will be used'
 
-    @ShortOpt('-u') @LongOpt('--update')
+    @ShortOpt('-u') @LongOpt('--unlock')
     @Brief('Unlock dependencies')
     unlock = false
+
+    @ShortOpt('-U') @LongOpt('--update')
+    @Brief('Update specified dependency')
+    @Args(_ => true)
+    @Repeat()
+    update: string[] = []
 
     complete = async (editing: boolean, args: string[]) => {
         if (args.length > 1) return []
@@ -101,17 +108,25 @@ class ProjectSetupFeature extends Feature {
         }
 
         /** 若有必要，解锁依赖 */
-        if (this.unlock) {
-            console.verbose('setup: unlocking dependencies')
-            try {
-                const deplock = FileDB.Open<DepLock>(join(project.path, PROJECT.RPATH.DEPLOCK), {
-                    format: 'yaml',
-                    schema: 'DepLock'
+        const deplockPath = join(project.path, PROJECT.RPATH.DEPLOCKS, project.target.target)
+        try {
+            await access(deplockPath)
+            if (this.unlock) {
+                console.verbose('setup: unlocking dependencies')
+                await rm(deplockPath)
+            } else if (this.update.length) {
+                console.verbose('setup: unlock dependencies for update')
+                const depLock = await FileDB.Open<TargetDepLock>(deplockPath, {
+                    format: 'json',
+                    schema: 'TargetDepLock'
                 })
-                delete deplock[project.target.target]
-            } catch {
-                console.verbose('setup: no dependency lock file found')
+                for (const dep of this.update) {
+                    console.verbose('setup: unlocking dependency', dep)
+                    delete depLock[dep]
+                }
             }
+        } catch {
+            console.verbose('setup: no dependency lock found')
         }
 
         await project.setup()

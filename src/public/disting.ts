@@ -4,7 +4,7 @@ import * as pstream from 'progress-stream'
 import * as progress from 'progress'
 import { dirname, join } from 'path'
 
-import { Cache, FileDB, PackageId, DepLock, PackageManifest, loadJson, validateSync, getLastValidateErrorText } from 'format'
+import { Cache, FileDB, PackageId, PackageManifest, loadJson, validateSync, getLastValidateErrorText, TargetDepLock } from 'format'
 import { api } from 'dist/api'
 import { PROJECT, Project } from 'project'
 import { SidePlatform } from 'platform'
@@ -44,9 +44,9 @@ export async function QueryPackage(query: string, version?: string, options?: Qu
     const project = Project.This()
     const target = project?.target?.target
     const cache = project
-        ? FileDB.OpenOrCreate<DepLock>(join(project.path, PROJECT.RPATH.DEPLOCK), {}, {
-            format: 'yaml',
-            schema: 'DepLock'
+        ? FileDB.OpenOrCreate<TargetDepLock>(join(project.path, PROJECT.RPATH.DEPLOCKS, target), {}, {
+            format: 'json',
+            schema: 'TargetDepLock'
         })
         : undefined
 
@@ -60,22 +60,16 @@ export async function QueryPackage(query: string, version?: string, options?: Qu
             console.verbose('query: Lock file is not available')
             break
         }
-        if (!(target in cache)) {
-            console.verbose('query: target %s not found in lock file', target)
-            break
-        }
-
-        const tcache = cache[target]
-        if (!(query in tcache)) {
+        if (!(query in cache)) {
             console.verbose('query: Package query not found in lock file: %s', query)
             break
         }
-        if (version && !satisfies(tcache[query].version, version)) {
-            console.warn('query: Package query hit lock for %s, but version mismatch: %s', query, tcache[query].version)
+        if (version && !satisfies(cache[query].version, version)) {
+            console.warn('query: Package query hit lock for %s, but version mismatch: %s', query, cache[query].version)
             break
         } else {
-            console.verbose('query: Package query hit lock for %s: %o', query, FileDB.Dump(tcache[query]))
-            const id = PackageId.FromQuery(query, tcache[query].version)
+            console.verbose('query: Package query hit lock for %s: %o', query, FileDB.Dump(cache[query]))
+            const id = PackageId.FromQuery(query, cache[query].version)
             if (id instanceof Error) throw id
             return [id.toString()]
         }
@@ -95,8 +89,7 @@ export async function QueryPackage(query: string, version?: string, options?: Qu
     if (options?.skipSave !== true && cache && result.data[0]) {
         const id = PackageId.FromString(result.data[0])
         if (id instanceof Error) throw id
-        if (target in cache) cache[target][query] = { version: id.version.format() }
-        else cache[target] = { [query]: { version: id.version.format() } }
+        cache[query] = { version: id.version.format() }
         console.verbose('query: Package query save lock for %s: %o', query, FileDB.Dump(cache[target][query]))
     }
 
@@ -357,6 +350,21 @@ export async function InstallPackage(packageId: PackageId, options?: PackageOpOp
 }
 
 export async function ActivatePackage(packageId: PackageId, options?: PackageOpOptions) {
+    const project = Project.This()
+    const apath = join(project.path, PROJECT.RPATH.SYSROOT, 'activation')
+    /**
+     * 检查激活状态，避免重复激活
+     */
+    try {
+        const activation = (await readFile(apath, 'utf-8')).split('\n')
+        if (activation.includes(packageId.toString())) {
+            console.verbose('activate: Package %s is already activated', packageId.toString())
+            return
+        }
+    } catch {
+        // ignore
+    }
+
     const dist = packageId.dist
 
     if (options?.disableAutos) {
@@ -381,7 +389,6 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
     }
 
     // 自动部署
-    const project = Project.This()
     switch (manifest.deploy?.strategy) {
         case 'none': break
         case 'slink': {
@@ -419,7 +426,6 @@ export async function ActivatePackage(packageId: PackageId, options?: PackageOpO
     }
 
     // 写入激活记录
-    const apath = join(project.path, PROJECT.RPATH.SYSROOT, 'activation')
     try {
         const activation = (await readFile(apath, 'utf-8')).split('\n')
         if (!activation.includes(packageId.toString())) {

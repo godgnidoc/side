@@ -71,16 +71,8 @@ class DistPackFeature extends Feature {
             engine: SidePlatform.version,
             createUser: user,
             createTime: new Date().toLocaleString(),
-            depends: {},
+            depends: packing.depends ?? {},
             deploy: {},
-        }
-
-        if (packing.depends) {
-            for (const query in packing.depends) {
-                const ver = semver.valid(packing.depends[query])
-                if (!ver) return new Error('invalid version format: ' + query + ' : ' + packing.depends[query])
-                manifest.depends[query] = ver
-            }
         }
 
         manifest.deploy.strategy = 'none'
