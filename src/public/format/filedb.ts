@@ -30,7 +30,7 @@ export class FileDB {
     save(): void {
         console.verbose('FileDB: writing %s', this.path)
         this.timestamp = Date.now()
-        if (this.format == 'json') writeFileSync(this.path, JSON.stringify(this.cache))
+        if (this.format == 'json') writeFileSync(this.path, JSON.stringify(this.cache, null, this.indent))
         else if (this.format == 'yaml') writeFileSync(this.path, dump(this.cache))
     }
 
@@ -67,7 +67,12 @@ export class FileDB {
      * @param format 文件格式
      * @param schema 文件结构
      */
-    private constructor(readonly path: string, readonly format: 'json' | 'yaml', readonly schema: string, private placeholder?: any) {
+    private constructor(
+        readonly path: string,
+        readonly format: 'json' | 'yaml',
+        readonly schema: string,
+        private placeholder: any,
+        private indent: number) {
         this.load()
         watch(path).on('change', this.load.bind(this))
     }
@@ -78,7 +83,7 @@ export class FileDB {
 
     static Open<T>(path: string, config: FileDB.OpenConfig<T>): T {
         if (!(path in dbpool))
-            dbpool[path] = new FileDB(path, config.format, config.schema, config.placeholder)
+            dbpool[path] = new FileDB(path, config.format, config.schema, config.placeholder, config.indent)
         return dbpool[path].proxy as T
     }
 
@@ -112,6 +117,7 @@ export namespace FileDB {
         format: 'json' | 'yaml'
         schema: string
         placeholder?: Partial<T>
+        indent?: number
     }
 }
 

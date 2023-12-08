@@ -118,7 +118,8 @@ class ProjectSetupFeature extends Feature {
                 console.verbose('setup: unlock dependencies for update')
                 const depLock = await FileDB.Open<TargetDepLock>(deplockPath, {
                     format: 'json',
-                    schema: 'TargetDepLock'
+                    schema: 'TargetDepLock',
+                    indent: 2,
                 })
                 for (const dep of this.update) {
                     console.verbose('setup: unlocking dependency', dep)

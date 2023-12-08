@@ -353,7 +353,7 @@ export class Project {
         let requires: string[]
         const lockPath = join(this.path, PROJECT.RPATH.DEPLOCKS, target.target)
         if (await IsExist(lockPath)) {
-            const lock = FileDB.Open<TargetDepLock>(lockPath, { schema: 'TargetDepLock', format: 'json' })
+            const lock = await loadJson<TargetDepLock>(lockPath, 'TargetDepLock')
             for (const query in lock) {
                 const id = PackageId.FromQuery(query, lock[query].version).toString()
                 if (!requires) requires = [id]

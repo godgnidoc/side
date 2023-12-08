@@ -46,7 +46,8 @@ export async function QueryPackage(query: string, version?: string, options?: Qu
     const cache = (project && target)
         ? FileDB.OpenOrCreate<TargetDepLock>(join(project.path, PROJECT.RPATH.DEPLOCKS, target), {}, {
             format: 'json',
-            schema: 'TargetDepLock'
+            schema: 'TargetDepLock',
+            indent: 2
         })
         : undefined
 
